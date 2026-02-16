@@ -546,9 +546,8 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
     st.session_state["auto_scan_last"] = now
 
-    # キャッシュを使わずに最新のファイル一覧を取得
+    # ファイル一覧を取得（キャッシュ利用 — キャッシュTTL 2分で自然更新）
     try:
-        list_images.clear()
         drive_images = list_images(service, folder_id)
     except Exception:
         return
@@ -562,15 +561,19 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
     if not new_images:
         return
 
+    # 一度に解析する上限（タイムアウト防止）
+    MAX_AUTO_ANALYZE = 5
+    batch = new_images[:MAX_AUTO_ANALYZE]
+    remaining = len(new_images) - len(batch)
+
     # 新着画像を解析
     success_count = 0
-    with st.sidebar:
-        scan_placeholder = st.empty()
-        scan_placeholder.info(
-            f"🔄 新着画像 {len(new_images)} 件を検知しました。自動解析中..."
-        )
+    scan_placeholder = st.sidebar.empty()
+    scan_placeholder.info(
+        f"🔄 新着画像 {len(new_images)} 件を検知。自動解析中..."
+    )
 
-    for img in new_images:
+    for img in batch:
         fid = img["id"]
         try:
             image_bytes = download_image(service, fid)
@@ -583,13 +586,13 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
         except Exception:
             continue  # エラーが出てもスキップして続行
 
-    with st.sidebar:
-        if success_count > 0:
-            scan_placeholder.success(
-                f"✅ 新着 {success_count} 件を自動解析しました！"
-            )
-        else:
-            scan_placeholder.empty()
+    if success_count > 0:
+        msg = f"✅ 新着 {success_count} 件を自動解析しました！"
+        if remaining > 0:
+            msg += f"\n（残り {remaining} 件は次回スキャン時に解析）"
+        scan_placeholder.success(msg)
+    else:
+        scan_placeholder.empty()
 
 
 # ---------------------------------------------------------------------------
@@ -3181,6 +3184,7 @@ def main():
         st.caption(f"Google Driveに追加された画像を{AUTO_SCAN_INTERVAL // 60}分ごとに検知して自動解析します。")
         if st.button("🔄 今すぐスキャン", key="manual_scan", use_container_width=True):
             st.session_state["auto_scan_last"] = 0  # クールダウンをリセット
+            list_images.clear()  # キャッシュをクリアして最新一覧を取得
             st.rerun()
 
     if st.session_state["auto_scan_enabled"]:
