@@ -3065,7 +3065,15 @@ def main():
     metadata_for_folders = load_metadata()
     all_sidebar_folders = get_all_folders_from_metadata(metadata_for_folders)
     folder_counts_sidebar = {}
-    for meta in metadata_for_folders.values():
+    for fid, meta in metadata_for_folders.items():
+        # ローカルアップロード画像はファイルが存在する場合のみカウント
+        if meta.get("source") == "upload":
+            exists = any(
+                (UPLOADS_DIR / f"{fid}.{ext}").exists()
+                for ext in ("png", "jpg", "jpeg")
+            )
+            if not exists:
+                continue
         f = get_folder(meta)
         folder_counts_sidebar[f] = folder_counts_sidebar.get(f, 0) + 1
 
