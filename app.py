@@ -598,6 +598,97 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
         scan_placeholder.empty()
 
 
+def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
+    """手動スキャン: メイン画面にリアルタイム進捗を表示しながら新着画像を解析する。"""
+    st.markdown("---")
+    st.subheader("🔄 新着画像スキャン")
+
+    status_text = st.empty()
+    status_text.info("📡 Google Drive を確認中...")
+
+    # Drive APIで最新一覧を取得
+    try:
+        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+        query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
+        results = (
+            service.files()
+            .list(
+                q=query,
+                fields="files(id, name, mimeType)",
+                pageSize=100,
+            )
+            .execute()
+        )
+        drive_images = results.get("files", [])
+    except Exception as e:
+        status_text.error(f"⚠️ Google Drive への接続に失敗しました: {e}")
+        return
+
+    metadata = load_metadata()
+    new_images = [img for img in drive_images if img["id"] not in metadata]
+
+    if not new_images:
+        status_text.success("✅ 新着画像はありません。すべて解析済みです。")
+        st.caption(f"Google Drive: {len(drive_images)} 件 / 解析済み: {len(metadata)} 件")
+        return
+
+    status_text.info(
+        f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析を開始します..."
+    )
+
+    # プログレスバー
+    progress_bar = st.progress(0, text="準備中...")
+    results_container = st.container()
+    success_count = 0
+    fail_count = 0
+    total = len(new_images)
+
+    for i, img in enumerate(new_images):
+        fid = img["id"]
+        fname = img.get("name", fid)
+
+        progress_bar.progress(
+            (i) / total,
+            text=f"解析中... ({i + 1}/{total}) {fname}",
+        )
+
+        try:
+            image_bytes = download_image(service, fid)
+            result = analyze_image_with_gemini(image_bytes, api_key)
+            if result:
+                result["folder"] = DEFAULT_FOLDER
+                metadata[fid] = result
+                save_metadata(metadata)
+                success_count += 1
+                with results_container:
+                    st.markdown(
+                        f"✅ **{result.get('title', fname)}**  \n"
+                        f"<span style='color:#888;font-size:12px;'>"
+                        f"{', '.join(result.get('keywords', [])[:4])}</span>",
+                        unsafe_allow_html=True,
+                    )
+            else:
+                fail_count += 1
+                with results_container:
+                    st.markdown(f"⚠️ {fname} — 解析失敗")
+        except Exception as e:
+            fail_count += 1
+            with results_container:
+                st.markdown(f"⚠️ {fname} — エラー: {e}")
+
+    progress_bar.progress(1.0, text="完了！")
+
+    # 結果サマリー
+    if success_count > 0:
+        status_text.success(
+            f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
+            + (f"（{fail_count} 件失敗）" if fail_count else "")
+        )
+        st.balloons()
+    else:
+        status_text.warning("⚠️ 新着画像の解析に失敗しました。再度お試しください。")
+
+
 # ---------------------------------------------------------------------------
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
@@ -3186,18 +3277,31 @@ def main():
         )
         st.caption(f"Google Driveに追加された画像を{AUTO_SCAN_INTERVAL // 60}分ごとに検知して自動解析します。")
         if st.button("🔄 今すぐスキャン", key="manual_scan", use_container_width=True):
-            st.session_state["auto_scan_last"] = 0  # クールダウンをリセット
-            list_images.clear()  # キャッシュをクリアして最新一覧を取得
+            st.session_state["manual_scan_running"] = True
+            list_images.clear()
             st.rerun()
 
-    if st.session_state["auto_scan_enabled"]:
+    # --- 手動スキャン（リアルタイム進捗表示） ---
+    if st.session_state.pop("manual_scan_running", False):
+        try:
+            _scan_service = get_drive_service()
+            _scan_folder_id = get_folder_id()
+            _scan_api_key = get_gemini_api_key()
+            if _scan_api_key:
+                _run_manual_scan(_scan_service, _scan_folder_id, _scan_api_key)
+        except Exception:
+            st.warning("⚠️ スキャン中にエラーが発生しました。")
+        st.session_state["auto_scan_last"] = time.time()
+
+    # --- 自動スキャン（バックグラウンド） ---
+    elif st.session_state["auto_scan_enabled"]:
         try:
             _scan_service = get_drive_service()
             _scan_folder_id = get_folder_id()
             _scan_api_key = get_gemini_api_key()
             auto_scan_new_images(_scan_service, _scan_folder_id, _scan_api_key)
         except Exception:
-            pass  # 自動スキャンの失敗でアプリ全体を止めない
+            pass
 
     # 選択されたタブに応じてページを表示
     active = st.session_state["active_tab"]
