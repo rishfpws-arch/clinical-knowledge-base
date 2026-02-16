@@ -2791,40 +2791,104 @@ def page_chat():
             img_name = uploaded_file.name
 
         if img_bytes:
-            col_preview, col_action = st.columns([1, 1])
-            with col_preview:
-                st.image(img_bytes, width=300, caption=img_name)
-            with col_action:
-                st.markdown(f"**サイズ:** {len(img_bytes) / 1024:.0f} KB")
-                if not api_key:
-                    st.warning("AI解析には `GOOGLE_API_KEY` の設定が必要です。")
-                else:
-                    if st.button(
-                        "🤖 AI解析して知識ベースに取り込む",
-                        key="btn_upload_analyze",
-                        type="primary",
-                        use_container_width=True,
-                    ):
-                        with st.spinner("AI解析中..."):
-                            result = analyze_image_with_gemini(img_bytes, api_key)
-                        if result:
-                            # ローカルに画像を保存
-                            UPLOADS_DIR.mkdir(exist_ok=True)
-                            file_id = f"upload_{uuid.uuid4().hex[:12]}"
-                            ext = img_name.rsplit(".", 1)[-1].lower() if "." in img_name else "png"
-                            save_path = UPLOADS_DIR / f"{file_id}.{ext}"
-                            save_path.write_bytes(img_bytes)
-                            # メタデータに保存
-                            result["folder"] = DEFAULT_FOLDER
-                            result["source"] = "upload"
-                            metadata[file_id] = result
+            # 既に取り込み済みの画像がある場合は詳細表示
+            last_upload_id = st.session_state.get("last_upload_id")
+            if last_upload_id and last_upload_id in metadata:
+                meta = metadata[last_upload_id]
+                st.success("✅ 取り込み完了！")
+                col_img, col_info = st.columns([1, 2])
+                with col_img:
+                    try:
+                        saved_bytes = download_image(service, last_upload_id)
+                        st.image(saved_bytes, width=250)
+                    except Exception:
+                        st.image(img_bytes, width=250)
+                with col_info:
+                    st.markdown(f"### {meta.get('title', '不明')}")
+                    status = get_status(meta)
+                    if status == STATUS_REVIEWED:
+                        st.markdown("✅ **確認済み**")
+                    else:
+                        st.markdown("🆕 **未確認**（AI自動生成）")
+                    kw = meta.get("keywords", [])
+                    if kw:
+                        st.markdown(" ".join(f"`{k}`" for k in kw))
+                # 要約（スクロール可能）
+                summary = meta.get("summary", "")
+                if summary:
+                    st.markdown(
+                        f"<div style='max-height:200px; overflow-y:auto; "
+                        f"background:rgba(91,139,239,0.05); border-radius:8px; "
+                        f"padding:12px; margin:8px 0; font-size:14px; "
+                        f"line-height:1.7;'>{summary}</div>",
+                        unsafe_allow_html=True,
+                    )
+                # アクションボタン
+                btn_c1, btn_c2, btn_c3 = st.columns(3)
+                with btn_c1:
+                    if status != STATUS_REVIEWED:
+                        if st.button("✅ レビュー認証", key="upload_review", type="primary", use_container_width=True):
+                            existing = metadata.get(last_upload_id, {})
+                            existing["status"] = STATUS_REVIEWED
+                            metadata[last_upload_id] = existing
                             save_metadata(metadata)
-                            st.success(
-                                f"✅ 取り込み完了！\n\n"
-                                f"**{result.get('title', '')}**\n\n"
-                                f"{result.get('summary', '')[:100]}..."
-                            )
-                            st.balloons()
+                            st.rerun()
+                    else:
+                        st.button("✅ 認証済み", key="upload_reviewed", disabled=True, use_container_width=True)
+                with btn_c2:
+                    if st.button("📝 詳細編集", key="upload_detail", use_container_width=True):
+                        st.session_state["active_tab"] = "📸 画像管理"
+                        st.session_state["selected_image_id"] = last_upload_id
+                        st.session_state.pop("last_upload_id", None)
+                        st.rerun()
+                with btn_c3:
+                    if st.button("🗑️ 削除", key="upload_delete", use_container_width=True):
+                        move_to_trash([last_upload_id], metadata)
+                        # ローカル画像ファイルも削除
+                        for ext in ("png", "jpg", "jpeg"):
+                            p = UPLOADS_DIR / f"{last_upload_id}.{ext}"
+                            if p.exists():
+                                p.unlink()
+                        st.session_state.pop("last_upload_id", None)
+                        st.success("🗑️ ゴミ箱に移動しました")
+                        st.rerun()
+                # 新しい画像を取り込むボタン
+                if st.button("📷 別の画像を取り込む", key="upload_another"):
+                    st.session_state.pop("last_upload_id", None)
+                    st.rerun()
+            else:
+                # 未取り込み：プレビューと取り込みボタン
+                col_preview, col_action = st.columns([1, 1])
+                with col_preview:
+                    st.image(img_bytes, width=300, caption=img_name)
+                with col_action:
+                    st.markdown(f"**サイズ:** {len(img_bytes) / 1024:.0f} KB")
+                    if not api_key:
+                        st.warning("AI解析には `GOOGLE_API_KEY` の設定が必要です。")
+                    else:
+                        if st.button(
+                            "🤖 AI解析して知識ベースに取り込む",
+                            key="btn_upload_analyze",
+                            type="primary",
+                            use_container_width=True,
+                        ):
+                            with st.spinner("AI解析中..."):
+                                result = analyze_image_with_gemini(img_bytes, api_key)
+                            if result:
+                                # ローカルに画像を保存
+                                UPLOADS_DIR.mkdir(exist_ok=True)
+                                file_id = f"upload_{uuid.uuid4().hex[:12]}"
+                                ext = img_name.rsplit(".", 1)[-1].lower() if "." in img_name else "png"
+                                save_path = UPLOADS_DIR / f"{file_id}.{ext}"
+                                save_path.write_bytes(img_bytes)
+                                # メタデータに保存
+                                result["folder"] = DEFAULT_FOLDER
+                                result["source"] = "upload"
+                                metadata[file_id] = result
+                                save_metadata(metadata)
+                                st.session_state["last_upload_id"] = file_id
+                                st.balloons()
+                                st.rerun()
 
     if knowledge_count == 0 and not st.session_state.get("chat_messages"):
         st.info(
@@ -2975,6 +3039,7 @@ def main():
         st.session_state["chat_messages"] = []
         st.session_state.pop("ai_view_folder", None)
         st.session_state.pop("folder_detail_id", None)
+        st.session_state.pop("last_upload_id", None)
         st.rerun()
 
     # サイドバー上部にタブ切り替えボタン
