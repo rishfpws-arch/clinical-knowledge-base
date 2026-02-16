@@ -426,6 +426,27 @@ def list_images(_service, folder_id: str) -> list[dict]:
             return []
 
 
+def list_all_images(_service, folder_id: str, metadata: dict) -> list[dict]:
+    """Google Drive画像 + ローカルアップロード画像を統合した一覧を返す。"""
+    images = list_images(_service, folder_id)
+    drive_ids = {img["id"] for img in images}
+
+    # メタデータにあるがDrive一覧にないローカル画像を追加
+    if UPLOADS_DIR.exists():
+        for fid, meta in metadata.items():
+            if fid not in drive_ids and meta.get("source") == "upload":
+                # ローカルファイルが存在するか確認
+                exists = any(
+                    (UPLOADS_DIR / f"{fid}.{ext}").exists()
+                    for ext in ("png", "jpg", "jpeg")
+                )
+                if exists:
+                    images.append({
+                        "id": fid,
+                        "name": meta.get("title", fid),
+                        "mimeType": "image/png",
+                    })
+    return images
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -1044,11 +1065,11 @@ def page_image_manager():
     api_key = get_gemini_api_key()
     metadata = load_metadata()
 
-    images = list_images(service, folder_id)
+    images = list_all_images(service, folder_id, metadata)
     if not images:
         st.info(
-            "フォルダ内に画像ファイル（JPG / PNG）が見つかりませんでした。\n\n"
-            "Google Drive の対象フォルダに画像を追加してください。"
+            "画像が見つかりませんでした。\n\n"
+            "Google Driveに画像を追加するか、チャット画面から画像を貼り付けて取り込んでください。"
         )
         return
 
@@ -1318,7 +1339,7 @@ def page_batch_analyze():
     api_key = get_gemini_api_key()
     metadata = load_metadata()
 
-    images = list_images(service, folder_id)
+    images = list_all_images(service, folder_id, metadata)
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
@@ -2105,7 +2126,7 @@ def page_folder_manual():
     metadata = load_metadata()
     folders = load_folders()
 
-    images = list_images(service, folder_id)
+    images = list_all_images(service, folder_id, metadata)
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
@@ -2272,7 +2293,7 @@ def page_folder_ai():
     metadata = load_metadata()
     folders = load_folders()
 
-    images = list_images(service, folder_id)
+    images = list_all_images(service, folder_id, metadata)
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
