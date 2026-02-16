@@ -17,6 +17,7 @@ import re
 import ssl
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -87,8 +88,8 @@ JSON以外のテキストは一切含めないでください。
 - 関連する臨床情報（例: ステロイド内服歴、緊急手術適応）"""
 
 # チャット用システムプロンプト（知識ベース検索）
-CHAT_SYSTEM_PROMPT = """あなたは私の臨床知識アシスタントです。
-以下の【保存された知識】に基づいて、ユーザーの質問に答えてください。
+CHAT_SYSTEM_PROMPT = """あなたは臨床経験豊富な指導医レベルの知識アシスタントです。
+以下の【保存された知識】に基づいて、臨床現場ですぐに活用できる形で回答してください。
 
 回答のルール:
 1. 根拠となる情報の「ID」を必ず明記してください（例: [ID: xxxxx]）。
@@ -101,27 +102,34 @@ CHAT_SYSTEM_PROMPT = """あなたは私の臨床知識アシスタントです�
    「直接の記載はありませんが、関連する知識として以下があります」と提示してください。
 4. 完全に関連する知識が一切ない場合のみ「保存された知識にはありません」と答えてください。
 5. 複数の知識が関連する場合は、すべてのIDを明記してください。
-6. 回答は簡潔かつ正確にしてください。
+6. 保存された知識を引用しつつ、以下の観点を補足してください:
+   - 鑑別診断の優先順位と除外のポイント
+   - 推奨される追加検査とその根拠
+   - 治療方針（具体的な薬剤名・用量があれば記載）
+   - 臨床的に注意すべきピットフォールやRed flags
+7. 必要に応じて表形式を活用し、わかりやすくまとめてください。
 
 【保存された知識】
 {knowledge_context}
 """
 
 # チャット用システムプロンプト（一般AI検索）
-CHAT_GENERAL_PROMPT = """あなたは臨床医向けの医学コンサルタントAIです。
-ユーザーは若手医師（研修医〜専攻医レベル）です。
-一般人向けの説明は不要です。専門家同士の議論レベルで回答してください。
-
-【重要】回答は簡潔に、10行以内を目安にまとめてください。冗長な説明は避け、要点のみ記載。
+CHAT_GENERAL_PROMPT = """あなたは臨床経験豊富な指導医レベルの医学コンサルタントAIです。
+ユーザーは臨床医（研修医〜専攻医〜指導医）です。
+一般人向けの説明は不要です。専門家同士の臨床カンファレンスレベルで回答してください。
 
 回答のルール:
-1. 専門用語をそのまま使用し、平易な言い換えは不要。
-2. 要点を箇条書きで簡潔に:
-   - 鑑別診断（上位3〜5つ、頻度順）
-   - 第一選択の検査・治療（薬剤名・用量含む）
-   - Red flagsがあれば1〜2行で
-3. 出典は最も重要なもの1〜2件のみ記載（ガイドライン名と年）。
-4. 長い説明文は書かないこと。
+1. 専門用語をそのまま使用し、必要に応じて英語略語を併記（例: AVN、MRI）。
+2. 以下の観点を網羅的に含めてください:
+   - **鑑別診断**: 頻度順に5〜8つ挙げ、それぞれ簡潔に特徴的所見・除外のポイントを記載
+   - **推奨検査**: 段階的に（まず行うべき検査 → 追加精査）、検査選択の根拠も記載
+   - **治療方針**: 第一選択薬（薬剤名・用量・投与経路）、代替案、治療期間の目安
+   - **Red flags / 緊急対応**: 見逃してはならない危険な徴候、コンサルトのタイミング
+   - **フォローアップ**: 経過観察の間隔、治療効果判定の指標、患者教育のポイント
+   - **ピットフォール**: 陥りやすい誤診・見落とし、注意すべき併存疾患
+3. 具体的なエビデンスに基づき、ガイドライン名・年・推奨グレードを記載（2〜4件）。
+4. 必要に応じて表形式を活用し、臨床現場ですぐに参照できる形にまとめてください。
+5. 回答の最後に「臨床のポイント」として、現場で役立つ実践的なtipsを1〜3点追記してください。
 """
 
 
@@ -784,6 +792,40 @@ def display_referenced_images(
                 st.warning(f"画像を読み込めませんでした (ID: {fid})")
 
 
+def display_kb_response_with_images(
+    text: str, metadata: dict, service
+) -> None:
+    """知識ベースの回答テキストを表示し、[ID: xxx] の箇所に画像を埋め込む。"""
+    if not text:
+        return
+
+    # [ID: xxx] パターンで分割
+    pattern = r"\[ID:\s*([^\]]+)\]"
+    parts = re.split(pattern, text)
+    shown_ids = set()
+
+    # parts: [text, id, text, id, text, ...]
+    for i, part in enumerate(parts):
+        if i % 2 == 0:
+            # テキスト部分
+            stripped = part.strip()
+            if stripped:
+                st.markdown(stripped)
+        else:
+            # ID部分 → 画像を表示
+            fid = part.strip()
+            if fid in metadata and fid not in shown_ids:
+                shown_ids.add(fid)
+                meta = metadata[fid]
+                title = meta.get("title", "不明")
+                try:
+                    img_bytes = download_image(service, fid)
+                    with st.expander(f"🖼️ {title}", expanded=True):
+                        st.image(img_bytes, width=300)
+                except Exception:
+                    st.caption(f"🖼️ {title}（画像読み込み失敗）")
+
+
 # ---------------------------------------------------------------------------
 # チャット機能: セッション送信処理
 # ---------------------------------------------------------------------------
@@ -814,19 +856,18 @@ def handle_chat_submit(
         {"role": "user", "content": user_input}
     )
 
-    # AI回答を生成
+    # AI回答を生成（知識ベース + 一般AIを並列実行で高速化）
     with st.spinner("回答を生成中..."):
-        kb_response = generate_chat_response(
-            user_input,
-            metadata,
-            api_key,
-            st.session_state["chat_messages"][:-1],
-        )
-        general_response = generate_general_response(
-            user_input,
-            api_key,
-            st.session_state["chat_messages"][:-1],
-        )
+        history = st.session_state["chat_messages"][:-1]
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            kb_future = executor.submit(
+                generate_chat_response, user_input, metadata, api_key, history
+            )
+            gen_future = executor.submit(
+                generate_general_response, user_input, api_key, history
+            )
+            kb_response = kb_future.result()
+            general_response = gen_future.result()
         ref_ids = extract_file_ids(kb_response, metadata)
 
     # アシスタントメッセージを追加
@@ -883,14 +924,22 @@ def render_home_screen(knowledge_count: int) -> None:
 
     st.markdown("")
 
-    # 質問例カード（3カラム）
+    # 質問例カード（3カラム）— クリックで検索実行
+    example_questions = [
+        ("🔍", "股関節痛の鑑別診断を教えてください"),
+        ("🖼️", "SIFの特徴的な画像所見は？"),
+        ("📋", "登録されている知識の一覧を見せて"),
+    ]
     c1, c2, c3 = st.columns(3)
-    with c1:
-        st.info("🔍 **股関節痛の鑑別診断**を教えてください")
-    with c2:
-        st.info("🖼️ **SIFの特徴的な画像所見**は？")
-    with c3:
-        st.info("📋 **登録されている知識の一覧**を見せて")
+    for col, (icon, question) in zip([c1, c2, c3], example_questions):
+        with col:
+            if st.button(
+                f"{icon} {question}",
+                key=f"example_q_{icon}",
+                use_container_width=True,
+            ):
+                st.session_state["pending_question"] = question
+                st.rerun()
 
     # 知識件数バッジ
     st.markdown("")
@@ -2605,6 +2654,11 @@ def page_chat():
         )
         send_clicked = st.form_submit_button("🔍 検索する", type="primary")
 
+    # 質問例クリックからの送信処理
+    pending = st.session_state.pop("pending_question", None)
+    if pending:
+        handle_chat_submit(pending, sessions, metadata, api_key)
+
     # 送信処理
     if send_clicked and user_input:
         handle_chat_submit(user_input, sessions, metadata, api_key)
@@ -2643,11 +2697,9 @@ def page_chat():
                 "letter-spacing:0.5px; margin-bottom:4px;'>📚 知識ベース</p>",
                 unsafe_allow_html=True,
             )
-            st.markdown(latest_a.get("content", ""))
-            if latest_a.get("ref_ids"):
-                display_referenced_images(
-                    latest_a["ref_ids"], metadata, service
-                )
+            display_kb_response_with_images(
+                latest_a.get("content", ""), metadata, service
+            )
         with col_gen:
             st.markdown(
                 "<p style='color:#a78bfa; font-weight:600; font-size:13px;"
@@ -2687,7 +2739,9 @@ def page_chat():
                         "font-size:12px;'>📚 知識ベース</p>",
                         unsafe_allow_html=True,
                     )
-                    st.markdown(a_msg.get("content", ""))
+                    display_kb_response_with_images(
+                        a_msg.get("content", ""), metadata, service
+                    )
                 with col_h2:
                     st.markdown(
                         "<p style='color:#a78bfa; font-weight:600;"
@@ -2712,16 +2766,37 @@ def main():
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "<h1 style='margin-bottom:0; font-family:Playfair Display,serif;'>"
-        "🧸 Clinical Knowledge Base</h1>",
-        unsafe_allow_html=True,
-    )
-
     # アクティブタブの管理
     TAB_NAMES = ["💬 チャット検索", "📸 画像管理", "⚡ 一括解析", "🗂️ フォルダ設定", "📂 手動整理", "🤖 AI整理", "🗑️ ゴミ箱"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
+
+    home_clicked = st.button("🧸 Clinical Knowledge Base", key="home_btn")
+    st.markdown(
+        """<style>
+        div[data-testid="stMainBlockContainer"] > div:nth-child(2) button {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            border: none !important;
+            padding: 4px 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: inherit !important;
+            cursor: pointer !important;
+        }
+        div[data-testid="stMainBlockContainer"] > div:nth-child(2) button:hover {
+            opacity: 0.7;
+        }
+        </style>""",
+        unsafe_allow_html=True,
+    )
+    if home_clicked:
+        st.session_state["active_tab"] = TAB_NAMES[0]
+        st.session_state["active_session_id"] = None
+        st.session_state["chat_messages"] = []
+        st.session_state.pop("ai_view_folder", None)
+        st.rerun()
 
     # サイドバー上部にタブ切り替えボタン
     st.sidebar.markdown("### ページ切り替え")
