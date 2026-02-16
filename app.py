@@ -635,12 +635,14 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
                 for kw in edited_keywords_str.split(",")
                 if kw.strip()
             ]
-            metadata[file_id] = {
+            existing = metadata.get(file_id, {})
+            existing.update({
                 "title": edited_title,
                 "summary": edited_summary,
                 "keywords": new_keywords,
                 "status": STATUS_REVIEWED,
-            }
+            })
+            metadata[file_id] = existing
             save_metadata(metadata)
             st.success("✅ 保存しました！知識として確定されました。")
             st.rerun()
@@ -1184,6 +1186,11 @@ def page_image_manager():
                     with st.spinner("Gemini で再解析中..."):
                         result = analyze_image_with_gemini(image_bytes, api_key)
                         if result:
+                            # 既存のfolder, sourceを保持
+                            old = metadata.get(file_id, {})
+                            for keep_key in ("folder", "source"):
+                                if keep_key in old:
+                                    result[keep_key] = old[keep_key]
                             metadata[file_id] = result
                             save_metadata(metadata)
                             st.session_state.pop("editing_file_id", None)
@@ -1201,6 +1208,10 @@ def page_image_manager():
                     with st.spinner("Gemini 2.0 Flash で解析中..."):
                         result = analyze_image_with_gemini(image_bytes, api_key)
                         if result:
+                            old = metadata.get(file_id, {})
+                            for keep_key in ("folder", "source"):
+                                if keep_key in old:
+                                    result[keep_key] = old[keep_key]
                             metadata[file_id] = result
                             save_metadata(metadata)
                             st.success("解析が完了しました！")
@@ -1813,10 +1824,12 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
             image_bytes = download_image(service, fid)
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                if is_reanalyze and fid in metadata:
-                    # 再解析時はフォルダ情報を保持
-                    old_folder = metadata[fid].get("folder", DEFAULT_FOLDER)
-                    result["folder"] = old_folder
+                if fid in metadata:
+                    # 既存のfolder, sourceを保持
+                    old = metadata[fid]
+                    for keep_key in ("folder", "source"):
+                        if keep_key in old:
+                            result[keep_key] = old[keep_key]
                 metadata[fid] = result
                 save_metadata(metadata)
                 success_count += 1
@@ -2379,7 +2392,10 @@ def page_folder_ai():
                             image_bytes = download_image(service, file_id)
                             result = analyze_image_with_gemini(image_bytes, api_key)
                             if result:
-                                result["folder"] = metadata[file_id].get("folder", DEFAULT_FOLDER)
+                                old = metadata.get(file_id, {})
+                                for keep_key in ("folder", "source"):
+                                    if keep_key in old:
+                                        result[keep_key] = old[keep_key]
                                 metadata[file_id] = result
                                 save_metadata(metadata)
                                 st.session_state.pop("editing_file_id", None)
