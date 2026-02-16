@@ -2657,22 +2657,43 @@ def page_chat():
 
     # --- 📷 画像貼り付け → AI解析して取り込み ---
     with st.expander("📷 画像を貼り付けて取り込む", expanded=False):
+        from streamlit_paste_button import paste_image_button as pib
+
+        st.markdown("**方法①** スクショをコピーして以下のボタンで貼り付け:")
+        paste_result = pib(
+            label="📋 クリップボードから画像を貼り付け",
+            text_color="#5b8def",
+            background_color="transparent",
+            hover_background_color="rgba(91,139,239,0.1)",
+        )
+
+        st.markdown("**方法②** ファイルを選択 / ドラッグ＆ドロップ:")
         uploaded_file = st.file_uploader(
-            "スクリーンショットや画像をドラッグ＆ドロップまたは選択",
+            "画像ファイルを選択",
             type=["png", "jpg", "jpeg"],
             key="chat_image_upload",
             label_visibility="collapsed",
         )
-        if uploaded_file is not None:
+
+        # 画像データの決定（貼り付け or ファイル選択）
+        img_bytes = None
+        img_name = "clipboard_image.png"
+        if paste_result and paste_result.image_data is not None:
+            # クリップボードから貼り付けた画像
+            buf = io.BytesIO()
+            paste_result.image_data.save(buf, format="PNG")
+            img_bytes = buf.getvalue()
+            img_name = f"paste_{datetime.now().strftime('%H%M%S')}.png"
+        elif uploaded_file is not None:
             img_bytes = uploaded_file.getvalue()
+            img_name = uploaded_file.name
+
+        if img_bytes:
             col_preview, col_action = st.columns([1, 1])
             with col_preview:
-                st.image(img_bytes, width=300, caption=uploaded_file.name)
+                st.image(img_bytes, width=300, caption=img_name)
             with col_action:
-                st.markdown(
-                    f"**ファイル名:** {uploaded_file.name}  \n"
-                    f"**サイズ:** {len(img_bytes) / 1024:.0f} KB"
-                )
+                st.markdown(f"**サイズ:** {len(img_bytes) / 1024:.0f} KB")
                 if not api_key:
                     st.warning("AI解析には `GOOGLE_API_KEY` の設定が必要です。")
                 else:
@@ -2688,7 +2709,7 @@ def page_chat():
                             # ローカルに画像を保存
                             UPLOADS_DIR.mkdir(exist_ok=True)
                             file_id = f"upload_{uuid.uuid4().hex[:12]}"
-                            ext = uploaded_file.name.rsplit(".", 1)[-1].lower() if "." in uploaded_file.name else "png"
+                            ext = img_name.rsplit(".", 1)[-1].lower() if "." in img_name else "png"
                             save_path = UPLOADS_DIR / f"{file_id}.{ext}"
                             save_path.write_bytes(img_bytes)
                             # メタデータに保存
