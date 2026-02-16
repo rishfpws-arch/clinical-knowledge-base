@@ -26,18 +26,19 @@ from PIL import Image
 import google.generativeai as genai
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
+from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 
 # ---------------------------------------------------------------------------
 # 定数
 # ---------------------------------------------------------------------------
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png"]
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
 CHAT_SESSIONS_PATH = Path(__file__).parent / "chat_sessions.json"
 TRASH_PATH = Path(__file__).parent / "trash.json"
 FOLDERS_PATH = Path(__file__).parent / "folders.json"
+UPLOADS_DIR = Path(__file__).parent / "uploads"
 TRASH_RETENTION_DAYS = 30  # ゴミ箱の保持日数
 DEFAULT_FOLDER = "未分類"
 
@@ -429,7 +430,14 @@ def list_images(_service, folder_id: str) -> list[dict]:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def download_image(_service, file_id: str) -> bytes:
-    """Google Drive から画像をダウンロードしバイト列で返す（5分キャッシュ、SSLリトライ付）。"""
+    """画像をバイト列で返す。ローカルアップロード画像を優先し、なければGoogle Driveから取得。"""
+    # ローカルアップロード画像を確認
+    for ext in ("png", "jpg", "jpeg"):
+        local_path = UPLOADS_DIR / f"{file_id}.{ext}"
+        if local_path.exists():
+            return local_path.read_bytes()
+
+    # Google Drive からダウンロード
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -450,26 +458,6 @@ def download_image(_service, file_id: str) -> bytes:
                 time.sleep(1)
                 continue
             raise
-
-
-def upload_image_to_drive(
-    service, folder_id: str, image_bytes: bytes, filename: str, mime_type: str = "image/png"
-) -> str | None:
-    """画像バイト列を Google Drive の指定フォルダにアップロードし、ファイルIDを返す。"""
-    try:
-        file_metadata = {"name": filename, "parents": [folder_id]}
-        media = MediaIoBaseUpload(
-            io.BytesIO(image_bytes), mimetype=mime_type, resumable=True
-        )
-        uploaded = (
-            service.files()
-            .create(body=file_metadata, media_body=media, fields="id")
-            .execute()
-        )
-        return uploaded.get("id")
-    except Exception as e:
-        st.error(f"Google Driveへのアップロードに失敗しました: {e}")
-        return None
 
 
 # ---------------------------------------------------------------------------
@@ -2694,33 +2682,26 @@ def page_chat():
                         type="primary",
                         use_container_width=True,
                     ):
-                        folder_id = get_folder_id()
                         with st.spinner("AI解析中..."):
                             result = analyze_image_with_gemini(img_bytes, api_key)
                         if result:
-                            with st.spinner("Google Driveにアップロード中..."):
-                                # ファイル名にタイムスタンプを付加して一意に
-                                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                upload_name = f"upload_{ts}_{uploaded_file.name}"
-                                mime = uploaded_file.type or "image/png"
-                                file_id = upload_image_to_drive(
-                                    service, folder_id, img_bytes, upload_name, mime
-                                )
-                            if file_id:
-                                # メタデータに保存
-                                result["folder"] = DEFAULT_FOLDER
-                                metadata[file_id] = result
-                                save_metadata(metadata)
-                                # list_images キャッシュをクリア
-                                list_images.clear()
-                                st.success(
-                                    f"✅ 取り込み完了！\n\n"
-                                    f"**{result.get('title', '')}**\n\n"
-                                    f"{result.get('summary', '')[:100]}..."
-                                )
-                                st.balloons()
-                            else:
-                                st.error("Google Driveへのアップロードに失敗しました。")
+                            # ローカルに画像を保存
+                            UPLOADS_DIR.mkdir(exist_ok=True)
+                            file_id = f"upload_{uuid.uuid4().hex[:12]}"
+                            ext = uploaded_file.name.rsplit(".", 1)[-1].lower() if "." in uploaded_file.name else "png"
+                            save_path = UPLOADS_DIR / f"{file_id}.{ext}"
+                            save_path.write_bytes(img_bytes)
+                            # メタデータに保存
+                            result["folder"] = DEFAULT_FOLDER
+                            result["source"] = "upload"
+                            metadata[file_id] = result
+                            save_metadata(metadata)
+                            st.success(
+                                f"✅ 取り込み完了！\n\n"
+                                f"**{result.get('title', '')}**\n\n"
+                                f"{result.get('summary', '')[:100]}..."
+                            )
+                            st.balloons()
 
     if knowledge_count == 0 and not st.session_state.get("chat_messages"):
         st.info(
