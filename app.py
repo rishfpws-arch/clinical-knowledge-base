@@ -546,9 +546,20 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
     st.session_state["auto_scan_last"] = now
 
-    # ファイル一覧を取得（キャッシュ利用 — キャッシュTTL 2分で自然更新）
+    # ファイル一覧を取得（エラー表示なしで静かに取得）
     try:
-        drive_images = list_images(service, folder_id)
+        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+        query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
+        results = (
+            service.files()
+            .list(
+                q=query,
+                fields="files(id, name, mimeType)",
+                pageSize=100,
+            )
+            .execute()
+        )
+        drive_images = results.get("files", [])
     except Exception:
         return
 
