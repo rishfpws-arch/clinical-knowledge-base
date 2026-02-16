@@ -526,6 +526,73 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# 新着画像の自動検知 & AI解析
+# ---------------------------------------------------------------------------
+AUTO_SCAN_INTERVAL = 300  # 秒（5分おき）
+
+
+def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
+    """Google Driveの新着画像を検知し、自動でAI解析してメタデータに保存する。
+
+    5分間隔でチェックし、未解析の画像があればバックグラウンド的に解析する。
+    """
+    if not api_key:
+        return
+
+    now = time.time()
+    last_scan = st.session_state.get("auto_scan_last", 0)
+    if now - last_scan < AUTO_SCAN_INTERVAL:
+        return  # クールダウン中
+
+    st.session_state["auto_scan_last"] = now
+
+    # キャッシュを使わずに最新のファイル一覧を取得
+    try:
+        list_images.clear()
+        drive_images = list_images(service, folder_id)
+    except Exception:
+        return
+
+    if not drive_images:
+        return
+
+    metadata = load_metadata()
+    new_images = [img for img in drive_images if img["id"] not in metadata]
+
+    if not new_images:
+        return
+
+    # 新着画像を解析
+    success_count = 0
+    with st.sidebar:
+        scan_placeholder = st.empty()
+        scan_placeholder.info(
+            f"🔄 新着画像 {len(new_images)} 件を検知しました。自動解析中..."
+        )
+
+    for img in new_images:
+        fid = img["id"]
+        try:
+            image_bytes = download_image(service, fid)
+            result = analyze_image_with_gemini(image_bytes, api_key)
+            if result:
+                result["folder"] = DEFAULT_FOLDER
+                metadata[fid] = result
+                save_metadata(metadata)
+                success_count += 1
+        except Exception:
+            continue  # エラーが出てもスキップして続行
+
+    with st.sidebar:
+        if success_count > 0:
+            scan_placeholder.success(
+                f"✅ 新着 {success_count} 件を自動解析しました！"
+            )
+        else:
+            scan_placeholder.empty()
+
+
+# ---------------------------------------------------------------------------
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
 def filter_images_by_keyword(
@@ -3100,6 +3167,30 @@ def main():
                 st.rerun()
 
     st.sidebar.markdown("---")
+
+    # --- 新着画像の自動検知 & AI解析 ---
+    if "auto_scan_enabled" not in st.session_state:
+        st.session_state["auto_scan_enabled"] = True
+
+    with st.sidebar.expander("⚙️ 自動取り込み設定", expanded=False):
+        st.session_state["auto_scan_enabled"] = st.checkbox(
+            "新着画像を自動でAI解析",
+            value=st.session_state["auto_scan_enabled"],
+            key="auto_scan_toggle",
+        )
+        st.caption(f"Google Driveに追加された画像を{AUTO_SCAN_INTERVAL // 60}分ごとに検知して自動解析します。")
+        if st.button("🔄 今すぐスキャン", key="manual_scan", use_container_width=True):
+            st.session_state["auto_scan_last"] = 0  # クールダウンをリセット
+            st.rerun()
+
+    if st.session_state["auto_scan_enabled"]:
+        try:
+            _scan_service = get_drive_service()
+            _scan_folder_id = get_folder_id()
+            _scan_api_key = get_gemini_api_key()
+            auto_scan_new_images(_scan_service, _scan_folder_id, _scan_api_key)
+        except Exception:
+            pass  # 自動スキャンの失敗でアプリ全体を止めない
 
     # 選択されたタブに応じてページを表示
     active = st.session_state["active_tab"]
