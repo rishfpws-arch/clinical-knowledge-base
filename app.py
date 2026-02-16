@@ -2316,6 +2316,7 @@ def page_folder_ai():
     if st.session_state["ai_view_folder"] is not None:
         if st.sidebar.button("⬅️ 分類画面に戻る", key="ai_back_to_main", use_container_width=True):
             st.session_state["ai_view_folder"] = None
+            st.session_state.pop("folder_detail_id", None)
             st.rerun()
 
     # --- メイン画面 ---
@@ -2327,6 +2328,66 @@ def page_folder_ai():
             if img["id"] in metadata and get_folder(metadata[img["id"]]) == view_folder
         ]
 
+        # 詳細表示用の state
+        if "folder_detail_id" not in st.session_state:
+            st.session_state["folder_detail_id"] = None
+
+        # --- フォルダ内画像の詳細表示モード ---
+        detail_fid = st.session_state["folder_detail_id"]
+        if detail_fid is not None:
+            # 選択された画像を探す
+            detail_file = None
+            for img in folder_images:
+                if img["id"] == detail_fid:
+                    detail_file = img
+                    break
+
+            if detail_file is None:
+                st.session_state["folder_detail_id"] = None
+                st.rerun()
+                return
+
+            file_id = detail_file["id"]
+
+            if st.button("⬅️ フォルダ一覧に戻る", key="back_to_folder_grid"):
+                st.session_state["folder_detail_id"] = None
+                st.session_state.pop("editing_file_id", None)
+                st.rerun()
+
+            st.subheader(f"📁 {view_folder}")
+
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"**{detail_file['name']}**")
+            with col2:
+                fmt = detail_file["mimeType"].split("/")[-1].upper()
+                st.write(f"**形式:** {fmt}")
+
+            try:
+                image_bytes = download_image(service, file_id)
+                st.image(image_bytes, use_container_width=True)
+            except Exception as e:
+                st.error(f"画像の表示中にエラーが発生しました: {e}")
+                return
+
+            if file_id in metadata:
+                display_edit_form(file_id, metadata[file_id], metadata)
+                if api_key:
+                    st.markdown("---")
+                    if st.button("🤖 AIで再解析する", key=f"folder_reanalyze_{file_id}"):
+                        with st.spinner("Gemini で再解析中..."):
+                            image_bytes = download_image(service, file_id)
+                            result = analyze_image_with_gemini(image_bytes, api_key)
+                            if result:
+                                result["folder"] = metadata[file_id].get("folder", DEFAULT_FOLDER)
+                                metadata[file_id] = result
+                                save_metadata(metadata)
+                                st.session_state.pop("editing_file_id", None)
+                                st.success("再解析が完了しました！")
+                                st.rerun()
+            return
+
+        # --- フォルダ内グリッド一覧 ---
         st.subheader(f"📁 {view_folder}")
         if not folder_images:
             st.info("このフォルダには画像がありません。")
@@ -2365,6 +2426,10 @@ def page_folder_ai():
                     kw = meta.get("keywords", [])
                     if kw:
                         st.caption(" ".join(f"`{k}`" for k in kw[:3]))
+                    # 詳細ボタン
+                    if st.button("📝 詳細", key=f"folder_open_{fid}", use_container_width=True):
+                        st.session_state["folder_detail_id"] = fid
+                        st.rerun()
         return
 
     st.subheader("🤖 AI自動フォルダ整理")
@@ -2893,6 +2958,7 @@ def main():
         st.session_state["active_session_id"] = None
         st.session_state["chat_messages"] = []
         st.session_state.pop("ai_view_folder", None)
+        st.session_state.pop("folder_detail_id", None)
         st.rerun()
 
     # サイドバー上部にタブ切り替えボタン
@@ -2941,6 +3007,7 @@ def main():
             ):
                 st.session_state["active_tab"] = TAB_NAMES[5]
                 st.session_state["ai_view_folder"] = f
+                st.session_state.pop("folder_detail_id", None)
                 st.rerun()
 
     st.sidebar.markdown("---")
