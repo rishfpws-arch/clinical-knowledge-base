@@ -1,0 +1,7 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+.env
+chat_sessions.json
+trash.json
+folders.json
