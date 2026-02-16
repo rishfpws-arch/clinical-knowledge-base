@@ -26,14 +26,14 @@ from PIL import Image
 import google.generativeai as genai
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 from googleapiclient.errors import HttpError
 
 # ---------------------------------------------------------------------------
 # 定数
 # ---------------------------------------------------------------------------
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png"]
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
 CHAT_SESSIONS_PATH = Path(__file__).parent / "chat_sessions.json"
 TRASH_PATH = Path(__file__).parent / "trash.json"
@@ -450,6 +450,26 @@ def download_image(_service, file_id: str) -> bytes:
                 time.sleep(1)
                 continue
             raise
+
+
+def upload_image_to_drive(
+    service, folder_id: str, image_bytes: bytes, filename: str, mime_type: str = "image/png"
+) -> str | None:
+    """画像バイト列を Google Drive の指定フォルダにアップロードし、ファイルIDを返す。"""
+    try:
+        file_metadata = {"name": filename, "parents": [folder_id]}
+        media = MediaIoBaseUpload(
+            io.BytesIO(image_bytes), mimetype=mime_type, resumable=True
+        )
+        uploaded = (
+            service.files()
+            .create(body=file_metadata, media_body=media, fields="id")
+            .execute()
+        )
+        return uploaded.get("id")
+    except Exception as e:
+        st.error(f"Google Driveへのアップロードに失敗しました: {e}")
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -2638,13 +2658,6 @@ def page_chat():
         )
         return
 
-    if knowledge_count == 0:
-        st.info(
-            "まだ知識が登録されていません。\n\n"
-            "「📸 画像管理」タブで画像をAI解析し、知識を蓄積してください。"
-        )
-        return
-
     # --- 入力欄（常に上部に表示 / Enterキーで送信） ---
     with st.form(key="chat_form", clear_on_submit=True):
         user_input = st.text_input(
@@ -2653,6 +2666,67 @@ def page_chat():
             label_visibility="collapsed",
         )
         send_clicked = st.form_submit_button("🔍 検索する", type="primary")
+
+    # --- 📷 画像貼り付け → AI解析して取り込み ---
+    with st.expander("📷 画像を貼り付けて取り込む", expanded=False):
+        uploaded_file = st.file_uploader(
+            "スクリーンショットや画像をドラッグ＆ドロップまたは選択",
+            type=["png", "jpg", "jpeg"],
+            key="chat_image_upload",
+            label_visibility="collapsed",
+        )
+        if uploaded_file is not None:
+            img_bytes = uploaded_file.getvalue()
+            col_preview, col_action = st.columns([1, 1])
+            with col_preview:
+                st.image(img_bytes, width=300, caption=uploaded_file.name)
+            with col_action:
+                st.markdown(
+                    f"**ファイル名:** {uploaded_file.name}  \n"
+                    f"**サイズ:** {len(img_bytes) / 1024:.0f} KB"
+                )
+                if not api_key:
+                    st.warning("AI解析には `GOOGLE_API_KEY` の設定が必要です。")
+                else:
+                    if st.button(
+                        "🤖 AI解析して知識ベースに取り込む",
+                        key="btn_upload_analyze",
+                        type="primary",
+                        use_container_width=True,
+                    ):
+                        folder_id = get_folder_id()
+                        with st.spinner("AI解析中..."):
+                            result = analyze_image_with_gemini(img_bytes, api_key)
+                        if result:
+                            with st.spinner("Google Driveにアップロード中..."):
+                                # ファイル名にタイムスタンプを付加して一意に
+                                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                upload_name = f"upload_{ts}_{uploaded_file.name}"
+                                mime = uploaded_file.type or "image/png"
+                                file_id = upload_image_to_drive(
+                                    service, folder_id, img_bytes, upload_name, mime
+                                )
+                            if file_id:
+                                # メタデータに保存
+                                result["folder"] = DEFAULT_FOLDER
+                                metadata[file_id] = result
+                                save_metadata(metadata)
+                                # list_images キャッシュをクリア
+                                list_images.clear()
+                                st.success(
+                                    f"✅ 取り込み完了！\n\n"
+                                    f"**{result.get('title', '')}**\n\n"
+                                    f"{result.get('summary', '')[:100]}..."
+                                )
+                                st.balloons()
+                            else:
+                                st.error("Google Driveへのアップロードに失敗しました。")
+
+    if knowledge_count == 0 and not st.session_state.get("chat_messages"):
+        st.info(
+            "まだ知識が登録されていません。\n\n"
+            "上の📷から画像を取り込むか、「📸 画像管理」タブで画像をAI解析して知識を蓄積してください。"
+        )
 
     # 質問例クリックからの送信処理
     pending = st.session_state.pop("pending_question", None)
