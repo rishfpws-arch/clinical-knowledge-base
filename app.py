@@ -385,7 +385,7 @@ def get_gemini_api_key() -> str | None:
 # ---------------------------------------------------------------------------
 @st.cache_data(ttl=120, show_spinner="ファイル一覧を取得中...")
 def list_images(_service, folder_id: str) -> list[dict]:
-    """指定フォルダ内の画像ファイル一覧を取得する（2分キャッシュ、SSLリトライ付）。"""
+    """指定フォルダ内の画像ファイル一覧を取得する（2分キャッシュ、リトライ付）。"""
     mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
     query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
     max_retries = 3
@@ -402,12 +402,6 @@ def list_images(_service, folder_id: str) -> list[dict]:
                 .execute()
             )
             return results.get("files", [])
-        except ssl.SSLError:
-            if attempt < max_retries - 1:
-                time.sleep(1)
-                continue
-            st.error("SSL接続エラーが発生しました。ページを再読み込みしてください。")
-            return []
         except HttpError as e:
             if e.resp.status == 404:
                 st.error(
@@ -415,14 +409,17 @@ def list_images(_service, folder_id: str) -> list[dict]:
                     "`folder_id` が正しいか、サービスアカウントにフォルダが"
                     "共有されているか確認してください。"
                 )
-            else:
-                st.error(f"ファイル一覧の取得に失敗しました: {e}")
-            return []
-        except Exception as e:
-            if "SSL" in str(e) and attempt < max_retries - 1:
-                time.sleep(1)
+                return []
+            if attempt < max_retries - 1:
+                time.sleep(2)
                 continue
-            st.error(f"ファイル一覧の取得に失敗しました: {e}")
+            st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
+            return []
+        except Exception:
+            if attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+            st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
             return []
 
 
@@ -469,14 +466,9 @@ def download_image(_service, file_id: str) -> bytes:
             while not done:
                 _, done = downloader.next_chunk()
             return buffer.getvalue()
-        except ssl.SSLError:
+        except Exception:
             if attempt < max_retries - 1:
-                time.sleep(1)
-                continue
-            raise
-        except Exception as e:
-            if "SSL" in str(e) and attempt < max_retries - 1:
-                time.sleep(1)
+                time.sleep(2)
                 continue
             raise
 
