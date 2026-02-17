@@ -3356,12 +3356,29 @@ def _auto_push_loop():
             pass  # エラーが出ても静かに続行
 
 
+def _is_local_env() -> bool:
+    """ローカル環境かどうかを判定する（Streamlit Cloud上では動かさない）。"""
+    repo_dir = Path(__file__).parent
+    if not (repo_dir / ".git").exists():
+        return False
+    try:
+        result = subprocess.run(
+            ["git", "status"],
+            cwd=str(repo_dir), capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def start_auto_push():
-    """自動pushスレッドを1回だけ起動する。"""
+    """自動pushスレッドを1回だけ起動する（ローカル環境のみ）。"""
     global _auto_push_started
     if _auto_push_started:
         return
     _auto_push_started = True
+    if not _is_local_env():
+        return  # Streamlit Cloud等では何もしない
     t = threading.Thread(target=_auto_push_loop, daemon=True)
     t.start()
 
