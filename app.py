@@ -1655,7 +1655,7 @@ def page_batch_analyze():
     if images:
         done_count = len(reviewed)
         progress = done_count / len(images)
-        st.sidebar.progress(progress, text=f"確認済み: {done_count}/{len(images)}")
+        st.sidebar.progress(progress, text=f"登録済み: {done_count}/{len(images)}")
 
     # --- モード切り替え ---
     if "batch_mode" not in st.session_state:
