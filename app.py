@@ -848,9 +848,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
     status = get_status(meta)
     if status == STATUS_REVIEWED:
-        st.success("✅ 医師確認済み — この情報は医師により確認されています")
-    elif status == STATUS_REVIEWED:
-        st.info("🤖 AI自動登録 — 自動で取り込み・解析・登録されました。医師の確認はまだです")
+        st.success("✅ 登録済み")
     else:
         st.warning("🆕 未確認 — AIが自動生成した情報です。内容を確認・修正してください")
 
@@ -917,11 +915,9 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
     with col_status:
         if get_status(meta) == STATUS_REVIEWED:
-            st.caption("最終更新: 医師確認済み")
-        elif get_status(meta) == STATUS_REVIEWED:
-            st.caption("ステータス: AI自動登録（医師未確認）")
+            st.caption("ステータス: ✅ 登録済み")
         else:
-            st.caption("ステータス: AI自動生成（未確認）")
+            st.caption("ステータス: 🆕 未確認")
 
 
 # ---------------------------------------------------------------------------
@@ -941,7 +937,7 @@ def build_knowledge_context(metadata: dict) -> str:
         summary = meta.get("summary", "要約なし")
         keywords = ", ".join(meta.get("keywords", []))
         s = get_status(meta)
-        status = "医師確認済み" if s == STATUS_REVIEWED else "AI自動登録" if s == STATUS_REVIEWED else "未確認"
+        status = "登録済み" if s == STATUS_REVIEWED else "未確認"
 
         entry = (
             f"ID: {file_id}\n"
