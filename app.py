@@ -1383,7 +1383,7 @@ def page_image_manager():
         and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     )
     st.sidebar.caption(
-        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅確認済み {reviewed_count} 件"
+        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅登録済み {reviewed_count} 件"
     )
 
     if not filtered_images:
