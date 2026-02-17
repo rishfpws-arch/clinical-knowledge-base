@@ -668,7 +668,7 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                # 自動取り込み: AI自動登録として登録（医師確認はまだ）
+                # 自動取り込み: 確認済みとして登録
                 result["status"] = STATUS_REVIEWED
                 # 既存フォルダへ自動分類
                 assigned_folder = _auto_classify_folder(result, api_key, folders)
@@ -754,7 +754,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                # 自動取り込み: AI自動登録 & フォルダ自動分類
+                # 自動取り込み: 確認済みとして登録 & フォルダ自動分類
                 result["status"] = STATUS_REVIEWED
                 assigned_folder = _auto_classify_folder(result, api_key, folders)
                 result["folder"] = assigned_folder
@@ -3112,11 +3112,9 @@ def page_chat():
                     st.markdown(f"### {meta.get('title', '不明')}")
                     status = get_status(meta)
                     if status == STATUS_REVIEWED:
-                        st.markdown("✅ **医師確認済み**")
-                    elif status == STATUS_REVIEWED:
-                        st.markdown("🤖 **AI自動登録**")
+                        st.markdown("✅ **登録済み**")
                     else:
-                        st.markdown("🆕 **未確認**（AI自動生成）")
+                        st.markdown("🆕 **未確認**")
                     kw = meta.get("keywords", [])
                     if kw:
                         st.markdown(" ".join(f"`{k}`" for k in kw))
