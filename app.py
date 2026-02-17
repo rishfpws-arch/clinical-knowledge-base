@@ -3347,6 +3347,38 @@ def main():
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
         unsafe_allow_html=True,
     )
+    # 画像クリックで全画面拡大表示するCSS/JS
+    st.markdown("""<style>
+    .zoom-img { cursor: zoom-in; border-radius: 8px; transition: opacity .2s; }
+    .zoom-img:hover { opacity: .85; }
+    .zoom-overlay {
+        display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
+        background:rgba(0,0,0,.92); z-index:9999; justify-content:center;
+        align-items:center; cursor: zoom-out;
+    }
+    .zoom-overlay.active { display:flex; }
+    .zoom-overlay img {
+        max-width:95vw; max-height:95vh; object-fit:contain;
+        touch-action:pinch-zoom; /* スマホでピンチズーム有効 */
+    }
+    </style>
+    <div class="zoom-overlay" id="zoomOverlay" onclick="this.classList.remove('active')">
+        <img id="zoomImg" src="" />
+    </div>
+    <script>
+    function openZoom(src) {
+        var overlay = document.getElementById('zoomOverlay');
+        var img = document.getElementById('zoomImg');
+        if (overlay && img) { img.src = src; overlay.classList.add('active'); }
+    }
+    // Escキーで閉じる
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var el = document.getElementById('zoomOverlay');
+            if (el) el.classList.remove('active');
+        }
+    });
+    </script>""", unsafe_allow_html=True)
     # アクティブタブの管理
     TAB_NAMES = ["💬 チャット検索", "📸 画像管理", "⚡ 一括解析", "🗂️ フォルダ設定", "📂 手動整理", "🤖 AI整理", "🗑️ ゴミ箱"]
     if "active_tab" not in st.session_state:
