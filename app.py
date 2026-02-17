@@ -2947,8 +2947,7 @@ def page_folder_ai():
         type="primary",
         key="ai_classify_run",
     ):
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        client = _get_genai_client(api_key)
         folder_names = ", ".join(folders)
 
         progress_bar = st.progress(0, text="AI分類を開始...")
@@ -2983,7 +2982,9 @@ def page_folder_ai():
             )
 
             try:
-                response = model.generate_content(prompt)
+                response = client.models.generate_content(
+                    model=_GEMINI_MODEL, contents=prompt,
+                )
                 result = response.text.strip()
                 # フォルダ名リストから最も近いものを選択（一致しなければ未分類）
                 matched = None
