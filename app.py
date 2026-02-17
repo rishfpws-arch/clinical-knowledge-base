@@ -15,6 +15,8 @@ import json
 import random
 import re
 import ssl
+import subprocess
+import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -3310,6 +3312,61 @@ def page_chat():
 
 
 # ===========================================================================
+# Git 自動 push（バックグラウンド）
+# ===========================================================================
+_AUTO_PUSH_INTERVAL = 60  # 秒
+_auto_push_started = False
+
+
+def _auto_push_loop():
+    """バックグラウンドで定期的に git commit & push を実行する。"""
+    repo_dir = str(Path(__file__).parent)
+    target_files = ["app.py", "metadata.json", "folders.json", ".gitignore"]
+
+    while True:
+        time.sleep(_AUTO_PUSH_INTERVAL)
+        try:
+            # 変更があるかチェック
+            result = subprocess.run(
+                ["git", "status", "--porcelain"] + target_files,
+                cwd=repo_dir, capture_output=True, text=True, timeout=15,
+            )
+            if not result.stdout.strip():
+                continue  # 変更なし
+
+            # git add
+            subprocess.run(
+                ["git", "add"] + target_files,
+                cwd=repo_dir, capture_output=True, text=True, timeout=15,
+            )
+
+            # git commit
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            subprocess.run(
+                ["git", "commit", "-m", f"auto: {timestamp}"],
+                cwd=repo_dir, capture_output=True, text=True, timeout=30,
+            )
+
+            # git push
+            subprocess.run(
+                ["git", "push", "origin", "main"],
+                cwd=repo_dir, capture_output=True, text=True, timeout=60,
+            )
+        except Exception:
+            pass  # エラーが出ても静かに続行
+
+
+def start_auto_push():
+    """自動pushスレッドを1回だけ起動する。"""
+    global _auto_push_started
+    if _auto_push_started:
+        return
+    _auto_push_started = True
+    t = threading.Thread(target=_auto_push_loop, daemon=True)
+    t.start()
+
+
+# ===========================================================================
 # メインエントリポイント
 # ===========================================================================
 def main():
@@ -3318,6 +3375,9 @@ def main():
         page_icon="🧸",
         layout="wide",
     )
+
+    # Git自動push開始（バックグラウンド、60秒間隔）
+    start_auto_push()
 
     st.markdown(
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
