@@ -1897,13 +1897,13 @@ def page_batch_analyze():
             key="bulk_review_filter",
         )
 
-        if review_filter == "未確認→確認済み（🆕→✅）":
+        if review_filter == "未登録→登録済み（🆕→✅）":
             target_list = [
                 img for img in images
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_AUTO
             ]
-            action_label = "確認済みにする"
+            action_label = "登録済みにする"
             action_key_prefix = "bulkrev"
         else:
             target_list = [
