@@ -2680,7 +2680,7 @@ def page_folder_ai():
 
             try:
                 image_bytes = download_image(service, file_id)
-                st.image(image_bytes, width="stretch")
+                zoomable_image(image_bytes, "クリックで拡大")
             except Exception as e:
                 st.error(f"画像の表示中にエラーが発生しました: {e}")
                 return
