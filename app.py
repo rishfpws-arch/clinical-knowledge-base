@@ -3229,23 +3229,9 @@ def page_chat():
                     f"💬 {q_msg['content']}</p>",
                     unsafe_allow_html=True,
                 )
-                col_h1, col_h2 = st.columns(2)
-                with col_h1:
-                    st.markdown(
-                        "<p style='color:#5b8def; font-weight:600;"
-                        "font-size:12px;'>📚 知識ベース</p>",
-                        unsafe_allow_html=True,
-                    )
-                    display_kb_response_with_images(
-                        a_msg.get("content", ""), metadata, service
-                    )
-                with col_h2:
-                    st.markdown(
-                        "<p style='color:#a78bfa; font-weight:600;"
-                        "font-size:12px;'>🌐 一般AI</p>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(a_msg.get("general_content", ""))
+                display_kb_response_with_images(
+                    a_msg.get("content", ""), metadata, service
+                )
                 st.markdown("---")
 
 
