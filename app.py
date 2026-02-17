@@ -1914,35 +1914,27 @@ def page_batch_analyze():
     # モード: 一括レビュー済みに変更
     # =======================================================================
     elif mode == "一括レビュー済みに変更":
-        st.subheader("✅ 一括レビュー済みに変更")
-        st.caption("未確認・AI自動登録の画像をまとめて医師確認済みに変更できます。内容を確認してからチェックしてください。")
+        st.subheader("✅ 一括ステータス変更")
+        st.caption("未確認の画像をまとめて確認済みに変更、または確認済みを未確認に戻せます。")
 
         metadata = load_metadata()
 
         # 対象選択
         review_filter = st.radio(
             "対象",
-            ["未確認のみ（🆕）", "AI自動登録（🤖）", "医師確認済みを未確認に戻す（✅→🆕）"],
+            ["未確認→確認済み（🆕→✅）", "確認済み→未確認に戻す（✅→🆕）"],
             horizontal=True,
             key="bulk_review_filter",
         )
 
-        if review_filter == "未確認のみ（🆕）":
+        if review_filter == "未確認→確認済み（🆕→✅）":
             target_list = [
                 img for img in images
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_AUTO
             ]
-            action_label = "医師確認済みにする"
+            action_label = "確認済みにする"
             action_key_prefix = "bulkrev"
-        elif review_filter == "AI自動登録（🤖）":
-            target_list = [
-                img for img in images
-                if img["id"] in metadata
-                and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-            ]
-            action_label = "医師確認済みにする"
-            action_key_prefix = "bulkautorev"
         else:
             target_list = [
                 img for img in images
