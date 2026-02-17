@@ -44,6 +44,7 @@ DEFAULT_FOLDER = "未分類"
 
 # ステータス定数
 STATUS_AUTO = "auto_generated"
+STATUS_AUTO_REGISTERED = "auto_registered"  # AI自動登録（医師未確認）
 STATUS_REVIEWED = "reviewed"
 
 # ホーム画面の名言
@@ -160,6 +161,16 @@ def save_metadata(metadata: dict) -> None:
 def get_status(meta: dict) -> str:
     """メタデータからステータスを取得する。"""
     return meta.get("status", STATUS_AUTO)
+
+
+def get_status_icon(meta: dict) -> str:
+    """ステータスに応じたアイコンを返す。"""
+    s = get_status(meta)
+    if s == STATUS_REVIEWED:
+        return "✅"
+    if s == STATUS_AUTO_REGISTERED:
+        return "🤖"
+    return "🆕"
 
 
 # ---------------------------------------------------------------------------
@@ -473,6 +484,7 @@ def download_image(_service, file_id: str) -> bytes:
             raise
 
 
+
 # ---------------------------------------------------------------------------
 # Gemini AI 解析（画像）
 # ---------------------------------------------------------------------------
@@ -523,10 +535,49 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
 AUTO_SCAN_INTERVAL = 300  # 秒（5分おき）
 
 
+def _auto_classify_folder(meta: dict, api_key: str, folders: list[str]) -> str:
+    """AI解析結果のメタデータから、既存フォルダの中で最適なものを返す。
+
+    該当するフォルダがなければ DEFAULT_FOLDER（未分類）を返す。
+    フォルダが未分類しかない場合もそのまま未分類を返す。
+    """
+    # 未分類以外のフォルダが存在しなければ分類しない
+    real_folders = [f for f in folders if f != DEFAULT_FOLDER]
+    if not real_folders:
+        return DEFAULT_FOLDER
+
+    title = meta.get("title", "")
+    summary = meta.get("summary", "")
+    keywords = ", ".join(meta.get("keywords", []))
+    folder_names = ", ".join(real_folders)
+
+    prompt = (
+        f"以下の医療画像を最も適切なフォルダに分類してください。\n\n"
+        f"タイトル: {title}\n要約: {summary}\nキーワード: {keywords}\n\n"
+        f"選択肢: {folder_names}\n\n"
+        f"どの選択肢にも当てはまらない場合は「{DEFAULT_FOLDER}」と出力してください。\n"
+        f"フォルダ名のみを1つだけ出力してください。"
+    )
+
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        response = model.generate_content(prompt)
+        result = response.text.strip()
+        # フォルダ名リストから最も近いものを選択
+        for f in folders:
+            if f in result or result in f:
+                return f
+        return DEFAULT_FOLDER
+    except Exception:
+        return DEFAULT_FOLDER
+
+
 def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
-    """Google Driveの新着画像を検知し、自動でAI解析してメタデータに保存する。
+    """Google Driveの新着画像を検知し、自動でAI解析・認証・フォルダ分類まで行う。
 
     5分間隔でチェックし、未解析の画像があればバックグラウンド的に解析する。
+    自動取り込み画像は認証手続き（レビュー）を省略し、既存フォルダへ自動分類する。
     """
     if not api_key:
         return
@@ -569,20 +620,31 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
     batch = new_images[:MAX_AUTO_ANALYZE]
     remaining = len(new_images) - len(batch)
 
+    # フォルダ一覧を取得（自動分類用）
+    folders = load_folders()
+
     # 新着画像を解析
     success_count = 0
+    classified_count = 0
     scan_placeholder = st.sidebar.empty()
     scan_placeholder.info(
-        f"🔄 新着画像 {len(new_images)} 件を検知。自動解析中..."
+        f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
     )
 
     for img in batch:
         fid = img["id"]
         try:
             image_bytes = download_image(service, fid)
+
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                result["folder"] = DEFAULT_FOLDER
+                # 自動取り込み: AI自動登録として登録（医師確認はまだ）
+                result["status"] = STATUS_AUTO_REGISTERED
+                # 既存フォルダへ自動分類
+                assigned_folder = _auto_classify_folder(result, api_key, folders)
+                result["folder"] = assigned_folder
+                if assigned_folder != DEFAULT_FOLDER:
+                    classified_count += 1
                 metadata[fid] = result
                 save_metadata(metadata)
                 success_count += 1
@@ -590,9 +652,11 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
             continue  # エラーが出てもスキップして続行
 
     if success_count > 0:
-        msg = f"✅ 新着 {success_count} 件を自動解析しました！"
+        msg = f"✅ 新着 {success_count} 件を自動登録しました！"
+        if classified_count > 0:
+            msg += f"\n（{classified_count} 件をフォルダに自動分類）"
         if remaining > 0:
-            msg += f"\n（残り {remaining} 件は次回スキャン時に解析）"
+            msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
         scan_placeholder.success(msg)
     else:
         scan_placeholder.empty()
@@ -633,8 +697,11 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         return
 
     status_text.info(
-        f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析を開始します..."
+        f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析・自動登録を開始します..."
     )
+
+    # フォルダ一覧を取得（自動分類用）
+    folders = load_folders()
 
     # プログレスバー
     progress_bar = st.progress(0, text="準備中...")
@@ -654,15 +721,20 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
         try:
             image_bytes = download_image(service, fid)
+
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                result["folder"] = DEFAULT_FOLDER
+                # 自動取り込み: AI自動登録 & フォルダ自動分類
+                result["status"] = STATUS_AUTO_REGISTERED
+                assigned_folder = _auto_classify_folder(result, api_key, folders)
+                result["folder"] = assigned_folder
                 metadata[fid] = result
                 save_metadata(metadata)
                 success_count += 1
+                folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
                 with results_container:
                     st.markdown(
-                        f"✅ **{result.get('title', fname)}**  \n"
+                        f"✅ **{result.get('title', fname)}**{folder_label}  \n"
                         f"<span style='color:#888;font-size:12px;'>"
                         f"{', '.join(result.get('keywords', [])[:4])}</span>",
                         unsafe_allow_html=True,
@@ -746,7 +818,9 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
     status = get_status(meta)
     if status == STATUS_REVIEWED:
-        st.success("✅ 確認済み — この情報は医師により確認されています")
+        st.success("✅ 医師確認済み — この情報は医師により確認されています")
+    elif status == STATUS_AUTO_REGISTERED:
+        st.info("🤖 AI自動登録 — 自動で取り込み・解析・登録されました。医師の確認はまだです")
     else:
         st.warning("🆕 未確認 — AIが自動生成した情報です。内容を確認・修正してください")
 
@@ -813,7 +887,9 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
     with col_status:
         if get_status(meta) == STATUS_REVIEWED:
-            st.caption("最終更新: 確認済み")
+            st.caption("最終更新: 医師確認済み")
+        elif get_status(meta) == STATUS_AUTO_REGISTERED:
+            st.caption("ステータス: AI自動登録（医師未確認）")
         else:
             st.caption("ステータス: AI自動生成（未確認）")
 
@@ -834,7 +910,8 @@ def build_knowledge_context(metadata: dict) -> str:
         title = meta.get("title", "不明")
         summary = meta.get("summary", "要約なし")
         keywords = ", ".join(meta.get("keywords", []))
-        status = "確認済み" if get_status(meta) == STATUS_REVIEWED else "未確認"
+        s = get_status(meta)
+        status = "医師確認済み" if s == STATUS_REVIEWED else "AI自動登録" if s == STATUS_AUTO_REGISTERED else "未確認"
 
         entry = (
             f"ID: {file_id}\n"
@@ -1086,7 +1163,7 @@ def handle_chat_submit(
 # ---------------------------------------------------------------------------
 # チャット機能: ホーム画面
 # ---------------------------------------------------------------------------
-def render_home_screen(knowledge_count: int) -> None:
+def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
     """アクティブな会話がないときにホーム画面を表示する。"""
 
     # 中央寄せの余白
@@ -1101,12 +1178,7 @@ def render_home_screen(knowledge_count: int) -> None:
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         st.markdown(
-            "<h1 style='text-align:center; font-size:56px; margin-bottom:0;'>🧸</h1>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            "<h2 style='text-align:center; margin-top:0; "
-            "font-family:Playfair Display,serif;'>Clinical Knowledge Base</h2>",
+            "<h1 style='text-align:center; font-size:56px; margin-bottom:8px;'>🧸</h1>",
             unsafe_allow_html=True,
         )
         st.markdown(
@@ -1119,22 +1191,59 @@ def render_home_screen(knowledge_count: int) -> None:
 
     st.markdown("")
 
-    # 質問例カード（3カラム）— クリックで検索実行
-    example_questions = [
-        ("🔍", "股関節痛の鑑別診断を教えてください"),
-        ("🖼️", "SIFの特徴的な画像所見は？"),
-        ("📋", "登録されている知識の一覧を見せて"),
-    ]
-    c1, c2, c3 = st.columns(3)
-    for col, (icon, question) in zip([c1, c2, c3], example_questions):
-        with col:
-            if st.button(
-                f"{icon} {question}",
-                key=f"example_q_{icon}",
-                use_container_width=True,
-            ):
-                st.session_state["pending_question"] = question
-                st.rerun()
+    # 新着画像カード（最大3枚）— クリックで詳細画面に遷移
+    if metadata:
+        # メタデータの末尾（最新登録順）から最大3件を取得
+        all_ids = list(metadata.keys())
+        recent_ids = list(reversed(all_ids))[:3]
+        display_count = len(recent_ids)
+
+        st.markdown(
+            "<p style='text-align:center;color:#888;font-size:13px;"
+            "margin-bottom:4px;'>🆕 新着画像</p>",
+            unsafe_allow_html=True,
+        )
+
+        cols = st.columns(display_count)
+        for col, fid in zip(cols, recent_ids):
+            meta = metadata.get(fid, {})
+            title = meta.get("title", "不明")
+            keywords = meta.get("keywords", [])
+            with col:
+                try:
+                    img_bytes = download_image(service, fid)
+                    st.image(img_bytes, use_container_width=True)
+                except Exception:
+                    st.markdown(
+                        "<div style='height:150px;background:#222;border-radius:8px;"
+                        "display:flex;align-items:center;justify-content:center;"
+                        "color:#666;'>🖼️ 読み込み失敗</div>",
+                        unsafe_allow_html=True,
+                    )
+                st.markdown(
+                    f"<p style='text-align:center;font-size:13px;font-weight:600;"
+                    f"margin:4px 0 2px;'>{title}</p>",
+                    unsafe_allow_html=True,
+                )
+                if keywords:
+                    tags_html = " ".join(
+                        f"<span style='background:#1a3a5c;color:#7eb8da;"
+                        f"padding:2px 8px;border-radius:10px;font-size:11px;"
+                        f"margin:2px;display:inline-block;'>{kw}</span>"
+                        for kw in keywords[:3]
+                    )
+                    st.markdown(
+                        f"<p style='text-align:center;'>{tags_html}</p>",
+                        unsafe_allow_html=True,
+                    )
+                if st.button(
+                    "🔍 詳細を見る",
+                    key=f"home_img_{fid}",
+                    use_container_width=True,
+                ):
+                    st.session_state["selected_image_id"] = fid
+                    st.session_state["active_tab"] = "📸 画像管理"
+                    st.rerun()
 
     # 知識件数バッジ
     st.markdown("")
@@ -1168,8 +1277,13 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     reviewed_count = sum(
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
+    auto_reg_count = sum(
+        1 for m in metadata.values() if get_status(m) == STATUS_AUTO_REGISTERED
+    )
     st.sidebar.write(f"登録済み知識: **{knowledge_count}** 件")
-    st.sidebar.write(f"確認済み: **{reviewed_count}** 件")
+    st.sidebar.write(f"✅ 医師確認済み: **{reviewed_count}** 件")
+    if auto_reg_count > 0:
+        st.sidebar.write(f"🤖 AI自動登録: **{auto_reg_count}** 件")
 
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
@@ -1283,8 +1397,13 @@ def page_image_manager():
         if img["id"] in metadata
         and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     )
+    auto_reg_count = sum(
+        1 for img in images
+        if img["id"] in metadata
+        and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+    )
     st.sidebar.caption(
-        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | 確認済 {reviewed_count} 件"
+        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅医師確認 {reviewed_count} 件 | 🤖自動登録 {auto_reg_count} 件"
     )
 
     if not filtered_images:
@@ -1350,7 +1469,6 @@ def page_image_manager():
                     with st.spinner("Gemini で再解析中..."):
                         result = analyze_image_with_gemini(image_bytes, api_key)
                         if result:
-                            # 既存のfolder, sourceを保持
                             old = metadata.get(file_id, {})
                             for keep_key in ("folder", "source"):
                                 if keep_key in old:
@@ -1438,38 +1556,48 @@ def page_image_manager():
             fid = img["id"]
 
             with cols[col_idx]:
-                # サムネイル
-                try:
-                    thumb_bytes = download_image(service, fid)
-                    st.image(thumb_bytes, use_container_width=True)
-                except Exception:
-                    st.markdown(
-                        '<div style="background:#333;border-radius:8px;'
-                        'height:80px;display:flex;align-items:center;'
-                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                # ステータスとタイトル
-                if fid in metadata:
-                    meta = metadata[fid]
-                    title = meta.get("title", img["name"])
-                    folder_name = get_folder(meta)
-                    status = get_status(meta)
-                    folder_tag = f"📁{folder_name}" if folder_name != DEFAULT_FOLDER else ""
-                    if status == STATUS_REVIEWED:
-                        st.caption(f"✅ {title}")
+                # 削除モード以外: 画像+タイトルをまとめてボタン化
+                if not st.session_state["img_delete_mode"]:
+                    # サムネイル表示
+                    try:
+                        thumb_bytes = download_image(service, fid)
+                        st.image(thumb_bytes, use_container_width=True)
+                    except Exception:
+                        st.markdown(
+                            '<div style="background:#333;border-radius:8px;'
+                            'height:80px;display:flex;align-items:center;'
+                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            unsafe_allow_html=True,
+                        )
+                    # タイトル
+                    if fid in metadata:
+                        meta = metadata[fid]
+                        title = meta.get("title", img["name"])
+                        status = get_status(meta)
+                        icon = get_status_icon(meta)
+                        st.caption(f"{icon} {title}")
                     else:
-                        st.caption(f"🆕 {title}")
-                    if folder_tag:
-                        st.caption(folder_tag)
+                        st.caption(f"📄 {img['name']}")
+                    # クリックで詳細
+                    if st.button("🔍 詳細を見る", key=f"grid_open_{fid}", use_container_width=True):
+                        st.session_state["selected_image_id"] = fid
+                        st.rerun()
                 else:
-                    st.caption(f"📄 {img['name']}")
-
-                # 削除モード: チェックボックス / 通常: 詳細ボタン
-                if st.session_state["img_delete_mode"]:
-                    has_data = fid in metadata
-                    if has_data:
+                    # 削除モード
+                    try:
+                        thumb_bytes = download_image(service, fid)
+                        st.image(thumb_bytes, use_container_width=True)
+                    except Exception:
+                        st.markdown(
+                            '<div style="background:#333;border-radius:8px;'
+                            'height:80px;display:flex;align-items:center;'
+                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            unsafe_allow_html=True,
+                        )
+                    if fid in metadata:
+                        meta = metadata[fid]
+                        title = meta.get("title", img["name"])
+                        st.caption(title)
                         checked = st.checkbox(
                             "削除",
                             value=st.session_state.get(f"img_del_{fid}", False),
@@ -1478,11 +1606,7 @@ def page_image_manager():
                         if checked:
                             delete_ids.append(fid)
                     else:
-                        st.caption("（未解析）")
-                else:
-                    if st.button("📝 詳細", key=f"grid_open_{fid}", use_container_width=True):
-                        st.session_state["selected_image_id"] = fid
-                        st.rerun()
+                        st.caption(f"📄 {img['name']}（未解析）")
 
     # 削除モード時: ゴミ箱移動エリア
     if st.session_state["img_delete_mode"]:
@@ -1533,6 +1657,11 @@ def page_batch_analyze():
         if img["id"] in metadata
         and get_status(metadata[img["id"]]) == STATUS_AUTO
     ]
+    auto_registered = [
+        img for img in images
+        if img["id"] in metadata
+        and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+    ]
     reviewed = [
         img for img in images
         if img["id"] in metadata
@@ -1544,13 +1673,15 @@ def page_batch_analyze():
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
     st.sidebar.write(f"🆕 未確認（要レビュー）: **{len(unreviewed)}** 件")
-    st.sidebar.write(f"✅ 確認済み: **{len(reviewed)}** 件")
+    st.sidebar.write(f"🤖 AI自動登録: **{len(auto_registered)}** 件")
+    st.sidebar.write(f"✅ 医師確認済み: **{len(reviewed)}** 件")
     st.sidebar.write(f"合計: **{len(images)}** 件")
 
     # プログレスバー
     if images:
-        progress = len(reviewed) / len(images)
-        st.sidebar.progress(progress, text=f"レビュー進捗: {len(reviewed)}/{len(images)}")
+        done_count = len(reviewed) + len(auto_registered)
+        progress = done_count / len(images)
+        st.sidebar.progress(progress, text=f"登録済み: {done_count}/{len(images)}")
 
     # --- モード切り替え ---
     if "batch_mode" not in st.session_state:
@@ -1639,13 +1770,15 @@ def page_batch_analyze():
         # フィルタ
         filter_choice = st.radio(
             "対象を絞る",
-            ["すべて", "未確認のみ（🆕）", "確認済みのみ（✅）"],
+            ["すべて", "未確認のみ（🆕）", "AI自動登録（🤖）", "医師確認済みのみ（✅）"],
             horizontal=True,
             key="reanalyze_filter",
         )
         if filter_choice == "未確認のみ（🆕）":
             target_list = unreviewed
-        elif filter_choice == "確認済みのみ（✅）":
+        elif filter_choice == "AI自動登録（🤖）":
+            target_list = auto_registered
+        elif filter_choice == "医師確認済みのみ（✅）":
             target_list = reviewed
         else:
             target_list = analyzed_all
@@ -1681,7 +1814,7 @@ def page_batch_analyze():
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
                 status = get_status(meta)
-                status_icon = "✅" if status == STATUS_REVIEWED else "🆕"
+                status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
@@ -1780,14 +1913,14 @@ def page_batch_analyze():
     # =======================================================================
     elif mode == "一括レビュー済みに変更":
         st.subheader("✅ 一括レビュー済みに変更")
-        st.caption("未確認の画像をまとめてレビュー済み（確認済み）に変更できます。内容を確認してからチェックしてください。")
+        st.caption("未確認・AI自動登録の画像をまとめて医師確認済みに変更できます。内容を確認してからチェックしてください。")
 
         metadata = load_metadata()
 
         # 対象選択
         review_filter = st.radio(
             "対象",
-            ["未確認のみ（🆕）", "確認済みを未確認に戻す（✅→🆕）"],
+            ["未確認のみ（🆕）", "AI自動登録（🤖）", "医師確認済みを未確認に戻す（✅→🆕）"],
             horizontal=True,
             key="bulk_review_filter",
         )
@@ -1798,8 +1931,16 @@ def page_batch_analyze():
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_AUTO
             ]
-            action_label = "レビュー済みにする"
+            action_label = "医師確認済みにする"
             action_key_prefix = "bulkrev"
+        elif review_filter == "AI自動登録（🤖）":
+            target_list = [
+                img for img in images
+                if img["id"] in metadata
+                and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+            ]
+            action_label = "医師確認済みにする"
+            action_key_prefix = "bulkautorev"
         else:
             target_list = [
                 img for img in images
@@ -1840,7 +1981,7 @@ def page_batch_analyze():
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
                 status = get_status(meta)
-                status_icon = "✅" if status == STATUS_REVIEWED else "🆕"
+                status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
@@ -1862,9 +2003,9 @@ def page_batch_analyze():
         st.markdown("---")
         action_count = len(action_ids)
 
-        if review_filter == "未確認のみ（🆕）":
+        if review_filter in ("未確認のみ（🆕）", "AI自動登録（🤖）"):
             if st.button(
-                f"✅ 選択した {action_count} 件をレビュー済みにする",
+                f"✅ 選択した {action_count} 件を医師確認済みにする",
                 type="primary",
                 key="bulk_review_run",
                 disabled=(action_count == 0),
@@ -1875,7 +2016,7 @@ def page_batch_analyze():
                 save_metadata(metadata)
                 for fid in action_ids:
                     st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                st.success(f"✅ {action_count} 件をレビュー済みにしました。")
+                st.success(f"✅ {action_count} 件を医師確認済みにしました。")
                 st.rerun()
         else:
             if st.button(
@@ -1936,7 +2077,7 @@ def page_batch_analyze():
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
                 status = get_status(meta)
-                status_icon = "✅" if status == STATUS_REVIEWED else "🆕"
+                status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
@@ -1970,30 +2111,41 @@ def page_batch_analyze():
 
 
 def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False):
-    """一括解析 / 一括再解析の共通実行処理。"""
+    """一括解析 / 一括再解析の共通実行処理。
+
+    新規解析の場合: AI自動登録（STATUS_AUTO_REGISTERED）として登録し、既存フォルダへ自動分類する。
+    再解析の場合: 既存のfolder, sourceを保持する。
+    """
     total = len(target_images)
     progress_bar = st.progress(0, text="解析を開始...")
     success_count = 0
     fail_count = 0
+    folders = load_folders()
 
     for i, img in enumerate(target_images):
         fid = img["id"]
         fname = img["name"]
         progress_bar.progress(
             i / total,
-            text=f"{'再解析' if is_reanalyze else '解析'}中... ({i + 1}/{total}) {fname}",
+            text=f"{'再解析' if is_reanalyze else '解析・登録'}中... ({i + 1}/{total}) {fname}",
         )
 
         try:
             image_bytes = download_image(service, fid)
+
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
-                if fid in metadata:
-                    # 既存のfolder, sourceを保持
+                if is_reanalyze and fid in metadata:
+                    # 再解析: 既存のfolder, sourceを保持
                     old = metadata[fid]
                     for keep_key in ("folder", "source"):
                         if keep_key in old:
                             result[keep_key] = old[keep_key]
+                else:
+                    # 新規解析: AI自動登録 & フォルダ自動分類
+                    result["status"] = STATUS_AUTO_REGISTERED
+                    assigned_folder = _auto_classify_folder(result, api_key, folders)
+                    result["folder"] = assigned_folder
                 metadata[fid] = result
                 save_metadata(metadata)
                 success_count += 1
@@ -2007,7 +2159,7 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
             time.sleep(1)
 
     progress_bar.progress(1.0, text="完了！")
-    action_name = "再解析" if is_reanalyze else "一括解析"
+    action_name = "再解析" if is_reanalyze else "一括解析・登録"
     st.success(f"{action_name}が完了しました！ 成功: {success_count} 件 / 失敗: {fail_count} 件")
     st.rerun()
 
@@ -2598,16 +2750,13 @@ def page_folder_ai():
                             'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
-                    status = get_status(meta)
-                    if status == STATUS_REVIEWED:
-                        st.caption(f"✅ {title}")
-                    else:
-                        st.caption(f"🆕 {title}")
+                    icon = get_status_icon(meta)
+                    st.caption(f"{icon} {title}")
                     kw = meta.get("keywords", [])
                     if kw:
                         st.caption(" ".join(f"`{k}`" for k in kw[:3]))
                     # 詳細ボタン
-                    if st.button("📝 詳細", key=f"folder_open_{fid}", use_container_width=True):
+                    if st.button("🔍 詳細を見る", key=f"folder_open_{fid}", use_container_width=True):
                         st.session_state["folder_detail_id"] = fid
                         st.rerun()
         return
@@ -2971,7 +3120,9 @@ def page_chat():
                     st.markdown(f"### {meta.get('title', '不明')}")
                     status = get_status(meta)
                     if status == STATUS_REVIEWED:
-                        st.markdown("✅ **確認済み**")
+                        st.markdown("✅ **医師確認済み**")
+                    elif status == STATUS_AUTO_REGISTERED:
+                        st.markdown("🤖 **AI自動登録**")
                     else:
                         st.markdown("🆕 **未確認**（AI自動生成）")
                     kw = meta.get("keywords", [])
@@ -3071,7 +3222,7 @@ def page_chat():
 
     # --- 表示エリア ---
     if not st.session_state["chat_messages"]:
-        render_home_screen(knowledge_count)
+        render_home_screen(knowledge_count, metadata, service)
         return
 
     # --- 最新の回答を表示 ---
