@@ -1892,7 +1892,7 @@ def page_batch_analyze():
         # 対象選択
         review_filter = st.radio(
             "対象",
-            ["未確認→確認済み（🆕→✅）", "確認済み→未確認に戻す（✅→🆕）"],
+            ["未登録→登録済み（🆕→✅）", "登録済み→未登録に戻す（✅→🆕）"],
             horizontal=True,
             key="bulk_review_filter",
         )
