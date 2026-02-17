@@ -138,34 +138,6 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 
 
 # ---------------------------------------------------------------------------
-# 画像表示ヘルパー（クリックで全画面拡大）
-# ---------------------------------------------------------------------------
-def zoomable_image(image_bytes: bytes, caption: str = "", width: str = "stretch"):
-    """画像を表示し、クリックで新しいタブに原寸大で開けるリンクを付ける。
-
-    st.image でサムネイル表示 + 「🔍 拡大」リンクで新タブに原寸表示。
-    ブラウザのピンチズームや拡大が自由に使える。
-    """
-    st.image(image_bytes, width=width)
-    # base64 data URI で新タブに開く
-    b64 = base64.b64encode(image_bytes).decode("utf-8")
-    mime = "image/jpeg"
-    try:
-        fmt = Image.open(io.BytesIO(image_bytes)).format or "JPEG"
-        mime = f"image/{fmt.lower()}"
-    except Exception:
-        pass
-    data_uri = f"data:{mime};base64,{b64}"
-    cap_text = f" {caption}" if caption else ""
-    st.markdown(
-        f'<a href="{data_uri}" target="_blank" '
-        f'style="font-size:13px; color:#5b8def; text-decoration:none;">'
-        f'🔍 タップして拡大{cap_text}</a>',
-        unsafe_allow_html=True,
-    )
-
-
-# ---------------------------------------------------------------------------
 # メタデータ管理
 # ---------------------------------------------------------------------------
 def load_metadata() -> dict:
