@@ -488,15 +488,28 @@ def download_image(_service, file_id: str) -> bytes:
 
 
 # ---------------------------------------------------------------------------
+# Gemini AI クライアント
+# ---------------------------------------------------------------------------
+_GEMINI_MODEL = "gemini-2.0-flash"
+
+
+def _get_genai_client(api_key: str) -> genai.Client:
+    """Gemini API クライアントを取得する。"""
+    return genai.Client(api_key=api_key)
+
+
+# ---------------------------------------------------------------------------
 # Gemini AI 解析（画像）
 # ---------------------------------------------------------------------------
 def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
     """Gemini 2.0 Flash で画像を解析し、結果辞書を返す。"""
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        client = _get_genai_client(api_key)
         pil_image = Image.open(io.BytesIO(image_bytes))
-        response = model.generate_content([ANALYSIS_PROMPT, pil_image])
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=[ANALYSIS_PROMPT, pil_image],
+        )
         response_text = response.text.strip()
 
         # ```json ... ``` コードブロック対応
@@ -562,9 +575,10 @@ def _auto_classify_folder(meta: dict, api_key: str, folders: list[str]) -> str:
     )
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        response = model.generate_content(prompt)
+        client = _get_genai_client(api_key)
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL, contents=prompt,
+        )
         result = response.text.strip()
         # フォルダ名リストから最も近いものを選択
         for f in folders:
