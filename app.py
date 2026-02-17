@@ -1667,11 +1667,6 @@ def page_batch_analyze():
         if img["id"] in metadata
         and get_status(metadata[img["id"]]) == STATUS_AUTO
     ]
-    auto_registered = [
-        img for img in images
-        if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-    ]
     reviewed = [
         img for img in images
         if img["id"] in metadata
@@ -1682,16 +1677,15 @@ def page_batch_analyze():
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
-    st.sidebar.write(f"🆕 未確認（要レビュー）: **{len(unreviewed)}** 件")
-    st.sidebar.write(f"🤖 AI自動登録: **{len(auto_registered)}** 件")
-    st.sidebar.write(f"✅ 医師確認済み: **{len(reviewed)}** 件")
+    st.sidebar.write(f"🆕 未確認: **{len(unreviewed)}** 件")
+    st.sidebar.write(f"✅ 確認済み: **{len(reviewed)}** 件")
     st.sidebar.write(f"合計: **{len(images)}** 件")
 
     # プログレスバー
     if images:
-        done_count = len(reviewed) + len(auto_registered)
+        done_count = len(reviewed)
         progress = done_count / len(images)
-        st.sidebar.progress(progress, text=f"登録済み: {done_count}/{len(images)}")
+        st.sidebar.progress(progress, text=f"確認済み: {done_count}/{len(images)}")
 
     # --- モード切り替え ---
     if "batch_mode" not in st.session_state:
@@ -1780,15 +1774,13 @@ def page_batch_analyze():
         # フィルタ
         filter_choice = st.radio(
             "対象を絞る",
-            ["すべて", "未確認のみ（🆕）", "AI自動登録（🤖）", "医師確認済みのみ（✅）"],
+            ["すべて", "未確認のみ（🆕）", "確認済みのみ（✅）"],
             horizontal=True,
             key="reanalyze_filter",
         )
         if filter_choice == "未確認のみ（🆕）":
             target_list = unreviewed
-        elif filter_choice == "AI自動登録（🤖）":
-            target_list = auto_registered
-        elif filter_choice == "医師確認済みのみ（✅）":
+        elif filter_choice == "確認済みのみ（✅）":
             target_list = reviewed
         else:
             target_list = analyzed_all
