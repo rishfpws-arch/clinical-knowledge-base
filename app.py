@@ -1119,18 +1119,12 @@ def handle_chat_submit(
         {"role": "user", "content": user_input}
     )
 
-    # AI回答を生成（知識ベース + 一般AIを並列実行で高速化）
-    with st.spinner("回答を生成中..."):
+    # AI回答を生成（知識ベースのみ）
+    with st.spinner("知識ベースを検索中..."):
         history = st.session_state["chat_messages"][:-1]
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            kb_future = executor.submit(
-                generate_chat_response, user_input, metadata, api_key, history
-            )
-            gen_future = executor.submit(
-                generate_general_response, user_input, api_key, history
-            )
-            kb_response = kb_future.result()
-            general_response = gen_future.result()
+        kb_response = generate_chat_response(
+            user_input, metadata, api_key, history
+        )
         ref_ids = extract_file_ids(kb_response, metadata)
 
     # アシスタントメッセージを追加
@@ -1138,7 +1132,6 @@ def handle_chat_submit(
         {
             "role": "assistant",
             "content": kb_response,
-            "general_content": general_response,
             "ref_ids": ref_ids,
         }
     )
