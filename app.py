@@ -1057,37 +1057,41 @@ def display_referenced_images(
 def display_kb_response_with_images(
     text: str, metadata: dict, service
 ) -> None:
-    """知識ベースの回答テキストを表示し、[ID: xxx] の箇所に画像を埋め込む。"""
+    """参照画像をまとめて上部に表示し、回答テキストをその下に表示する。"""
     if not text:
         return
 
-    # [ID: xxx] パターンで分割
+    # [ID: xxx] パターンからIDを抽出（順序保持・重複除去）
     pattern = r"\[ID:\s*([^\]]+)\]"
-    parts = re.split(pattern, text)
-    shown_ids = set()
+    found_ids: list[str] = []
+    seen: set[str] = set()
+    for m in re.finditer(pattern, text):
+        fid = m.group(1).strip()
+        if fid not in seen and fid in metadata:
+            seen.add(fid)
+            found_ids.append(fid)
 
-    # parts: [text, id, text, id, text, ...]
-    for i, part in enumerate(parts):
-        if i % 2 == 0:
-            # テキスト部分 — ID除去後に残った空括弧を除去
-            stripped = part.strip()
-            stripped = re.sub(r"[\(（]\s*[\)）]", "", stripped)  # () （） を除去
-            stripped = stripped.strip()
-            if stripped:
-                st.markdown(stripped)
-        else:
-            # ID部分 → 画像を表示
-            fid = part.strip()
-            if fid in metadata and fid not in shown_ids:
-                shown_ids.add(fid)
-                meta = metadata[fid]
-                title = meta.get("title", "不明")
+    # --- 上部: 参照画像をまとめて表示 ---
+    if found_ids:
+        cols = st.columns(min(len(found_ids), 3))
+        for idx, fid in enumerate(found_ids):
+            meta = metadata[fid]
+            title = meta.get("title", "不明")
+            with cols[idx % 3]:
                 try:
                     img_bytes = download_image(service, fid)
-                    with st.expander(f"🖼️ {title}", expanded=True):
-                        st.image(img_bytes, width=300)
+                    st.image(img_bytes, width="stretch")
+                    st.caption(f"🖼️ {title}")
                 except Exception:
-                    st.caption(f"🖼️ {title}（画像読み込み失敗）")
+                    st.caption(f"🖼️ {title}（読込失敗）")
+        st.markdown("---")
+
+    # --- 下部: 回答テキスト（IDと空括弧を除去して表示） ---
+    clean_text = re.sub(pattern, "", text)
+    clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
+    clean_text = clean_text.strip()
+    if clean_text:
+        st.markdown(clean_text)
 
 
 # ---------------------------------------------------------------------------
