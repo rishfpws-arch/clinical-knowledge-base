@@ -1835,7 +1835,7 @@ def page_batch_analyze():
                 st.info("まず「新規解析」で一括AI解析を実行してください。")
             return
 
-        st.info(f"**{len(unreviewed_now)} 件**の未確認画像があります。順番に確認してください。")
+        st.info(f"**{len(unreviewed_now)} 件**の未登録画像があります。順番に確認してください。")
 
         if "review_index" not in st.session_state:
             st.session_state["review_index"] = 0
@@ -1911,7 +1911,7 @@ def page_batch_analyze():
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_REVIEWED
             ]
-            action_label = "未確認に戻す"
+            action_label = "未登録に戻す"
             action_key_prefix = "bulkunrev"
 
         if not target_list:
