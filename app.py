@@ -1036,7 +1036,7 @@ def display_referenced_images(
         with st.expander(f"🖼️ {title}  (ID: {fid[:12]}...)", expanded=False):
             try:
                 image_bytes = download_image(service, fid)
-                zoomable_image(image_bytes, "クリックで拡大")
+                st.image(image_bytes, width="stretch")
 
                 if meta.get("summary"):
                     st.caption(meta["summary"])
