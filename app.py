@@ -1967,9 +1967,9 @@ def page_batch_analyze():
         st.markdown("---")
         action_count = len(action_ids)
 
-        if review_filter == "未確認→確認済み（🆕→✅）":
+        if review_filter == "未登録→登録済み（🆕→✅）":
             if st.button(
-                f"✅ 選択した {action_count} 件を確認済みにする",
+                f"✅ 選択した {action_count} 件を登録済みにする",
                 type="primary",
                 key="bulk_review_run",
                 disabled=(action_count == 0),
