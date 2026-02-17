@@ -25,7 +25,7 @@ from pathlib import Path
 
 import streamlit as st
 from PIL import Image
-import google.generativeai as genai
+from google import genai
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
