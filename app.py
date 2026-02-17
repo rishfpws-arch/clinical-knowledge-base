@@ -1997,9 +1997,9 @@ def page_batch_analyze():
         st.markdown("---")
         action_count = len(action_ids)
 
-        if review_filter in ("未確認のみ（🆕）", "AI自動登録（🤖）"):
+        if review_filter == "未確認→確認済み（🆕→✅）":
             if st.button(
-                f"✅ 選択した {action_count} 件を医師確認済みにする",
+                f"✅ 選択した {action_count} 件を確認済みにする",
                 type="primary",
                 key="bulk_review_run",
                 disabled=(action_count == 0),
@@ -2010,7 +2010,7 @@ def page_batch_analyze():
                 save_metadata(metadata)
                 for fid in action_ids:
                     st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                st.success(f"✅ {action_count} 件を医師確認済みにしました。")
+                st.success(f"✅ {action_count} 件を確認済みにしました。")
                 st.rerun()
         else:
             if st.button(
@@ -2107,7 +2107,7 @@ def page_batch_analyze():
 def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False):
     """一括解析 / 一括再解析の共通実行処理。
 
-    新規解析の場合: AI自動登録（STATUS_REVIEWED）として登録し、既存フォルダへ自動分類する。
+    新規解析の場合: 確認済み（STATUS_REVIEWED）として登録し、既存フォルダへ自動分類する。
     再解析の場合: 既存のfolder, sourceを保持する。
     """
     total = len(target_images)
@@ -2136,7 +2136,7 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
                         if keep_key in old:
                             result[keep_key] = old[keep_key]
                 else:
-                    # 新規解析: AI自動登録 & フォルダ自動分類
+                    # 新規解析: 確認済みとして登録 & フォルダ自動分類
                     result["status"] = STATUS_REVIEWED
                     assigned_folder = _auto_classify_folder(result, api_key, folders)
                     result["folder"] = assigned_folder
