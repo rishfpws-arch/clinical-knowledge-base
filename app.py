@@ -1057,41 +1057,55 @@ def display_referenced_images(
 def display_kb_response_with_images(
     text: str, metadata: dict, service
 ) -> None:
-    """参照画像をまとめて上部に表示し、回答テキストをその下に表示する。"""
+    """回答テキストを表示し、[ID: xxx] を画像タイトルに置換。
+
+    各IDが初めて登場した直後にサムネイルカードを挿入し、
+    どの説明がどの画像に対応するか視覚的に分かるようにする。
+    """
     if not text:
         return
 
-    # [ID: xxx] パターンからIDを抽出（順序保持・重複除去）
     pattern = r"\[ID:\s*([^\]]+)\]"
-    found_ids: list[str] = []
-    seen: set[str] = set()
+    # ID → タイトルの対応表を構築
+    id_titles: dict[str, str] = {}
     for m in re.finditer(pattern, text):
         fid = m.group(1).strip()
-        if fid not in seen and fid in metadata:
-            seen.add(fid)
-            found_ids.append(fid)
+        if fid in metadata and fid not in id_titles:
+            id_titles[fid] = metadata[fid].get("title", "不明")
 
-    # --- 上部: 参照画像をまとめて表示 ---
-    if found_ids:
-        cols = st.columns(min(len(found_ids), 3))
-        for idx, fid in enumerate(found_ids):
-            meta = metadata[fid]
-            title = meta.get("title", "不明")
-            with cols[idx % 3]:
+    # テキストを [ID: xxx] で分割 → [text, id, text, id, ...]
+    parts = re.split(pattern, text)
+    shown_ids: set[str] = set()
+
+    for i, part in enumerate(parts):
+        if i % 2 == 0:
+            # --- テキスト部分 ---
+            cleaned = part.strip()
+            cleaned = re.sub(r"[\(（]\s*[\)）]", "", cleaned)
+            cleaned = cleaned.strip()
+            if cleaned:
+                st.markdown(cleaned)
+        else:
+            # --- ID部分 → タイトル表示 + 初出なら画像カード ---
+            fid = part.strip()
+            if fid not in metadata:
+                continue
+            title = id_titles.get(fid, "不明")
+
+            if fid not in shown_ids:
+                shown_ids.add(fid)
+                # 画像カード（タイトル付き）
                 try:
                     img_bytes = download_image(service, fid)
-                    st.image(img_bytes, width="stretch")
-                    st.caption(f"🖼️ {title}")
+                    col_img, col_space = st.columns([1, 2])
+                    with col_img:
+                        st.image(img_bytes, width="stretch")
+                        st.caption(f"📷 {title}")
                 except Exception:
-                    st.caption(f"🖼️ {title}（読込失敗）")
-        st.markdown("---")
-
-    # --- 下部: 回答テキスト（IDと空括弧を除去して表示） ---
-    clean_text = re.sub(pattern, "", text)
-    clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
-    clean_text = clean_text.strip()
-    if clean_text:
-        st.markdown(clean_text)
+                    st.info(f"📷 {title}")
+            else:
+                # 2回目以降はタイトルだけ言及
+                st.markdown(f"*（📷 {title} を参照）*")
 
 
 # ---------------------------------------------------------------------------
