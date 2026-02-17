@@ -1748,9 +1748,9 @@ def page_batch_analyze():
             horizontal=True,
             key="reanalyze_filter",
         )
-        if filter_choice == "未確認のみ（🆕）":
+        if filter_choice == "未登録のみ（🆕）":
             target_list = unreviewed
-        elif filter_choice == "確認済みのみ（✅）":
+        elif filter_choice == "登録済みのみ（✅）":
             target_list = reviewed
         else:
             target_list = analyzed_all
