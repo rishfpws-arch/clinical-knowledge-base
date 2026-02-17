@@ -1304,5 +1304,20 @@
     ],
     "status": "reviewed",
     "folder": "整形外科"
+  },
+  "1wobge7-tkI8ZnYij4dfQ-PPORNcANe2t": {
+    "title": "薬物性肝障害の診断アルゴリズムとKing's College criteria（急性肝不全）",
+    "summary": "この図は、薬物性肝障害（DILI）の診断と治療におけるアルゴリズムと、急性肝不全（ALF）の基準であるKing's College criteriaを示しています。3か月以内の新規薬剤またはアセトアミノフェンの使用歴を確認し、肝障害のタイプ（肝細胞性vs胆汁うっ滞性）を評価します。薬剤中止を検討し、対症療法を行います。King's College criteriaを満たす急性薬物性肝障害では肝移植を考慮します。鑑別診断として、ウイルス性肝炎、自己免疫性肝炎、アルコール性肝障害などを検討します。DILIを見逃すと、ALFに至り、肝移植が必要となる可能性があります。ALT、ビリルビン、INRなどの肝機能検査のモニタリングが重要です。",
+    "keywords": [
+      "薬物性肝障害",
+      "急性肝不全",
+      "King's College criteria",
+      "肝細胞性障害",
+      "胆汁うっ滞",
+      "肝移植",
+      "鑑別診断"
+    ],
+    "status": "reviewed",
+    "folder": "消化器・代謝"
   }
 }
