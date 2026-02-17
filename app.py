@@ -138,6 +138,28 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 
 
 # ---------------------------------------------------------------------------
+# 画像表示ヘルパー（クリックで全画面拡大）
+# ---------------------------------------------------------------------------
+def zoomable_image(image_bytes: bytes, caption: str = "", width: str = "100%"):
+    """クリックすると全画面オーバーレイで拡大表示できる画像を描画する。"""
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
+    # MIMEタイプ判定
+    mime = "image/jpeg"
+    try:
+        fmt = Image.open(io.BytesIO(image_bytes)).format or "JPEG"
+        mime = f"image/{fmt.lower()}"
+    except Exception:
+        pass
+    src = f"data:{mime};base64,{b64}"
+    cap_html = f"<p style='font-size:12px;color:#aaa;margin-top:4px;'>{caption}</p>" if caption else ""
+    st.markdown(
+        f'<img class="zoom-img" src="{src}" style="width:{width};" '
+        f'onclick="openZoom(this.src)" />{cap_html}',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
 # メタデータ管理
 # ---------------------------------------------------------------------------
 def load_metadata() -> dict:
