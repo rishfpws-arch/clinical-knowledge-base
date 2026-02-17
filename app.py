@@ -47,7 +47,6 @@ DEFAULT_FOLDER = "未分類"
 
 # ステータス定数
 STATUS_AUTO = "auto_generated"
-STATUS_AUTO_REGISTERED = "auto_registered"  # AI自動登録（医師未確認）
 STATUS_REVIEWED = "reviewed"
 
 # ホーム画面の名言
