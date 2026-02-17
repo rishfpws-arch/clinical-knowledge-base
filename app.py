@@ -1267,8 +1267,8 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     reviewed_count = sum(
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
-    st.sidebar.write(f"登録済み知識: **{knowledge_count}** 件")
-    st.sidebar.write(f"✅ 確認済み: **{reviewed_count}** 件")
+    st.sidebar.write(f"📚 全知識: **{knowledge_count}** 件")
+    st.sidebar.write(f"✅ 登録済み: **{reviewed_count}** 件")
 
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
