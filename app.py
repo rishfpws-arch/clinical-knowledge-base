@@ -1744,7 +1744,7 @@ def page_batch_analyze():
         # フィルタ
         filter_choice = st.radio(
             "対象を絞る",
-            ["すべて", "未確認のみ（🆕）", "確認済みのみ（✅）"],
+            ["すべて", "未登録のみ（🆕）", "登録済みのみ（✅）"],
             horizontal=True,
             key="reanalyze_filter",
         )
