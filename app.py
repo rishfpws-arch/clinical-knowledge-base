@@ -1109,8 +1109,7 @@ def display_kb_response_with_images(
             with cols[idx % 3]:
                 try:
                     img_bytes = download_image(service, fid)
-                    st.image(img_bytes, width="stretch")
-                    st.caption(f"📷 {title}")
+                    zoomable_image(img_bytes, f"📷 {title}")
                 except Exception:
                     st.caption(f"📷 {title}（読込失敗）")
         st.markdown("---")
