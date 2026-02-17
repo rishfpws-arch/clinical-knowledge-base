@@ -1984,7 +1984,7 @@ def page_batch_analyze():
                 st.rerun()
         else:
             if st.button(
-                f"🆕 選択した {action_count} 件を未確認に戻す",
+                f"🆕 選択した {action_count} 件を未登録に戻す",
                 type="primary",
                 key="bulk_unreview_run",
                 disabled=(action_count == 0),
