@@ -1805,7 +1805,7 @@ def page_batch_analyze():
         st.markdown("---")
         reanalyze_count = len(reanalyze_ids)
         if reanalyze_count > 0:
-            st.warning("⚠️ 再解析すると現在の解析データ（タイトル・要約・キーワード）が上書きされます。レビュー状態も未確認に戻ります。")
+            st.warning("⚠️ 再解析すると現在の解析データ（タイトル・要約・キーワード）が上書きされます。ステータスも未登録に戻ります。")
         if st.button(
             f"🔄 選択した {reanalyze_count} 件を再解析",
             type="primary",
