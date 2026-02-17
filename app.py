@@ -1088,6 +1088,8 @@ def display_kb_response_with_images(
             # --- テキスト部分 ---
             cleaned = part.strip()
             cleaned = re.sub(r"[\(（]\s*[\)）]", "", cleaned)
+            # ID除去後に文頭に残る助詞（「の」「は」「で」「に」「を」等）を除去
+            cleaned = re.sub(r"^[のはでにをがと、]\s*", "", cleaned)
             cleaned = cleaned.strip()
             if cleaned:
                 st.markdown(cleaned)
