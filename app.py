@@ -3201,23 +3201,9 @@ def page_chat():
         )
 
     if latest_a:
-        col_kb, col_gen = st.columns(2)
-        with col_kb:
-            st.markdown(
-                "<p style='color:#5b8def; font-weight:600; font-size:13px;"
-                "letter-spacing:0.5px; margin-bottom:4px;'>📚 知識ベース</p>",
-                unsafe_allow_html=True,
-            )
-            display_kb_response_with_images(
-                latest_a.get("content", ""), metadata, service
-            )
-        with col_gen:
-            st.markdown(
-                "<p style='color:#a78bfa; font-weight:600; font-size:13px;"
-                "letter-spacing:0.5px; margin-bottom:4px;'>🌐 一般AI</p>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(latest_a.get("general_content", ""))
+        display_kb_response_with_images(
+            latest_a.get("content", ""), metadata, service
+        )
 
     # --- 過去の履歴（折りたたみ） ---
     past_pairs = []
