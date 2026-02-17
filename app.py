@@ -937,7 +937,7 @@ def build_knowledge_context(metadata: dict) -> str:
         summary = meta.get("summary", "要約なし")
         keywords = ", ".join(meta.get("keywords", []))
         s = get_status(meta)
-        status = "登録済み" if s == STATUS_REVIEWED else "未確認"
+        status = "登録済み" if s == STATUS_REVIEWED else "未登録"
 
         entry = (
             f"ID: {file_id}\n"
