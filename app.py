@@ -1864,7 +1864,7 @@ def page_batch_analyze():
         st.markdown("---")
         try:
             image_bytes = download_image(service, current_fid)
-            zoomable_image(image_bytes, f"{current_img['name']}（クリックで拡大）")
+            st.image(image_bytes, width="stretch")
         except Exception as e:
             st.error(f"画像の読み込みに失敗しました: {e}")
             return
