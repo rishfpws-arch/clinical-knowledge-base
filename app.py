@@ -1297,13 +1297,8 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     reviewed_count = sum(
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
-    auto_reg_count = sum(
-        1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
-    )
     st.sidebar.write(f"登録済み知識: **{knowledge_count}** 件")
-    st.sidebar.write(f"✅ 医師確認済み: **{reviewed_count}** 件")
-    if auto_reg_count > 0:
-        st.sidebar.write(f"🤖 AI自動登録: **{auto_reg_count}** 件")
+    st.sidebar.write(f"✅ 確認済み: **{reviewed_count}** 件")
 
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
@@ -1417,13 +1412,8 @@ def page_image_manager():
         if img["id"] in metadata
         and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     )
-    auto_reg_count = sum(
-        1 for img in images
-        if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-    )
     st.sidebar.caption(
-        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅医師確認 {reviewed_count} 件 | 🤖自動登録 {auto_reg_count} 件"
+        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅確認済み {reviewed_count} 件"
     )
 
     if not filtered_images:
