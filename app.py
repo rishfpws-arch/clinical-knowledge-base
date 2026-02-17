@@ -7,9 +7,10 @@ Google Driveの指定フォルダ内にある医療関連スクリーンショ�
 蓄積された知識に対して、チャット形式で自然言語による質問・検索が可能。
 
 認証方式: Google サービスアカウント (Drive API)
-AI解析/チャット: Gemini 2.0 Flash (google-generativeai)
+AI解析/チャット: Gemini 2.0 Flash (REST API)
 """
 
+import base64
 import io
 import json
 import random
@@ -23,9 +24,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
+import requests
 import streamlit as st
 from PIL import Image
-from google import genai
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
@@ -488,14 +489,28 @@ def download_image(_service, file_id: str) -> bytes:
 
 
 # ---------------------------------------------------------------------------
-# Gemini AI クライアント
+# Gemini AI (REST API 直接呼び出し)
 # ---------------------------------------------------------------------------
 _GEMINI_MODEL = "gemini-2.0-flash"
+_GEMINI_API_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    "{model}:generateContent?key={key}"
+)
 
 
-def _get_genai_client(api_key: str) -> genai.Client:
-    """Gemini API クライアントを取得する。"""
-    return genai.Client(api_key=api_key)
+def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> str:
+    """Gemini REST API を呼び出してテキスト応答を返す。
+
+    contents は Gemini API の ``parts`` 形式のリスト。
+    テキストのみの場合: [{"text": "..."}]
+    画像付きの場合: [{"text": "..."}, {"inline_data": {"mime_type": "...", "data": "..."}}]
+    """
+    url = _GEMINI_API_URL.format(model=model or _GEMINI_MODEL, key=api_key)
+    payload = {"contents": [{"parts": contents}]}
+    resp = requests.post(url, json=payload, timeout=120)
+    resp.raise_for_status()
+    data = resp.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
 # ---------------------------------------------------------------------------
@@ -504,13 +519,19 @@ def _get_genai_client(api_key: str) -> genai.Client:
 def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
     """Gemini 2.0 Flash で画像を解析し、結果辞書を返す。"""
     try:
-        client = _get_genai_client(api_key)
+        # 画像の MIME タイプを判定
         pil_image = Image.open(io.BytesIO(image_bytes))
-        response = client.models.generate_content(
-            model=_GEMINI_MODEL,
-            contents=[ANALYSIS_PROMPT, pil_image],
-        )
-        response_text = response.text.strip()
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+        parts = [
+            {"text": ANALYSIS_PROMPT},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        response_text = _gemini_generate(api_key, parts).strip()
 
         # ```json ... ``` コードブロック対応
         if response_text.startswith("```"):
@@ -575,11 +596,7 @@ def _auto_classify_folder(meta: dict, api_key: str, folders: list[str]) -> str:
     )
 
     try:
-        client = _get_genai_client(api_key)
-        response = client.models.generate_content(
-            model=_GEMINI_MODEL, contents=prompt,
-        )
-        result = response.text.strip()
+        result = _gemini_generate(api_key, [{"text": prompt}]).strip()
         # フォルダ名リストから最も近いものを選択
         for f in folders:
             if f in result or result in f:
@@ -979,8 +996,6 @@ def generate_chat_response(
 ) -> str:
     """ユーザーの質問に対して、蓄積された知識をもとにGeminiで回答を生成する。"""
     try:
-        client = _get_genai_client(api_key)
-
         # コンテキスト（知識）を生成
         knowledge_context = build_knowledge_context(metadata)
         system_prompt = CHAT_SYSTEM_PROMPT.format(
@@ -998,10 +1013,8 @@ def generate_chat_response(
         contents.append(f"ユーザー: {user_message}")
 
         # Gemini に送信
-        response = client.models.generate_content(
-            model=_GEMINI_MODEL, contents="\n\n".join(contents),
-        )
-        return response.text.strip()
+        full_prompt = "\n\n".join(contents)
+        return _gemini_generate(api_key, [{"text": full_prompt}]).strip()
 
     except Exception as e:
         return f"回答の生成中にエラーが発生しました: {e}"
@@ -1012,8 +1025,6 @@ def generate_general_response(
 ) -> str:
     """ユーザーの質問に対して、Geminiの一般医学知識で回答を生成する。"""
     try:
-        client = _get_genai_client(api_key)
-
         contents = [CHAT_GENERAL_PROMPT]
         recent_history = chat_history[-20:]
         for msg in recent_history:
@@ -1027,10 +1038,8 @@ def generate_general_response(
 
         contents.append(f"ユーザー: {user_message}")
 
-        response = client.models.generate_content(
-            model=_GEMINI_MODEL, contents="\n\n".join(contents),
-        )
-        return response.text.strip()
+        full_prompt = "\n\n".join(contents)
+        return _gemini_generate(api_key, [{"text": full_prompt}]).strip()
 
     except Exception as e:
         return f"一般AI回答の生成中にエラーが発生しました: {e}"
@@ -2807,8 +2816,6 @@ def page_folder_ai():
         if st.button("🤖 フォルダ名を提案", key="ai_suggest_folders"):
             with st.spinner("AIがフォルダ構成を考えています..."):
                 try:
-                    client = _get_genai_client(api_key)
-
                     # 全画像のタイトル・キーワードを集約
                     summaries = []
                     for img in analyzed:
@@ -2835,10 +2842,8 @@ def page_folder_ai():
                         + instruction_part
                         + "\nフォルダ名のみをカンマ区切りで出力してください。日本語で。"
                     )
-                    response = client.models.generate_content(
-                        model=_GEMINI_MODEL, contents=prompt,
-                    )
-                    suggested = [s.strip() for s in response.text.strip().split(",") if s.strip()]
+                    resp_text = _gemini_generate(api_key, [{"text": prompt}])
+                    suggested = [s.strip() for s in resp_text.strip().split(",") if s.strip()]
                     st.session_state["ai_suggested_folders"] = suggested
                 except Exception as e:
                     st.error(f"フォルダ提案に失敗しました: {e}")
@@ -2947,7 +2952,6 @@ def page_folder_ai():
         type="primary",
         key="ai_classify_run",
     ):
-        client = _get_genai_client(api_key)
         folder_names = ", ".join(folders)
 
         progress_bar = st.progress(0, text="AI分類を開始...")
@@ -2982,10 +2986,7 @@ def page_folder_ai():
             )
 
             try:
-                response = client.models.generate_content(
-                    model=_GEMINI_MODEL, contents=prompt,
-                )
-                result = response.text.strip()
+                result = _gemini_generate(api_key, [{"text": prompt}]).strip()
                 # フォルダ名リストから最も近いものを選択（一致しなければ未分類）
                 matched = None
                 for f in folders:
