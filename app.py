@@ -117,24 +117,6 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験豊富な指導医レベルの�
 {knowledge_context}
 """
 
-# チャット用システムプロンプト（一般AI検索）
-CHAT_GENERAL_PROMPT = """あなたは臨床経験豊富な指導医レベルの医学コンサルタントAIです。
-ユーザーは臨床医（研修医〜専攻医〜指導医）です。
-一般人向けの説明は不要です。専門家同士の臨床カンファレンスレベルで回答してください。
-
-回答のルール:
-1. 専門用語をそのまま使用し、必要に応じて英語略語を併記（例: AVN、MRI）。
-2. 以下の観点を網羅的に含めてください:
-   - **鑑別診断**: 頻度順に5〜8つ挙げ、それぞれ簡潔に特徴的所見・除外のポイントを記載
-   - **推奨検査**: 段階的に（まず行うべき検査 → 追加精査）、検査選択の根拠も記載
-   - **治療方針**: 第一選択薬（薬剤名・用量・投与経路）、代替案、治療期間の目安
-   - **Red flags / 緊急対応**: 見逃してはならない危険な徴候、コンサルトのタイミング
-   - **フォローアップ**: 経過観察の間隔、治療効果判定の指標、患者教育のポイント
-   - **ピットフォール**: 陥りやすい誤診・見落とし、注意すべき併存疾患
-3. 具体的なエビデンスに基づき、ガイドライン名・年・推奨グレードを記載（2〜4件）。
-4. 必要に応じて表形式を活用し、臨床現場ですぐに参照できる形にまとめてください。
-5. 回答の最後に「臨床のポイント」として、現場で役立つ実践的なtipsを1〜3点追記してください。
-"""
 
 
 # ---------------------------------------------------------------------------
@@ -1012,30 +994,6 @@ def generate_chat_response(
     except Exception as e:
         return f"回答の生成中にエラーが発生しました: {e}"
 
-
-def generate_general_response(
-    user_message: str, api_key: str, chat_history: list[dict]
-) -> str:
-    """ユーザーの質問に対して、Geminiの一般医学知識で回答を生成する。"""
-    try:
-        contents = [CHAT_GENERAL_PROMPT]
-        recent_history = chat_history[-20:]
-        for msg in recent_history:
-            role_label = "ユーザー" if msg["role"] == "user" else "アシスタント"
-            # 一般回答の履歴のみ使う（kb_contentは除外）
-            general_content = msg.get("general_content", "")
-            if general_content and msg["role"] == "assistant":
-                contents.append(f"{role_label}: {general_content}")
-            elif msg["role"] == "user":
-                contents.append(f"{role_label}: {msg['content']}")
-
-        contents.append(f"ユーザー: {user_message}")
-
-        full_prompt = "\n\n".join(contents)
-        return _gemini_generate(api_key, [{"text": full_prompt}]).strip()
-
-    except Exception as e:
-        return f"一般AI回答の生成中にエラーが発生しました: {e}"
 
 
 # ---------------------------------------------------------------------------
