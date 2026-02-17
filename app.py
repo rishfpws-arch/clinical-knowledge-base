@@ -1049,7 +1049,7 @@ def display_referenced_images(
 
                 if is_zoomed:
                     # 拡大表示: 全幅
-                    st.image(image_bytes, use_container_width=True)
+                    st.image(image_bytes, width="stretch")
                     if st.button("🔍 縮小する", key=f"zoomout_{fid}"):
                         st.session_state[zoom_key] = False
                         st.rerun()
@@ -1214,7 +1214,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             with col:
                 try:
                     img_bytes = download_image(service, fid)
-                    st.image(img_bytes, use_container_width=True)
+                    st.image(img_bytes, width="stretch")
                 except Exception:
                     st.markdown(
                         "<div style='height:150px;background:#222;border-radius:8px;"
@@ -1241,7 +1241,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                 if st.button(
                     "🔍 詳細を見る",
                     key=f"home_img_{fid}",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     st.session_state["selected_image_id"] = fid
                     st.session_state["active_tab"] = "📸 画像管理"
@@ -1265,7 +1265,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     """チャットタブ用のサイドバー（セッション一覧 + 知識ベース情報）。"""
     # --- 新しい会話ボタン ---
     if st.sidebar.button(
-        "➕ 新しい会話", type="primary", use_container_width=True
+        "➕ 新しい会話", type="primary", width="stretch"
     ):
         st.session_state["active_session_id"] = None
         st.session_state["chat_messages"] = []
@@ -1315,7 +1315,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
             if st.sidebar.button(
                 label,
                 key=f"session_{sid}",
-                use_container_width=True,
+                width="stretch",
                 type="primary" if is_active else "secondary",
             ):
                 st.session_state["active_session_id"] = sid
@@ -1329,7 +1329,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     active_id = st.session_state.get("active_session_id")
     if active_id and active_id in sessions:
         st.sidebar.markdown("---")
-        if st.sidebar.button("🗑️ この会話を削除", use_container_width=True):
+        if st.sidebar.button("🗑️ この会話を削除", width="stretch"):
             del sessions[active_id]
             save_chat_sessions(sessions)
             st.session_state["active_session_id"] = None
@@ -1454,7 +1454,7 @@ def page_image_manager():
             st.image(
                 image_bytes,
                 caption=selected_file["name"],
-                use_container_width=True,
+                width="stretch",
             )
         except HttpError as e:
             st.error(f"画像の読み込みに失敗しました: {e}")
@@ -1520,14 +1520,14 @@ def page_image_manager():
         st.caption(f"**{len(filtered_images)}** / {len(images)} 件を表示中")
     with header_col2:
         if st.session_state["img_delete_mode"]:
-            if st.button("✖ 削除モード終了", key="exit_delete_mode", use_container_width=True):
+            if st.button("✖ 削除モード終了", key="exit_delete_mode", width="stretch"):
                 st.session_state["img_delete_mode"] = False
                 # チェック状態クリア
                 for img in filtered_images:
                     st.session_state.pop(f"img_del_{img['id']}", None)
                 st.rerun()
         else:
-            if st.button("🗑️ 削除モード", key="enter_delete_mode", use_container_width=True):
+            if st.button("🗑️ 削除モード", key="enter_delete_mode", width="stretch"):
                 st.session_state["img_delete_mode"] = True
                 st.rerun()
 
@@ -1563,7 +1563,7 @@ def page_image_manager():
                     # サムネイル表示
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -1581,14 +1581,14 @@ def page_image_manager():
                     else:
                         st.caption(f"📄 {img['name']}")
                     # クリックで詳細
-                    if st.button("🔍 詳細を見る", key=f"grid_open_{fid}", use_container_width=True):
+                    if st.button("🔍 詳細を見る", key=f"grid_open_{fid}", width="stretch"):
                         st.session_state["selected_image_id"] = fid
                         st.rerun()
                 else:
                     # 削除モード
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -1735,7 +1735,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -1820,7 +1820,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -1894,7 +1894,7 @@ def page_batch_analyze():
         st.markdown("---")
         try:
             image_bytes = download_image(service, current_fid)
-            st.image(image_bytes, caption=current_img["name"], use_container_width=True)
+            st.image(image_bytes, caption=current_img["name"], width="stretch")
         except Exception as e:
             st.error(f"画像の読み込みに失敗しました: {e}")
             return
@@ -1987,7 +1987,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -2083,7 +2083,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -2317,7 +2317,7 @@ def page_folder_settings():
             label_visibility="collapsed",
         )
     with add_c2:
-        if st.button("➕ 作成", key="fs_create_btn", use_container_width=True):
+        if st.button("➕ 作成", key="fs_create_btn", width="stretch"):
             name = new_folder_name.strip()
             if not name:
                 st.warning("フォルダ名を入力してください。")
@@ -2366,13 +2366,13 @@ def page_folder_settings():
 
             with col_rename:
                 if not is_default:
-                    if st.button("✏️ 名前変更", key=f"fs_rename_btn_{i}", use_container_width=True):
+                    if st.button("✏️ 名前変更", key=f"fs_rename_btn_{i}", width="stretch"):
                         st.session_state["fs_renaming"] = fname
                         st.rerun()
 
             with col_del:
                 if not is_default:
-                    if st.button("🗑️ 削除", key=f"fs_del_btn_{i}", use_container_width=True):
+                    if st.button("🗑️ 削除", key=f"fs_del_btn_{i}", width="stretch"):
                         st.session_state["fs_deleting"] = fname
                         st.rerun()
 
@@ -2389,7 +2389,7 @@ def page_folder_settings():
                         label_visibility="collapsed",
                     )
                 with rc2:
-                    if st.button("✅ 変更", key=f"fs_rename_ok_{i}", use_container_width=True):
+                    if st.button("✅ 変更", key=f"fs_rename_ok_{i}", width="stretch"):
                         new_name = new_name.strip()
                         if not new_name:
                             st.error("名前を入力してください。")
@@ -2412,7 +2412,7 @@ def page_folder_settings():
                             st.success(f"「{fname}」→「{new_name}」に変更しました！")
                             st.rerun()
                 with rc3:
-                    if st.button("キャンセル", key=f"fs_rename_cancel_{i}", use_container_width=True):
+                    if st.button("キャンセル", key=f"fs_rename_cancel_{i}", width="stretch"):
                         st.session_state.pop("fs_renaming", None)
                         st.rerun()
 
@@ -2428,7 +2428,7 @@ def page_folder_settings():
                     st.info(f"「{fname}」を削除しますか？（画像はありません）")
                 dc1, dc2 = st.columns(2)
                 with dc1:
-                    if st.button("🗑️ 削除する", key=f"fs_del_ok_{i}", type="primary", use_container_width=True):
+                    if st.button("🗑️ 削除する", key=f"fs_del_ok_{i}", type="primary", width="stretch"):
                         # 画像を未分類に移動
                         for fid, meta in metadata.items():
                             if get_folder(meta) == fname:
@@ -2440,7 +2440,7 @@ def page_folder_settings():
                         st.success(f"「{fname}」を削除しました。")
                         st.rerun()
                 with dc2:
-                    if st.button("キャンセル", key=f"fs_del_cancel_{i}", use_container_width=True):
+                    if st.button("キャンセル", key=f"fs_del_cancel_{i}", width="stretch"):
                         st.session_state.pop("fs_deleting", None)
                         st.rerun()
 
@@ -2472,7 +2472,7 @@ def page_folder_manual():
 
     # 新規フォルダ作成
     new_folder = st.sidebar.text_input("新しいフォルダ名", placeholder="例: 股関節、脊椎...")
-    if st.sidebar.button("➕ フォルダ作成", use_container_width=True) and new_folder.strip():
+    if st.sidebar.button("➕ フォルダ作成", width="stretch") and new_folder.strip():
         fname = new_folder.strip()
         if fname not in folders:
             folders.append(fname)
@@ -2499,7 +2499,7 @@ def page_folder_manual():
     deletable = [f for f in folders if f != DEFAULT_FOLDER]
     if deletable:
         del_folder = st.sidebar.selectbox("フォルダを削除", ["---"] + deletable, key="del_folder_sel")
-        if st.sidebar.button("🗑️ このフォルダを削除", use_container_width=True) and del_folder != "---":
+        if st.sidebar.button("🗑️ このフォルダを削除", width="stretch") and del_folder != "---":
             # フォルダ内の画像を「未分類」に移動
             for fid, meta in metadata.items():
                 if get_folder(meta) == del_folder:
@@ -2575,7 +2575,7 @@ def page_folder_manual():
             with cols[col_idx]:
                 try:
                     thumb_bytes = download_image(service, fid)
-                    st.image(thumb_bytes, use_container_width=True)
+                    st.image(thumb_bytes, width="stretch")
                 except Exception:
                     st.markdown(
                         '<div style="background:#333;border-radius:8px;'
@@ -2645,7 +2645,7 @@ def page_folder_ai():
 
     # 「分類画面に戻る」ボタン（フォルダ表示中のみ）
     if st.session_state["ai_view_folder"] is not None:
-        if st.sidebar.button("⬅️ 分類画面に戻る", key="ai_back_to_main", use_container_width=True):
+        if st.sidebar.button("⬅️ 分類画面に戻る", key="ai_back_to_main", width="stretch"):
             st.session_state["ai_view_folder"] = None
             st.session_state.pop("folder_detail_id", None)
             st.rerun()
@@ -2696,7 +2696,7 @@ def page_folder_ai():
 
             try:
                 image_bytes = download_image(service, file_id)
-                st.image(image_bytes, use_container_width=True)
+                st.image(image_bytes, width="stretch")
             except Exception as e:
                 st.error(f"画像の表示中にエラーが発生しました: {e}")
                 return
@@ -2744,7 +2744,7 @@ def page_folder_ai():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -2758,7 +2758,7 @@ def page_folder_ai():
                     if kw:
                         st.caption(" ".join(f"`{k}`" for k in kw[:3]))
                     # 詳細ボタン
-                    if st.button("🔍 詳細を見る", key=f"folder_open_{fid}", use_container_width=True):
+                    if st.button("🔍 詳細を見る", key=f"folder_open_{fid}", width="stretch"):
                         st.session_state["folder_detail_id"] = fid
                         st.rerun()
         return
@@ -3011,7 +3011,7 @@ def page_folder_ai():
                 with cols[idx % 4]:
                     try:
                         thumb_bytes = download_image(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
+                        st.image(thumb_bytes, width="stretch")
                     except Exception:
                         pass
                     st.caption(title)
@@ -3144,22 +3144,22 @@ def page_chat():
                 btn_c1, btn_c2, btn_c3 = st.columns(3)
                 with btn_c1:
                     if status != STATUS_REVIEWED:
-                        if st.button("✅ レビュー認証", key="upload_review", type="primary", use_container_width=True):
+                        if st.button("✅ レビュー認証", key="upload_review", type="primary", width="stretch"):
                             existing = metadata.get(last_upload_id, {})
                             existing["status"] = STATUS_REVIEWED
                             metadata[last_upload_id] = existing
                             save_metadata(metadata)
                             st.rerun()
                     else:
-                        st.button("✅ 認証済み", key="upload_reviewed", disabled=True, use_container_width=True)
+                        st.button("✅ 認証済み", key="upload_reviewed", disabled=True, width="stretch")
                 with btn_c2:
-                    if st.button("📝 詳細編集", key="upload_detail", use_container_width=True):
+                    if st.button("📝 詳細編集", key="upload_detail", width="stretch"):
                         st.session_state["active_tab"] = "📸 画像管理"
                         st.session_state["selected_image_id"] = last_upload_id
                         st.session_state.pop("last_upload_id", None)
                         st.rerun()
                 with btn_c3:
-                    if st.button("🗑️ 削除", key="upload_delete", use_container_width=True):
+                    if st.button("🗑️ 削除", key="upload_delete", width="stretch"):
                         move_to_trash([last_upload_id], metadata)
                         # ローカル画像ファイルも削除
                         for ext in ("png", "jpg", "jpeg"):
@@ -3187,7 +3187,7 @@ def page_chat():
                             "🤖 AI解析して知識ベースに取り込む",
                             key="btn_upload_analyze",
                             type="primary",
-                            use_container_width=True,
+                            width="stretch",
                         ):
                             with st.spinner("AI解析中..."):
                                 result = analyze_image_with_gemini(img_bytes, api_key)
@@ -3441,7 +3441,7 @@ def main():
         if st.sidebar.button(
             tab_name,
             key=f"tab_btn_{tab_name}",
-            use_container_width=True,
+            width="stretch",
             type="primary" if is_active else "secondary",
         ):
             st.session_state["active_tab"] = tab_name
@@ -3483,7 +3483,7 @@ def main():
             if st.sidebar.button(
                 label,
                 key=f"global_folder_{f}",
-                use_container_width=True,
+                width="stretch",
                 type="primary" if is_viewing else "secondary",
             ):
                 st.session_state["active_tab"] = TAB_NAMES[5]
@@ -3504,7 +3504,7 @@ def main():
             key="auto_scan_toggle",
         )
         st.caption(f"Google Driveに追加された画像を{AUTO_SCAN_INTERVAL // 60}分ごとに検知して自動解析します。")
-        if st.button("🔄 今すぐスキャン", key="manual_scan", use_container_width=True):
+        if st.button("🔄 今すぐスキャン", key="manual_scan", width="stretch"):
             st.session_state["manual_scan_running"] = True
             list_images.clear()
             st.rerun()
