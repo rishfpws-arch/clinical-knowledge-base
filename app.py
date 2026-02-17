@@ -140,10 +140,14 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 # ---------------------------------------------------------------------------
 # 画像表示ヘルパー（クリックで全画面拡大）
 # ---------------------------------------------------------------------------
-def zoomable_image(image_bytes: bytes, caption: str = "", width: str = "100%"):
-    """クリックすると新しいタブで原寸画像を開ける画像を描画する。"""
-    from streamlit.components.v1 import html as st_html
+def zoomable_image(image_bytes: bytes, caption: str = "", width: str = "stretch"):
+    """画像を表示し、クリックで新しいタブに原寸大で開けるリンクを付ける。
 
+    st.image でサムネイル表示 + 「🔍 拡大」リンクで新タブに原寸表示。
+    ブラウザのピンチズームや拡大が自由に使える。
+    """
+    st.image(image_bytes, width=width)
+    # base64 data URI で新タブに開く
     b64 = base64.b64encode(image_bytes).decode("utf-8")
     mime = "image/jpeg"
     try:
@@ -151,34 +155,14 @@ def zoomable_image(image_bytes: bytes, caption: str = "", width: str = "100%"):
         mime = f"image/{fmt.lower()}"
     except Exception:
         pass
-    src = f"data:{mime};base64,{b64}"
-    cap_esc = caption.replace("'", "\\'")
-    # 自己完結HTML: クリック→オーバーレイ拡大、もう一度クリック/Escで閉じる
-    st_html(f"""
-    <style>
-      body {{ margin:0; padding:0; background:transparent; }}
-      .thumb {{ width:{width}; cursor:zoom-in; border-radius:6px; display:block; }}
-      .thumb:hover {{ opacity:.85; }}
-      .cap {{ font-size:12px; color:#aaa; margin:4px 0 0; }}
-      .ov {{
-        display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
-        background:rgba(0,0,0,.93); z-index:99999;
-        justify-content:center; align-items:center; cursor:zoom-out;
-      }}
-      .ov.show {{ display:flex; }}
-      .ov img {{ max-width:96vw; max-height:96vh; object-fit:contain; }}
-    </style>
-    <img class="thumb" src="{src}" onclick="document.getElementById('ov').classList.add('show')" />
-    <p class="cap">{cap_esc}</p>
-    <div class="ov" id="ov" onclick="this.classList.remove('show')">
-      <img src="{src}" />
-    </div>
-    <script>
-      document.addEventListener('keydown',function(e){{
-        if(e.key==='Escape') document.getElementById('ov').classList.remove('show');
-      }});
-    </script>
-    """, height=0, scrolling=False)
+    data_uri = f"data:{mime};base64,{b64}"
+    cap_text = f" {caption}" if caption else ""
+    st.markdown(
+        f'<a href="{data_uri}" target="_blank" '
+        f'style="font-size:13px; color:#5b8def; text-decoration:none;">'
+        f'🔍 タップして拡大{cap_text}</a>',
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------------------------------------------------------
