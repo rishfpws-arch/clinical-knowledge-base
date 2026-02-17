@@ -850,7 +850,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     if status == STATUS_REVIEWED:
         st.success("✅ 登録済み")
     else:
-        st.warning("🆕 未確認 — AIが自動生成した情報です。内容を確認・修正してください")
+        st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
 
     st.subheader("📝 解析結果の編集")
 
