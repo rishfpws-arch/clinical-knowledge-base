@@ -1069,8 +1069,10 @@ def display_kb_response_with_images(
     # parts: [text, id, text, id, text, ...]
     for i, part in enumerate(parts):
         if i % 2 == 0:
-            # テキスト部分
+            # テキスト部分 — ID除去後に残った空括弧を除去
             stripped = part.strip()
+            stripped = re.sub(r"[\(（]\s*[\)）]", "", stripped)  # () （） を除去
+            stripped = stripped.strip()
             if stripped:
                 st.markdown(stripped)
         else:
