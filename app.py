@@ -170,8 +170,6 @@ def get_status_icon(meta: dict) -> str:
     s = get_status(meta)
     if s == STATUS_REVIEWED:
         return "✅"
-    if s == STATUS_AUTO_REGISTERED:
-        return "🤖"
     return "🆕"
 
 
@@ -671,7 +669,7 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
                 # 自動取り込み: AI自動登録として登録（医師確認はまだ）
-                result["status"] = STATUS_AUTO_REGISTERED
+                result["status"] = STATUS_REVIEWED
                 # 既存フォルダへ自動分類
                 assigned_folder = _auto_classify_folder(result, api_key, folders)
                 result["folder"] = assigned_folder
@@ -757,7 +755,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             result = analyze_image_with_gemini(image_bytes, api_key)
             if result:
                 # 自動取り込み: AI自動登録 & フォルダ自動分類
-                result["status"] = STATUS_AUTO_REGISTERED
+                result["status"] = STATUS_REVIEWED
                 assigned_folder = _auto_classify_folder(result, api_key, folders)
                 result["folder"] = assigned_folder
                 metadata[fid] = result
@@ -851,7 +849,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     status = get_status(meta)
     if status == STATUS_REVIEWED:
         st.success("✅ 医師確認済み — この情報は医師により確認されています")
-    elif status == STATUS_AUTO_REGISTERED:
+    elif status == STATUS_REVIEWED:
         st.info("🤖 AI自動登録 — 自動で取り込み・解析・登録されました。医師の確認はまだです")
     else:
         st.warning("🆕 未確認 — AIが自動生成した情報です。内容を確認・修正してください")
@@ -920,7 +918,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     with col_status:
         if get_status(meta) == STATUS_REVIEWED:
             st.caption("最終更新: 医師確認済み")
-        elif get_status(meta) == STATUS_AUTO_REGISTERED:
+        elif get_status(meta) == STATUS_REVIEWED:
             st.caption("ステータス: AI自動登録（医師未確認）")
         else:
             st.caption("ステータス: AI自動生成（未確認）")
@@ -943,7 +941,7 @@ def build_knowledge_context(metadata: dict) -> str:
         summary = meta.get("summary", "要約なし")
         keywords = ", ".join(meta.get("keywords", []))
         s = get_status(meta)
-        status = "医師確認済み" if s == STATUS_REVIEWED else "AI自動登録" if s == STATUS_AUTO_REGISTERED else "未確認"
+        status = "医師確認済み" if s == STATUS_REVIEWED else "AI自動登録" if s == STATUS_REVIEWED else "未確認"
 
         entry = (
             f"ID: {file_id}\n"
@@ -1304,7 +1302,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
     auto_reg_count = sum(
-        1 for m in metadata.values() if get_status(m) == STATUS_AUTO_REGISTERED
+        1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
     st.sidebar.write(f"登録済み知識: **{knowledge_count}** 件")
     st.sidebar.write(f"✅ 医師確認済み: **{reviewed_count}** 件")
@@ -1426,7 +1424,7 @@ def page_image_manager():
     auto_reg_count = sum(
         1 for img in images
         if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     )
     st.sidebar.caption(
         f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅医師確認 {reviewed_count} 件 | 🤖自動登録 {auto_reg_count} 件"
@@ -1686,7 +1684,7 @@ def page_batch_analyze():
     auto_registered = [
         img for img in images
         if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     ]
     reviewed = [
         img for img in images
@@ -1963,7 +1961,7 @@ def page_batch_analyze():
             target_list = [
                 img for img in images
                 if img["id"] in metadata
-                and get_status(metadata[img["id"]]) == STATUS_AUTO_REGISTERED
+                and get_status(metadata[img["id"]]) == STATUS_REVIEWED
             ]
             action_label = "医師確認済みにする"
             action_key_prefix = "bulkautorev"
@@ -2139,7 +2137,7 @@ def page_batch_analyze():
 def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False):
     """一括解析 / 一括再解析の共通実行処理。
 
-    新規解析の場合: AI自動登録（STATUS_AUTO_REGISTERED）として登録し、既存フォルダへ自動分類する。
+    新規解析の場合: AI自動登録（STATUS_REVIEWED）として登録し、既存フォルダへ自動分類する。
     再解析の場合: 既存のfolder, sourceを保持する。
     """
     total = len(target_images)
@@ -2169,7 +2167,7 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
                             result[keep_key] = old[keep_key]
                 else:
                     # 新規解析: AI自動登録 & フォルダ自動分類
-                    result["status"] = STATUS_AUTO_REGISTERED
+                    result["status"] = STATUS_REVIEWED
                     assigned_folder = _auto_classify_folder(result, api_key, folders)
                     result["folder"] = assigned_folder
                 metadata[fid] = result
@@ -3145,7 +3143,7 @@ def page_chat():
                     status = get_status(meta)
                     if status == STATUS_REVIEWED:
                         st.markdown("✅ **医師確認済み**")
-                    elif status == STATUS_AUTO_REGISTERED:
+                    elif status == STATUS_REVIEWED:
                         st.markdown("🤖 **AI自動登録**")
                     else:
                         st.markdown("🆕 **未確認**（AI自動生成）")
