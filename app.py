@@ -1063,57 +1063,53 @@ def display_referenced_images(
 def display_kb_response_with_images(
     text: str, metadata: dict, service
 ) -> None:
-    """回答テキストを表示し、[ID: xxx] を画像タイトルに置換。
-
-    各IDが初めて登場した直後にサムネイルカードを挿入し、
-    どの説明がどの画像に対応するか視覚的に分かるようにする。
-    """
+    """参照画像をまとめて上部に表示し、本文中のIDはタイトル名に置換する。"""
     if not text:
         return
 
     pattern = r"\[ID:\s*([^\]]+)\]"
-    # ID → タイトルの対応表を構築
-    id_titles: dict[str, str] = {}
+
+    # --- ID抽出（順序保持・重複除去） ---
+    found_ids: list[str] = []
+    seen: set[str] = set()
     for m in re.finditer(pattern, text):
         fid = m.group(1).strip()
-        if fid in metadata and fid not in id_titles:
-            id_titles[fid] = metadata[fid].get("title", "不明")
+        if fid not in seen and fid in metadata:
+            seen.add(fid)
+            found_ids.append(fid)
 
-    # テキストを [ID: xxx] で分割 → [text, id, text, id, ...]
-    parts = re.split(pattern, text)
-    shown_ids: set[str] = set()
-
-    for i, part in enumerate(parts):
-        if i % 2 == 0:
-            # --- テキスト部分 ---
-            cleaned = part.strip()
-            cleaned = re.sub(r"[\(（]\s*[\)）]", "", cleaned)
-            # ID除去後に文頭に残る助詞（「の」「は」「で」「に」「を」等）を除去
-            cleaned = re.sub(r"^[のはでにをがと、]\s*", "", cleaned)
-            cleaned = cleaned.strip()
-            if cleaned:
-                st.markdown(cleaned)
-        else:
-            # --- ID部分 → タイトル表示 + 初出なら画像カード ---
-            fid = part.strip()
-            if fid not in metadata:
-                continue
-            title = id_titles.get(fid, "不明")
-
-            if fid not in shown_ids:
-                shown_ids.add(fid)
-                # 画像カード（タイトル付き）
+    # --- 上部: 参照画像をまとめてグリッド表示 ---
+    if found_ids:
+        cols = st.columns(min(len(found_ids), 3))
+        for idx, fid in enumerate(found_ids):
+            meta = metadata[fid]
+            title = meta.get("title", "不明")
+            with cols[idx % 3]:
                 try:
                     img_bytes = download_image(service, fid)
-                    col_img, col_space = st.columns([1, 2])
-                    with col_img:
-                        st.image(img_bytes, width="stretch")
-                        st.caption(f"📷 {title}")
+                    st.image(img_bytes, width="stretch")
+                    st.caption(f"📷 {title}")
                 except Exception:
-                    st.info(f"📷 {title}")
-            else:
-                # 2回目以降はタイトルだけ言及
-                st.markdown(f"*（📷 {title} を参照）*")
+                    st.caption(f"📷 {title}（読込失敗）")
+        st.markdown("---")
+
+    # --- 下部: 本文（IDをタイトル名に置換して表示） ---
+    clean_text = text
+    for fid in found_ids:
+        title = metadata[fid].get("title", "不明")
+        # [ID: xxx] → 「タイトル名」 に置換
+        clean_text = re.sub(
+            rf"\[ID:\s*{re.escape(fid)}\s*\]",
+            f"**「{title}」**",
+            clean_text,
+        )
+    # メタデータにないIDは単純に除去
+    clean_text = re.sub(pattern, "", clean_text)
+    # 空括弧を除去
+    clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
+    clean_text = clean_text.strip()
+    if clean_text:
+        st.markdown(clean_text)
 
 
 # ---------------------------------------------------------------------------
