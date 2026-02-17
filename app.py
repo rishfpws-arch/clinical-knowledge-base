@@ -3092,15 +3092,19 @@ def page_chat():
 
     # --- 📷 画像貼り付け → AI解析して取り込み ---
     with st.expander("📷 画像を貼り付けて取り込む", expanded=False):
-        from streamlit_paste_button import paste_image_button as pib
-
-        st.markdown("**方法①** スクショをコピーして以下のボタンで貼り付け:")
-        paste_result = pib(
-            label="📋 クリップボードから画像を貼り付け",
-            text_color="#5b8def",
-            background_color="transparent",
-            hover_background_color="rgba(91,139,239,0.1)",
-        )
+        # streamlit-paste-button はCloud環境で動かない場合があるため安全にimport
+        paste_result = None
+        try:
+            from streamlit_paste_button import paste_image_button as pib
+            st.markdown("**方法①** スクショをコピーして以下のボタンで貼り付け:")
+            paste_result = pib(
+                label="📋 クリップボードから画像を貼り付け",
+                text_color="#5b8def",
+                background_color="transparent",
+                hover_background_color="rgba(91,139,239,0.1)",
+            )
+        except Exception:
+            st.caption("📋 クリップボード貼り付けはPC版でのみ利用可能です")
 
         st.markdown("**方法②** ファイルを選択 / ドラッグ＆ドロップ:")
         uploaded_file = st.file_uploader(
