@@ -1047,5 +1047,21 @@
     ],
     "status": "reviewed",
     "folder": "整形外科"
+  },
+  "1F9rayTPdQAiHHZPQHJnr56TXLqH2TBlp": {
+    "title": "終末骨（Ossiculum terminale）のCT画像と解説：軸椎歯突起の二次骨化中心",
+    "summary": "画像は軸椎（C2）の歯突起（dens）を捉えたCT画像であり、終末骨（ossiculum terminale）と呼ばれる解剖学的変異を示唆しています。終末骨は歯突起先端に存在する二次骨化中心であり、通常は3歳から6歳に出現し、12歳頃までに軸椎本体と癒合します。しかし、この骨化中心が癒合せずに残存する場合、終末骨遺残（ossiculum terminale persistens, Bergmann's ossicle）と呼ばれます。臨床的には、外傷時に偽関節として認識される可能性があるため、注意が必要です。通常は無症状ですが、不安定性や神経症状を伴う場合は手術適応となることもあります。追加の画像検査（MRI、CT動態撮影）が必要となる場合があります。",
+    "keywords": [
+      "終末骨",
+      "軸椎",
+      "歯突起",
+      "CT",
+      "二次骨化中心",
+      "解剖学的変異",
+      "外傷",
+      "環軸椎亜脱臼"
+    ],
+    "status": "reviewed",
+    "folder": "整形外科"
   }
 }
