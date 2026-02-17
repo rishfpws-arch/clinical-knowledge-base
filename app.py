@@ -1995,7 +1995,7 @@ def page_batch_analyze():
                 save_metadata(metadata)
                 for fid in action_ids:
                     st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                st.success(f"🆕 {action_count} 件を未確認に戻しました。")
+                st.success(f"🆕 {action_count} 件を未登録に戻しました。")
                 st.rerun()
 
     # =======================================================================
