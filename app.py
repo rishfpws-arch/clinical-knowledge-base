@@ -1647,8 +1647,8 @@ def page_batch_analyze():
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
-    st.sidebar.write(f"🆕 未確認: **{len(unreviewed)}** 件")
-    st.sidebar.write(f"✅ 確認済み: **{len(reviewed)}** 件")
+    st.sidebar.write(f"🆕 未登録: **{len(unreviewed)}** 件")
+    st.sidebar.write(f"✅ 登録済み: **{len(reviewed)}** 件")
     st.sidebar.write(f"合計: **{len(images)}** 件")
 
     # プログレスバー
