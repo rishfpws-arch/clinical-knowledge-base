@@ -1058,23 +1058,7 @@ def display_referenced_images(
         with st.expander(f"🖼️ {title}  (ID: {fid[:12]}...)", expanded=False):
             try:
                 image_bytes = download_image(service, fid)
-
-                # 拡大状態を session_state で管理
-                zoom_key = f"zoom_{fid}"
-                is_zoomed = st.session_state.get(zoom_key, False)
-
-                if is_zoomed:
-                    # 拡大表示: 全幅
-                    st.image(image_bytes, width="stretch")
-                    if st.button("🔍 縮小する", key=f"zoomout_{fid}"):
-                        st.session_state[zoom_key] = False
-                        st.rerun()
-                else:
-                    # サムネイル表示
-                    st.image(image_bytes, width=400)
-                    if st.button("🔍 拡大表示", key=f"zoomin_{fid}"):
-                        st.session_state[zoom_key] = True
-                        st.rerun()
+                zoomable_image(image_bytes, "クリックで拡大")
 
                 if meta.get("summary"):
                     st.caption(meta["summary"])
