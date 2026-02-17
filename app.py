@@ -2807,8 +2807,7 @@ def page_folder_ai():
         if st.button("🤖 フォルダ名を提案", key="ai_suggest_folders"):
             with st.spinner("AIがフォルダ構成を考えています..."):
                 try:
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel("gemini-2.0-flash")
+                    client = _get_genai_client(api_key)
 
                     # 全画像のタイトル・キーワードを集約
                     summaries = []
@@ -2836,7 +2835,9 @@ def page_folder_ai():
                         + instruction_part
                         + "\nフォルダ名のみをカンマ区切りで出力してください。日本語で。"
                     )
-                    response = model.generate_content(prompt)
+                    response = client.models.generate_content(
+                        model=_GEMINI_MODEL, contents=prompt,
+                    )
                     suggested = [s.strip() for s in response.text.strip().split(",") if s.strip()]
                     st.session_state["ai_suggested_folders"] = suggested
                 except Exception as e:
