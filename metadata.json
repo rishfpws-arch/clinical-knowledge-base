@@ -29,7 +29,7 @@
       "鑑別診断"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "関節・骨"
   },
   "1vqyNAXMpjwDV4FGm2WQfDF8dauAUSVui": {
     "title": "DISHに伴うL1/L2椎体骨折：X線およびCT画像所見",
@@ -45,7 +45,7 @@
       "骨粗鬆症"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "1VK0PG2MFnA5bcrC0LxrGve09xPuuXwYm": {
     "title": "腰椎椎体終板障害におけるModic分類とMRI所見",
@@ -61,7 +61,7 @@
       "化膿性脊椎炎"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "1hkHf3Q3w4lDFeR710PIuMj9xcEeZ8Kg4": {
     "title": "脳卒中片麻痺患者への車椅子シーティング：ラテラルサポートとラップトレーの使用",
@@ -125,7 +125,7 @@
       "リハビリテーション"
     ],
     "status": "reviewed",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "upload_87536b8d819b": {
     "title": "脳梗塞後左前頭葉損傷に対する前頭葉機能訓練：WCSTとカラーストロープ課題の効果",
@@ -141,7 +141,7 @@
       "遂行機能障害"
     ],
     "status": "reviewed",
-    "folder": "リハビリテーション",
+    "folder": "脳神経",
     "source": "upload"
   },
   "upload_1082c7ef8c7c": {
@@ -238,7 +238,7 @@
       "認知症"
     ],
     "status": "reviewed",
-    "folder": "神経科学"
+    "folder": "検査・診断"
   },
   "188KYPO7akw27snBWU1vzZfY8geX7Em53": {
     "title": "義足歩行における異常歩行：外側ホイップ、内側ホイップ、踵接地時の回旋 (図V-119, V-120, V-121)",
@@ -270,7 +270,7 @@
       "神経学的検査"
     ],
     "status": "reviewed",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "1RovI2S23MoFFoKtW7lYZylu1jLILnryH": {
     "title": "救急外来におけるめまいの鑑別：眼振の性状と末梢性/中枢性鑑別ポイント",
@@ -286,7 +286,7 @@
       "回転性めまい"
     ],
     "status": "reviewed",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "17EYZmBYl9cQBbntb8VQGd0CRLejA_TsP": {
     "title": "めまい鑑別フローチャートと鑑別表：メニエール病、BPPV、前庭神経炎など",
@@ -302,7 +302,7 @@
       "カロリックテスト（温度刺激試験）"
     ],
     "status": "reviewed",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "1r-We8RcJDRPUehEua-fnB8cMpDWTpqBv": {
     "title": "下肢装具チェックアウト：構成部品と装着後の評価（両側金属支柱付、プラスチック短下肢装具、靴型、プラスチック足部）",
@@ -435,7 +435,7 @@
       "外傷"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "10P2m0U3stzghNe7Df8WEfAM9inKapNLE": {
     "title": "腰椎椎間板変性症：MRI T2強調像における椎間板変性所見と鑑別診断",
@@ -483,7 +483,7 @@
       "CT検査"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "16Kd8WguO41Ko0MB8_R3tAWGoCTdxPdW9": {
     "title": "心電図：著明な頻脈を伴う心房粗動（Atrial Flutter）",
@@ -499,7 +499,7 @@
       "抗凝固療法"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "循環器"
   },
   "1IiAut4i5sfSnfzZ7bDvh0CjfrICv5yJy": {
     "title": "顕微鏡的血尿患者における泌尿器悪性腫瘍のリスク評価と対応：一般医家向けガイド",
@@ -515,7 +515,7 @@
       "膀胱鏡検査（cystoscopy）"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "1h-seY1O1XmWhDl43YfZ0Pyf3g-8vhXNu": {
     "title": "肉眼的血尿の重症度分類と原因疾患：尿検査の視覚的評価",
@@ -531,7 +531,7 @@
       "血尿鑑別"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "1aCkIQM_-W5utW_odpCVYdkPjM765FQeM": {
     "title": "膀胱タンポナーデ疑い：単純CT画像における膀胱内血塊の確認と初期対応",
@@ -547,7 +547,7 @@
       "膀胱鏡検査"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "1oAHLCi9wr4dfRyta4qPUcvU5YMsoQYNW": {
     "title": "低血糖時対応プロトコル：血糖値に応じた食事・薬剤投与指示（入院患者向け）",
@@ -563,7 +563,7 @@
       "薬剤投与"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "消化器・代謝"
   },
   "1DmcwliftNojdzsyHD27cdB6XA2cIbGqr": {
     "title": "糖尿病治療薬の腎機能別処方提案：DPP-4阻害薬、SGLT-2阻害薬を中心に（ver4.0）",
@@ -579,7 +579,7 @@
       "禁忌"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "薬剤・治療"
   },
   "18xokbF3gu7tLyTHNJt8hPii4a72U3zhg": {
     "title": "無症候性高尿酸血症に対するガイドラインと治療：生活指導の要点",
@@ -595,7 +595,7 @@
       "ガイドライン"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "消化器・代謝"
   },
   "1WHTSvKUkxFN54POfw9DuCoXrYANjm3th": {
     "title": "膝蓋骨脱臼の初期対応と治療方針：保存療法、装具療法、理学療法",
@@ -643,7 +643,7 @@
       "ダルベポエチン"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "1fO6C3hmvPAY__mIz9dq8APfJowKRAQA3": {
     "title": "免疫抑制・化学療法におけるB型肝炎対策アルゴリズム：HBs抗原スクリーニングから核酸アナログ投与まで",
@@ -659,7 +659,7 @@
       "劇症肝炎"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "消化器・代謝"
   },
   "1IwDxEJFdkgPTOCKhzznpClxJmbczZhvx": {
     "title": "川崎病急性期治療アルゴリズム：初期治療と不応例への対応",
@@ -675,7 +675,7 @@
       "インフリキシマブ"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "循環器"
   },
   "1YtoIZUZtv0jEU41V2WM5lzclkvljJ5iR": {
     "title": "嚥下調整食：食品物性と段階別調整（ゼリー、ミキサー、ペースト、とろみ、ソフト食）",
@@ -723,7 +723,7 @@
       "診断"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "脊椎・脊髄"
   },
   "1va3Xg9hMwerzaUgY30Oz9L7x1hkPJoMt": {
     "title": "小児 気管支喘息の急性増悪：診断と初期対応の要点",
@@ -739,7 +739,7 @@
       "アトピー素因"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "呼吸器"
   },
   "111qRdJiEwO948HhtAknhfHcSHkyCs7fM": {
     "title": "神経学的検査：脊髄神経根レベルと反射、運動、感覚の関係図",
@@ -755,7 +755,7 @@
       "神経伝導検査"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "脊椎・脊髄"
   },
   "1tXj3e34oNiV32VMQB9hmih31DoyOgg-6": {
     "title": "慢性腎臓病（CKD）における腎臓専門医・専門医療機関への紹介基準",
@@ -773,7 +773,7 @@
       "腎代替療法"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "腎・泌尿器"
   },
   "1H2i1aYHdO9DADucuOsz8e_ihKqnLaNNH": {
     "title": "入院患者における発熱原因の評価：代表的な原因と評価方法のまとめ",
@@ -791,7 +791,7 @@
       "鑑別診断"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "検査・診断"
   },
   "1VyrtLJg0QvxiNNp5Tno5Q6dnmeDyqg22": {
     "title": "尿検査のまとめ：尿一般・尿沈渣の所見と臨床的意義",
@@ -807,7 +807,7 @@
       "腎尿細管性アシドーシス"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "検査・診断"
   },
   "1MzgMDeGQQqpo4CxE7B-tunzi3pvK9orG": {
     "title": "膝関節周囲の圧痛点と変形性膝関節症の治療戦略",
@@ -839,7 +839,7 @@
       "吸収不良症候群"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "消化器・代謝"
   },
   "1DrFp0pLkAE73JWkmdSP3Qb30Ldy20BRh": {
     "title": "傾眠の鑑別疾患とナルコレプシーの病態生理（表1、臨床所見）",
@@ -855,7 +855,7 @@
       "脳脊髄液検査"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "19HPilfYp4hWZI6Sc5D6Vtgko4zMk515P": {
     "title": "肩鎖関節脱臼のRockwood分類：病態と治療方針の理解",
@@ -887,7 +887,7 @@
       "画像検査"
     ],
     "status": "auto_registered",
-    "folder": "リハビリテーション"
+    "folder": "検査・診断"
   },
   "1yGv3-WibVus-abTbKm4M0SrgE4quPjRl": {
     "title": "骨粗鬆症治療薬の投与方法と費用一覧：ビスホスホネート、SERM、ビタミンD製剤など",
@@ -903,7 +903,7 @@
       "費用対効果"
     ],
     "status": "auto_registered",
-    "folder": "整形外科"
+    "folder": "薬剤・治療"
   },
   "1hkbiwqhTj3La1giIsMeu2teVh8oZFDoy": {
     "title": "希釈・投与速度に注意すべき救急薬剤一覧：添付文書に基づいた臨床使用ガイド",
@@ -919,7 +919,7 @@
       "鎮静薬"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "薬剤・治療"
   },
   "1wWtet71OEsdVNmgozvm8_XxqxBf6ehv3": {
     "title": "女性の片頭痛に対する薬物療法モデル：トリプタン、制吐剤、NSAIDsの使い分け",
@@ -935,7 +935,7 @@
       "QOL"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "薬剤・治療"
   },
   "1Qu7fPMZArikLDNW3s2i46ErmhVERl3sL": {
     "title": "機能的自立度評価法（FIM）による脳卒中患者のADL予測",
@@ -967,7 +967,7 @@
       "選択アルゴリズム"
     ],
     "status": "auto_registered",
-    "folder": "未分類"
+    "folder": "消化器・代謝"
   },
   "1aEL1CtAFINXgz8oY4BYQSsvk7OJ49Sa5": {
     "title": "脳動脈支配領域の拡散強調画像（DWI）における解剖学的関係の理解",
@@ -983,7 +983,7 @@
       "神経血管解剖"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "1AbaQzrCz2Ad2AFVvCU6RIMJqv6vQYNmW": {
     "title": "腰椎椎間板ヘルニア：L4/5椎間板ヘルニアおよびL5/S1椎間板ヘルニアの模式図",
@@ -998,7 +998,7 @@
       "神経根圧迫"
     ],
     "status": "auto_registered",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "1JS3ozffSC3IWwJqg9vFvVksKUydA0uJC": {
     "title": "失語症の古典的分類と責任病巣：鑑別診断と局在診断",
@@ -1014,7 +1014,7 @@
       "MRI"
     ],
     "status": "auto_registered",
-    "folder": "神経科学"
+    "folder": "脳神経"
   },
   "1faELXM_n-pm7tVDSf3Nn1XorKzs3LRoM": {
     "title": "特発性蕁麻疹に対する薬物治療アルゴリズムと症例提示",
@@ -1030,7 +1030,7 @@
       "薬物療法（Pharmacotherapy）"
     ],
     "status": "reviewed",
-    "folder": "未分類"
+    "folder": "薬剤・治療"
   },
   "1FwCEIr1ltUfco1X3l7iXzvTTZ2Njbu7r": {
     "title": "軸椎歯突起骨低形成（Os odontoideum）と終板小骨（Ossiculum terminale）のCT画像",
@@ -1046,7 +1046,7 @@
       "正常変異"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "1F9rayTPdQAiHHZPQHJnr56TXLqH2TBlp": {
     "title": "終末骨（Ossiculum terminale）のCT画像と解説：軸椎歯突起の二次骨化中心",
@@ -1062,7 +1062,7 @@
       "環軸椎亜脱臼"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   },
   "1Oi3ZgrfWjZG39ox_MXPNv8Nyw1Cvj661": {
     "title": "大腿骨頭ヘルニアピットと足関節・手関節の解剖図",
@@ -1079,7 +1079,7 @@
       "Guyon管"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "関節・骨"
   },
   "1uWY2_4gPpRyKK9dgQdE373wJvfBfP2kN": {
     "title": "腰椎分離症：MRIとCTによる診断と治療方針（保存療法、手術適応）",
@@ -1095,38 +1095,6 @@
       "仙骨疲労骨折"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
-  },
-  "115KQhduHOgkzhLRI-y1Gtz_EXBBvhXCG": {
-    "title": "腰椎分離症におけるMRI所見：分離ストレス骨折のグレード分類と画像評価",
-    "summary": "腰椎分離症は若年者に多い疾患であり、MRIは骨髄浮腫や骨折線の評価に有用である。本画像は腰椎分離症のMRI所見を示しており、図9aはSTIR横断像でL5両側関節突起間部に高信号（骨髄浮腫）を認め、図9bはT1強調横断像で同部位に低信号域を認める。図9cはSTIR斜冠状断像で分離部周囲の骨髄浮腫が明瞭に描出されている。\n表1はHollenbergらのMRIグレード分類を示し、分離ストレス骨折の程度を評価する。Grade0は正常、Grade1はストレス性変化のみ（骨髄浮腫）、Grade2は部分ストレス骨折（骨髄浮腫＋皮質骨の部分的不連続性）、Grade3は急性期完全骨折（骨髄浮腫＋皮質骨の完全な不連続性）、Grade4は慢性期完全骨折（骨髄浮腫なし＋皮質骨の完全な不連続性）である。\n分離症の診断には、T1強調像、脂肪抑制T2強調像（またはSTIR像）による多方向からの評価が重要である。特に低信号の線状構造を認める場合、上下椎間関節との鑑別が必要となる。適切な画像評価は、分離症の活動性評価、治療方針の決定、予後予測に不可欠である。",
-    "keywords": [
-      "腰椎分離症",
-      "腰椎",
-      "MRI",
-      "骨髄浮腫",
-      "関節突起",
-      "ストレス骨折",
-      "Hollenberg分類",
-      "椎間関節"
-    ],
-    "status": "reviewed",
-    "folder": "整形外科"
-  },
-  "1C-tgYxbyNBQQaXy_jLvlsOqCFWnbbwsC": {
-    "title": "整形外科頻用漢方処方：臨床的適応と使い分け（15処方）",
-    "summary": "本画像は、整形外科領域で頻用される15種類の漢方処方について、それぞれの適応と特徴をまとめたものです。各処方には、桂枝茯苓丸加薏苡仁（けいしぶくりょうがんかよくいにん）、治打撲一方（ぢだぼくいっぽう）、芍薬甘草湯（しゃくやくかんぞうとう）、麻杏薏甘湯（まきょうよくかんとう）、葛根湯（かっこんとう）などが含まれます。それぞれの処方が、骨以外の血行不良、骨周囲の血行不良、けいれんによる筋肉痛、亜急性期の関節水腫、冷え症など、具体的な症状や病態に対してどのように選択されるかについて解説されています。これらの情報を活用することで、医師は患者の症状に合わせた適切な漢方処方を選択し、治療効果を高めることができます。漢方薬の選択を誤ると、症状の悪化や副作用のリスクがあるため、慎重な判断が必要です。必要に応じて、西洋医学的な検査や治療と組み合わせることも考慮されます。",
-    "keywords": [
-      "漢方",
-      "整形外科",
-      "桂枝茯苓丸",
-      "芍薬甘草湯",
-      "葛根湯",
-      "関節痛",
-      "血行不良",
-      "冷え症"
-    ],
-    "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "脊椎・脊髄"
   }
 }
