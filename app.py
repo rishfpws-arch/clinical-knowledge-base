@@ -979,8 +979,7 @@ def generate_chat_response(
 ) -> str:
     """ユーザーの質問に対して、蓄積された知識をもとにGeminiで回答を生成する。"""
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        client = _get_genai_client(api_key)
 
         # コンテキスト（知識）を生成
         knowledge_context = build_knowledge_context(metadata)
@@ -999,7 +998,9 @@ def generate_chat_response(
         contents.append(f"ユーザー: {user_message}")
 
         # Gemini に送信
-        response = model.generate_content("\n\n".join(contents))
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL, contents="\n\n".join(contents),
+        )
         return response.text.strip()
 
     except Exception as e:
@@ -1011,8 +1012,7 @@ def generate_general_response(
 ) -> str:
     """ユーザーの質問に対して、Geminiの一般医学知識で回答を生成する。"""
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        client = _get_genai_client(api_key)
 
         contents = [CHAT_GENERAL_PROMPT]
         recent_history = chat_history[-20:]
@@ -1027,7 +1027,9 @@ def generate_general_response(
 
         contents.append(f"ユーザー: {user_message}")
 
-        response = model.generate_content("\n\n".join(contents))
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL, contents="\n\n".join(contents),
+        )
         return response.text.strip()
 
     except Exception as e:
