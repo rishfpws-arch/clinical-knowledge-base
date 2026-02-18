@@ -1045,7 +1045,7 @@ def display_referenced_images(
 
 
 def display_kb_response_with_images(
-    text: str, metadata: dict, service
+    text: str, metadata: dict, service, key_suffix: str = ""
 ) -> None:
     """参照画像をまとめて上部に表示し、本文中のIDはタイトル名に置換する。"""
     if not text:
@@ -1076,7 +1076,7 @@ def display_kb_response_with_images(
                     st.caption(f"📷 {title}（読込失敗）")
                 if st.button(
                     "📝 詳細を見る",
-                    key=f"kb_detail_{fid}",
+                    key=f"kb_detail_{fid}{key_suffix}",
                     use_container_width=True,
                 ):
                     st.session_state["selected_image_id"] = fid
