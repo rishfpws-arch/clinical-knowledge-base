@@ -1074,6 +1074,14 @@ def display_kb_response_with_images(
                     st.image(img_bytes, caption=f"📷 {title}", width="stretch")
                 except Exception:
                     st.caption(f"📷 {title}（読込失敗）")
+                if st.button(
+                    "📝 詳細を見る",
+                    key=f"kb_detail_{fid}",
+                    use_container_width=True,
+                ):
+                    st.session_state["selected_image_id"] = fid
+                    st.session_state["active_tab"] = "📸 画像管理"
+                    st.rerun()
         st.markdown("---")
 
     # --- 下部: 本文（IDをタイトル名に置換して表示） ---
