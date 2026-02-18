@@ -225,18 +225,23 @@
     "folder": "リハビリテーション"
   },
   "1_qwYF321sBN_zcnRVtzoXdKIWvNZs5oa": {
-    "title": "神経心理学的検査の暫定基準値：MMSE、WAIS-III、WMS-Rなど",
-    "summary": "提示された画像には、神経心理学的検査の暫定基準値が示されています。表1には、MMSE（Mini-Mental State Examination）、Kohs-IQ、TMT-A/B（Trail Making Test）、PASAT（Paced Auditory Serial Addition Test）、BIT（Behavioural Inattention Test）、WAIS-III（Wechsler Adult Intelligence Scale-Third Edition）、WMS-R（Wechsler Memory Scale-Revised）などの検査項目と、基準群の結果、暫定基準値が記載されています。これらの検査は、認知機能、遂行機能、注意機能、記憶機能などを評価するために用いられます。これらの基準値を臨床で使用することで、患者の認知機能障害の程度を把握し、適切なリハビリテーションや治療計画を立てる上で役立ちます。認知機能低下を見逃すと、日常生活の自立度低下やQOL（Quality of Life）の低下につながる可能性があります。必要に応じて、追加の神経心理学的検査や画像検査（MRIなど）を行い、原因疾患の特定と進行度評価を行うことが重要です。",
+    "title": "神経心理学的検査基準値：MMSE, Kohs-IQ, TMT, PASAT, BIT, WAIS-III, WMS-R",
+    "summary": "• 【所見】表1にMMSE（Mini-Mental State Examination）、Kohs-IQ、TMT-A（Trail Making Test Part A）、TMT-B（Trail Making Test Part B）、PASAT（Paced Auditory Serial Addition Test）、BIT（Behavioral Inattention Test）、WAIS-III（Wechsler Adult Intelligence Scale-Third Edition）、WMS-R（Wechsler Memory Scale-Revised）などの神経心理学的検査の基準値が記載されている。\n• 【診断】神経心理学的検査のカットオフ値（暫定基準値）が示されており、認知機能評価の指標となる。\n• 【臨床的意義】これらの検査は認知機能障害のスクリーニングや重症度評価に用いられ、認知症や高次脳機能障害の診断に役立つ。\n• 【次のアクション】患者の認知機能評価を行う際に、これらの基準値を参考にすることで、客観的な評価が可能となる。\n• 【ピットフォール】これらの基準値はあくまで参考であり、年齢、教育歴、文化背景などを考慮して解釈する必要がある。",
     "keywords": [
-      "神経心理学的検査",
-      "認知機能",
       "MMSE",
+      "Kohs-IQ",
+      "TMT",
+      "PASAT",
+      "BIT",
       "WAIS-III",
       "WMS-R",
-      "遂行機能",
-      "認知症"
+      "認知機能検査",
+      "神経心理学的検査",
+      "基準値",
+      "認知症",
+      "高次脳機能障害"
     ],
-    "status": "reviewed",
+    "status": "auto_generated",
     "folder": "検査・診断"
   },
   "188KYPO7akw27snBWU1vzZfY8geX7Em53": {
