@@ -1428,20 +1428,10 @@ def page_image_manager():
             st.session_state.pop("editing_file_id", None)
             st.rerun()
 
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.subheader(selected_file["name"])
-        with col2:
-            fmt = selected_file["mimeType"].split("/")[-1].upper()
-            st.write(f"**形式:** {fmt}")
-
+        # --- 画像読み込み ---
+        image_bytes = None
         try:
             image_bytes = download_image(service, file_id)
-            st.image(
-                image_bytes,
-                caption=selected_file["name"],
-                width="stretch",
-            )
         except HttpError as e:
             st.error(f"画像の読み込みに失敗しました: {e}")
             return
@@ -1449,10 +1439,48 @@ def page_image_manager():
             st.error(f"画像の表示中にエラーが発生しました: {e}")
             return
 
+        meta = metadata.get(file_id, {})
+
+        # --- 横並びレイアウト: 画像（左）+ 情報サマリー（右） ---
+        col_img, col_info = st.columns([1, 1])
+        with col_img:
+            st.image(image_bytes, width="stretch")
+
+        with col_info:
+            # タイトル
+            title = meta.get("title", selected_file["name"])
+            st.subheader(title)
+            # ステータス
+            if file_id in metadata:
+                s = get_status(meta)
+                if s == STATUS_REVIEWED:
+                    st.success("✅ 登録済み")
+                else:
+                    st.warning("🆕 未登録")
+            # 要約
+            summary = meta.get("summary", "")
+            if summary:
+                st.markdown(
+                    f"<div style='background:rgba(91,139,239,0.06); "
+                    f"border-radius:8px; padding:10px 14px; "
+                    f"font-size:14px; line-height:1.7; "
+                    f"max-height:250px; overflow-y:auto;'>"
+                    f"{summary}</div>",
+                    unsafe_allow_html=True,
+                )
+            # キーワード
+            keywords = meta.get("keywords", [])
+            if keywords:
+                render_keyword_tags(keywords)
+            # 形式
+            fmt = selected_file["mimeType"].split("/")[-1].upper()
+            st.caption(f"形式: {fmt}")
+
+        # --- 編集フォーム（折りたたみ） ---
         if file_id in metadata:
-            display_edit_form(file_id, metadata[file_id], metadata)
+            with st.expander("📝 編集", expanded=False):
+                display_edit_form(file_id, metadata[file_id], metadata)
             if api_key:
-                st.markdown("---")
                 if st.button("🤖 AIで再解析する", key=f"reanalyze_{file_id}"):
                     with st.spinner("Gemini で再解析中..."):
                         result = analyze_image_with_gemini(image_bytes, api_key)
