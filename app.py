@@ -1900,10 +1900,30 @@ def page_batch_analyze():
         st.markdown("---")
         try:
             image_bytes = download_image(service, current_fid)
-            st.image(image_bytes, width="stretch")
         except Exception as e:
             st.error(f"画像の読み込みに失敗しました: {e}")
             return
+
+        # --- 横並びレイアウト: 画像（左）+ 要約（右） ---
+        rev_col_img, rev_col_info = st.columns([1, 1])
+        with rev_col_img:
+            st.image(image_bytes, width="stretch")
+        with rev_col_info:
+            title = current_meta.get("title", current_img.get("name", "不明"))
+            st.subheader(title)
+            summary = current_meta.get("summary", "")
+            if summary:
+                st.markdown(
+                    f"<div style='background:rgba(91,139,239,0.06); "
+                    f"border-radius:8px; padding:10px 14px; "
+                    f"font-size:14px; line-height:1.7; "
+                    f"max-height:250px; overflow-y:auto;'>"
+                    f"{summary}</div>",
+                    unsafe_allow_html=True,
+                )
+            keywords = current_meta.get("keywords", [])
+            if keywords:
+                render_keyword_tags(keywords)
 
         display_edit_form(current_fid, current_meta, metadata)
 
