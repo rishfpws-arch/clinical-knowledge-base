@@ -3236,7 +3236,7 @@ def page_chat():
     if past_pairs:
         st.markdown("---")
         with st.expander(f"📜 過去の質問履歴（{len(past_pairs)}件）", expanded=False):
-            for q_msg, a_msg in reversed(past_pairs):
+            for hist_idx, (q_msg, a_msg) in enumerate(reversed(past_pairs)):
                 st.markdown(
                     f"<p style='background:#1a3a5c; border-radius:10px; "
                     f"padding:10px 14px; color:#e0e0e0; font-size:14px;'>"
@@ -3244,7 +3244,8 @@ def page_chat():
                     unsafe_allow_html=True,
                 )
                 display_kb_response_with_images(
-                    a_msg.get("content", ""), metadata, service
+                    a_msg.get("content", ""), metadata, service,
+                    key_suffix=f"_hist{hist_idx}",
                 )
                 st.markdown("---")
 
