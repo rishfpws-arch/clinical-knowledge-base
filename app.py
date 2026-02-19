@@ -3177,16 +3177,8 @@ def page_chat():
                     kw = meta.get("keywords", [])
                     if kw:
                         st.markdown(" ".join(f"`{k}`" for k in kw))
-                # 要約（スクロール可能）
-                summary = meta.get("summary", "")
-                if summary:
-                    st.markdown(
-                        f"<div style='max-height:200px; overflow-y:auto; "
-                        f"background:rgba(91,139,239,0.05); border-radius:8px; "
-                        f"padding:12px; margin:8px 0; font-size:14px; "
-                        f"line-height:1.7;'>{summary}</div>",
-                        unsafe_allow_html=True,
-                    )
+                # 要約（箇条書き）
+                render_summary(meta.get("summary", ""))
                 # アクションボタン
                 btn_c1, btn_c2, btn_c3 = st.columns(3)
                 with btn_c1:
