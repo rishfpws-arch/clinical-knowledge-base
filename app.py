@@ -303,6 +303,11 @@ def load_trash() -> list:
         if data is not None:
             items = data.get("items", []) if isinstance(data, dict) else data
             _set_cache(ck, items)
+            try:
+                with open(TRASH_PATH, "w", encoding="utf-8") as f:
+                    json.dump({"items": items}, f, ensure_ascii=False, indent=2)
+            except IOError:
+                pass
             return items
     if TRASH_PATH.exists():
         try:
