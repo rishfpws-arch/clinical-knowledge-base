@@ -169,6 +169,7 @@ def get_sheets_client():
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
             _log.info("[Sheets] spreadsheet_id が未設定です")
+            st.session_state["_save_error_detail"] = "spreadsheet_id が未設定"
             return None
         creds = service_account.Credentials.from_service_account_info(
             st.secrets["gcp_service_account"],
@@ -179,7 +180,9 @@ def get_sheets_client():
         _log.info(f"[Sheets] 接続成功: {sh.title}")
         return sh
     except Exception as e:
-        _log.error(f"[Sheets] 接続エラー: {type(e).__name__}: {e}")
+        err = f"接続失敗: {type(e).__name__}: {e}"
+        _log.error(f"[Sheets] {err}")
+        st.session_state["_save_error_detail"] = err
         return None
 
 
@@ -293,10 +296,7 @@ def save_metadata(metadata: dict) -> bool:
     sheets_ok = False
     try:
         sh = get_sheets_client()
-        # キャッシュが None を返した場合、再接続を試みる
-        if sh is None:
-            _log.warning("[save_metadata] get_sheets_client()=None, 再接続試行")
-            sh = _reconnect_sheets()
+        _log.info(f"[save_metadata] get_sheets_client() = {sh is not None}")
         if sh is not None:
             sheets_ok = _write_json_to_sheet(sh, "metadata", metadata)
             _log.info(f"[save_metadata] Sheets書き込み結果: {sheets_ok}")
@@ -305,8 +305,8 @@ def save_metadata(metadata: dict) -> bool:
                 if "_save_error_detail" not in st.session_state:
                     st.session_state["_save_error_detail"] = "write_json_to_sheet が False を返却"
         else:
-            _log.warning("[save_metadata] 再接続も失敗 - ローカルのみ保存")
-            st.session_state["_save_error_detail"] = "Sheets未接続 (再接続も失敗)"
+            _log.warning("[save_metadata] Sheets未接続")
+            st.session_state["_save_error_detail"] = "Sheets未接続 (get_sheets_client=None)"
     except Exception as e:
         err = f"{type(e).__name__}: {e}"
         _log.error(f"[save_metadata] 例外: {err}")
@@ -3800,7 +3800,6 @@ def main():
     # --- データ同期 ---
     if st.sidebar.button("🔄 データ再読み込み", key="reload_from_sheets", use_container_width=True):
         _invalidate_all_caches()
-        _sheets_client_cache["client"] = None
         st.toast("☁️ Google Sheets から最新データを再読み込みしました")
         st.rerun()
 
