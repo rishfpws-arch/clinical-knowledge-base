@@ -442,24 +442,41 @@ def get_all_folders_from_metadata(metadata: dict) -> list[str]:
 # チャットセッション管理
 # ---------------------------------------------------------------------------
 def load_chat_sessions() -> dict:
-    """chat_sessions.json を読み込む。存在しない・壊れている場合は空辞書を返す。"""
+    """チャットセッションを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_chat_sessions"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+    sh = get_sheets_client()
+    if sh is not None:
+        data = _read_json_from_sheet(sh, "chat_sessions")
+        if data is not None:
+            sessions = data.get("sessions", {}) if isinstance(data, dict) else data
+            _set_cache(ck, sessions)
+            return sessions
     if CHAT_SESSIONS_PATH.exists():
         try:
             with open(CHAT_SESSIONS_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("sessions", {})
+                sessions = data.get("sessions", {})
+                _set_cache(ck, sessions)
+                return sessions
         except (json.JSONDecodeError, IOError):
-            return {}
+            pass
+    _set_cache(ck, {})
     return {}
 
 
 def save_chat_sessions(sessions: dict) -> None:
-    """チャットセッション辞書を chat_sessions.json に保存する。"""
+    """チャットセッションを保存する。session_state + Sheets + ローカル。"""
+    _set_cache("_cache_chat_sessions", sessions)
+    sh = get_sheets_client()
+    if sh is not None:
+        _write_json_to_sheet(sh, "chat_sessions", {"sessions": sessions})
     try:
         with open(CHAT_SESSIONS_PATH, "w", encoding="utf-8") as f:
             json.dump({"sessions": sessions}, f, ensure_ascii=False, indent=2)
-    except IOError as e:
-        st.error(f"チャット履歴の保存に失敗しました: {e}")
+    except IOError:
+        pass
 
 
 def format_relative_time(iso_str: str) -> str:
