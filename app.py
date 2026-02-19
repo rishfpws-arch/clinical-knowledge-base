@@ -826,6 +826,40 @@ def filter_images_by_keyword(
 
 
 # ---------------------------------------------------------------------------
+# UI部品: 要約表示（箇条書き整形）
+# ---------------------------------------------------------------------------
+def render_summary(summary: str) -> None:
+    """要約テキストを箇条書きとして整形表示する。
+
+    「•」「・」「-」「【」で始まる行を箇条書き項目として認識し、
+    改行が無い場合でも自動で分割してMarkdown表示する。
+    """
+    if not summary:
+        return
+    # \n が文字列リテラル "\\n" になっている場合も対応
+    text = summary.replace("\\n", "\n")
+    # 「•」「・」の前で改行を挿入（改行がない1行テキスト対策）
+    text = re.sub(r"(?<!\n)\s*([•・])", r"\n\1", text)
+    # 「【」の前でも改行を挿入
+    text = re.sub(r"(?<!\n)\s*【", r"\n【", text)
+
+    lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
+    md_lines = []
+    for ln in lines:
+        # 先頭の • ・ - を統一して Markdown リスト化
+        clean = re.sub(r"^[•・\-]\s*", "", ln)
+        if clean != ln or ln.startswith("【"):
+            md_lines.append(f"- {clean}")
+        else:
+            md_lines.append(ln)
+    st.markdown(
+        "<div style='font-size:13px; line-height:1.6;'>\n\n"
+        + "\n".join(md_lines)
+        + "\n\n</div>",
+        unsafe_allow_html=True,
+    )
+
+
 # UI部品: キーワードタグ表示
 # ---------------------------------------------------------------------------
 def render_keyword_tags(keywords: list[str]) -> None:
