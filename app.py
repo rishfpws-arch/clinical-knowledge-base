@@ -13,6 +13,7 @@ AI解析/チャット: Gemini 2.0 Flash (REST API)
 import base64
 import io
 import json
+import logging
 import random
 import re
 import ssl
@@ -31,6 +32,16 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 import gspread
+
+# デバッグログ設定
+_LOG_PATH = Path(__file__).parent / "app_debug.log"
+logging.basicConfig(
+    filename=str(_LOG_PATH),
+    level=logging.INFO,
+    format="%(asctime)s %(message)s",
+    encoding="utf-8",
+)
+_log = logging.getLogger("ckb")
 
 # ---------------------------------------------------------------------------
 # 定数
@@ -157,7 +168,7 @@ def get_sheets_client():
     try:
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
-            print("[Sheets] spreadsheet_id が未設定です")
+            _log.info("[Sheets] spreadsheet_id が未設定です")
             return None
         creds = service_account.Credentials.from_service_account_info(
             st.secrets["gcp_service_account"],
@@ -170,10 +181,10 @@ def get_sheets_client():
         for name in _SHEETS_WORKSHEETS:
             if name not in existing:
                 sh.add_worksheet(title=name, rows=100, cols=1)
-        print(f"[Sheets] 接続成功: {sh.title}")
+        _log.info(f"[Sheets] 接続成功: {sh.title}")
         return sh
     except Exception as e:
-        print(f"[Sheets] 接続エラー: {e}")
+        _log.error(f"[Sheets] 接続エラー: {e}")
         return None
 
 
@@ -183,7 +194,7 @@ def _read_json_from_sheet(sh, worksheet_name: str):
         ws = sh.worksheet(worksheet_name)
         all_values = ws.col_values(1)
         if not all_values:
-            print(f"[Sheets] {worksheet_name}: 空です")
+            _log.info(f"[Sheets] {worksheet_name}: 空です")
             return None
         json_str = "".join(all_values)
         data = json.loads(json_str)
