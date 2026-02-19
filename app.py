@@ -475,6 +475,11 @@ def load_chat_sessions() -> dict:
         if data is not None:
             sessions = data.get("sessions", {}) if isinstance(data, dict) else data
             _set_cache(ck, sessions)
+            try:
+                with open(CHAT_SESSIONS_PATH, "w", encoding="utf-8") as f:
+                    json.dump({"sessions": sessions}, f, ensure_ascii=False, indent=2)
+            except IOError:
+                pass
             return sessions
     if CHAT_SESSIONS_PATH.exists():
         try:
