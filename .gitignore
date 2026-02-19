@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
+metadata.json
 chat_sessions.json
 trash.json
 folders.json
