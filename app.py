@@ -988,15 +988,15 @@ def render_summary(summary: str) -> None:
         return
     # "\\n" リテラルを実改行に
     text = summary.replace("\\n", "\n")
-    # 「•」「・」の前で改行を挿入（1行に詰まっている場合の分割用）
-    text = re.sub(r"(?<!\n)\s*(?=[•・])", "\n", text)
-    # 「【」の前でも改行（ただし行頭や•・の直後は除く）
-    text = re.sub(r"(?<=[^\n•・])\s*(?=【)", "\n", text)
+    # 「• 」「・」の前で改行を挿入（1行に詰まっている場合の分割用）
+    # ただし「• 【」のようにセットの場合はまとめて1項目にする
+    text = re.sub(r"\s*[•・]\s*【", "\n【", text)
+    text = re.sub(r"\s*[•・]\s*", "\n", text)
 
     lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
     md_lines = []
     for ln in lines:
-        # 先頭の記号を除去して中身だけ取り出す
+        # 先頭の残った記号を除去
         clean = re.sub(r"^[•・\-]\s*", "", ln)
         if not clean:
             continue
