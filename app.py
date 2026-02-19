@@ -222,6 +222,13 @@ def _set_cache(cache_key: str, data):
     st.session_state[f"{cache_key}_ts"] = time.time()
 
 
+def _invalidate_all_caches():
+    """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
+    for ck in ["_cache_metadata", "_cache_trash", "_cache_folders", "_cache_chat_sessions"]:
+        st.session_state.pop(ck, None)
+        st.session_state.pop(f"{ck}_ts", None)
+
+
 # ---------------------------------------------------------------------------
 # メタデータ管理
 # ---------------------------------------------------------------------------
@@ -230,14 +237,20 @@ def load_metadata() -> dict:
     ck = "_cache_metadata"
     if _is_cache_valid(ck):
         return st.session_state[ck]
-    # Google Sheets
+    # Google Sheets（接続できれば常にSheetsを信頼する）
     sh = get_sheets_client()
     if sh is not None:
         data = _read_json_from_sheet(sh, "metadata")
         if data is not None:
             _set_cache(ck, data)
+            # ローカルファイルも同期更新
+            try:
+                with open(METADATA_PATH, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+            except IOError:
+                pass
             return data
-    # ローカルフォールバック
+    # Sheets未接続時のみローカルフォールバック
     if METADATA_PATH.exists():
         try:
             with open(METADATA_PATH, "r", encoding="utf-8") as f:
