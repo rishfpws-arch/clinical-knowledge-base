@@ -183,10 +183,14 @@ def _read_json_from_sheet(sh, worksheet_name: str):
         ws = sh.worksheet(worksheet_name)
         all_values = ws.col_values(1)
         if not all_values:
+            print(f"[Sheets] {worksheet_name}: 空です")
             return None
         json_str = "".join(all_values)
-        return json.loads(json_str)
-    except Exception:
+        data = json.loads(json_str)
+        print(f"[Sheets] {worksheet_name}: 読み込み成功 ({len(json_str)} chars)")
+        return data
+    except Exception as e:
+        print(f"[Sheets] {worksheet_name} 読み込みエラー: {e}")
         return None
 
 
