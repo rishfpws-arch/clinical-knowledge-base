@@ -206,24 +206,44 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 
 
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
-    """JSONデータをチャンク分割してワークシートに書き込む。"""
+    """JSONデータをチャンク分割してワークシートに書き込む。
+    失敗時は1回だけ再接続してリトライする。"""
+    for attempt in range(2):
+        try:
+            target = sh if attempt == 0 else _reconnect_sheets()
+            if target is None:
+                _log.error(f"[Sheets] {worksheet_name} 再接続失敗")
+                return False
+            ws = target.worksheet(worksheet_name)
+            json_str = json.dumps(data, ensure_ascii=False)
+            chunks = []
+            for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
+                chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
+            if not chunks:
+                chunks = ["{}"]
+            ws.clear()
+            cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
+                     for idx, chunk in enumerate(chunks)]
+            ws.update_cells(cells)
+            _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks, attempt={attempt})")
+            return True
+        except Exception as e:
+            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー (attempt={attempt}): {type(e).__name__}: {e}")
+            if attempt == 0:
+                _log.info(f"[Sheets] {worksheet_name}: 再接続してリトライします")
+                continue
+            return False
+    return False
+
+
+def _reconnect_sheets():
+    """Sheetsクライアントのキャッシュをクリアして再接続する。"""
     try:
-        ws = sh.worksheet(worksheet_name)
-        json_str = json.dumps(data, ensure_ascii=False)
-        chunks = []
-        for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
-            chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
-        if not chunks:
-            chunks = ["{}"]
-        ws.clear()
-        cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
-                 for idx, chunk in enumerate(chunks)]
-        ws.update_cells(cells)
-        _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks)")
-        return True
+        get_sheets_client.clear()
+        return get_sheets_client()
     except Exception as e:
-        _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {e}")
-        return False
+        _log.error(f"[Sheets] 再接続エラー: {e}")
+        return None
 
 
 def _is_cache_valid(cache_key: str) -> bool:
