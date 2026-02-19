@@ -288,10 +288,14 @@ def load_metadata() -> dict:
 
 def save_metadata(metadata: dict) -> None:
     """メタデータを保存する。session_state + Sheets + ローカル（バックアップ）。"""
+    _log.info(f"[save_metadata] 保存開始 entries={len(metadata)}")
     _set_cache("_cache_metadata", metadata)
     sh = get_sheets_client()
     if sh is not None:
-        _write_json_to_sheet(sh, "metadata", metadata)
+        ok = _write_json_to_sheet(sh, "metadata", metadata)
+        _log.info(f"[save_metadata] Sheets書き込み結果: {ok}")
+    else:
+        _log.warning("[save_metadata] Sheets未接続 - ローカルのみ保存")
     try:
         with open(METADATA_PATH, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
