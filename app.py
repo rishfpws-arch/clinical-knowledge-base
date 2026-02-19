@@ -228,7 +228,9 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
             _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks, attempt={attempt})")
             return True
         except Exception as e:
-            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー (attempt={attempt}): {type(e).__name__}: {e}")
+            err_msg = f"{type(e).__name__}: {e}"
+            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー (attempt={attempt}): {err_msg}")
+            st.session_state["_save_error_detail"] = err_msg
             if attempt == 0:
                 _log.info(f"[Sheets] {worksheet_name}: 再接続してリトライします")
                 continue
@@ -1118,7 +1120,8 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     if st.session_state.pop(f"_saved_ok_{file_id}", False):
         st.success("✅ 保存しました！（Google Sheets に同期済み）")
     if st.session_state.pop(f"_saved_fail_{file_id}", False):
-        st.error("⚠️ ローカルには保存しましたが、Google Sheets への同期に失敗しました。")
+        err_detail = st.session_state.pop("_save_error_detail", "不明")
+        st.error(f"⚠️ Google Sheets への同期に失敗しました。\n\nエラー: {err_detail}")
 
     st.subheader("📝 解析結果の編集")
 
