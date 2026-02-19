@@ -157,6 +157,7 @@ def get_sheets_client():
     try:
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
+            print("[Sheets] spreadsheet_id が未設定です")
             return None
         creds = service_account.Credentials.from_service_account_info(
             st.secrets["gcp_service_account"],
@@ -169,8 +170,10 @@ def get_sheets_client():
         for name in _SHEETS_WORKSHEETS:
             if name not in existing:
                 sh.add_worksheet(title=name, rows=100, cols=1)
+        print(f"[Sheets] 接続成功: {sh.title}")
         return sh
-    except Exception:
+    except Exception as e:
+        print(f"[Sheets] 接続エラー: {e}")
         return None
 
 
