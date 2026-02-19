@@ -219,8 +219,10 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
         cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
                  for idx, chunk in enumerate(chunks)]
         ws.update_cells(cells)
+        _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks)")
         return True
-    except Exception:
+    except Exception as e:
+        _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {e}")
         return False
 
 
