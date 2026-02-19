@@ -310,12 +310,17 @@ def save_metadata(metadata: dict) -> bool:
     sheets_ok = False
     try:
         sh = get_sheets_client()
-        _log.info(f"[save_metadata] get_sheets_client() = {sh is not None}")
         if sh is not None:
             sheets_ok = _write_json_to_sheet(sh, "metadata", metadata)
+            # キャッシュ接続で失敗 → 新規接続でリトライ
+            if not sheets_ok:
+                _log.warning("[save_metadata] キャッシュ接続で失敗、新規接続でリトライ")
+                st.session_state.pop("_sheets_conn", None)
+                sh2 = _new_sheets_connection()
+                if sh2 is not None:
+                    sheets_ok = _write_json_to_sheet(sh2, "metadata", metadata)
             _log.info(f"[save_metadata] Sheets書き込み結果: {sheets_ok}")
             if not sheets_ok:
-                _log.error("[save_metadata] ★ Sheets書き込み失敗!")
                 if "_save_error_detail" not in st.session_state:
                     st.session_state["_save_error_detail"] = "write_json_to_sheet が False を返却"
         else:
