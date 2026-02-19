@@ -270,7 +270,7 @@ def load_metadata() -> dict:
     """メタデータを読み込む。session_state → Sheets → ローカルの順。"""
     ck = "_cache_metadata"
     if _is_cache_valid(ck):
-        _log.info("[load_metadata] session_state キャッシュ使用")
+        pass  # session_state キャッシュ使用
         return st.session_state[ck]
     # Google Sheets（接続できれば常にSheetsを信頼する）
     sh = get_sheets_client()
