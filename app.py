@@ -36,7 +36,10 @@ import gspread
 # 定数
 # ---------------------------------------------------------------------------
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png"]
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/spreadsheets",
+]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
 CHAT_SESSIONS_PATH = Path(__file__).parent / "chat_sessions.json"
 TRASH_PATH = Path(__file__).parent / "trash.json"
@@ -141,26 +144,123 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 
 
 # ---------------------------------------------------------------------------
+# Google Sheets 永続化
+# ---------------------------------------------------------------------------
+_SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
+_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash"]
+_CACHE_TTL = 30  # 秒
+
+
+@st.cache_resource(show_spinner="Google Sheets に接続中...")
+def get_sheets_client():
+    """gspread クライアントを初期化し、対象スプレッドシートを返す。"""
+    try:
+        spreadsheet_id = st.secrets.get("spreadsheet_id", "")
+        if not spreadsheet_id:
+            return None
+        creds = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=SCOPES,
+        )
+        gc = gspread.authorize(creds)
+        sh = gc.open_by_key(spreadsheet_id)
+        # ワークシートが無ければ自動作成
+        existing = [ws.title for ws in sh.worksheets()]
+        for name in _SHEETS_WORKSHEETS:
+            if name not in existing:
+                sh.add_worksheet(title=name, rows=100, cols=1)
+        return sh
+    except Exception:
+        return None
+
+
+def _read_json_from_sheet(sh, worksheet_name: str):
+    """ワークシートのA列を結合してJSONオブジェクトに復元する。"""
+    try:
+        ws = sh.worksheet(worksheet_name)
+        all_values = ws.col_values(1)
+        if not all_values:
+            return None
+        json_str = "".join(all_values)
+        return json.loads(json_str)
+    except Exception:
+        return None
+
+
+def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
+    """JSONデータをチャンク分割してワークシートに書き込む。"""
+    try:
+        ws = sh.worksheet(worksheet_name)
+        json_str = json.dumps(data, ensure_ascii=False)
+        chunks = []
+        for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
+            chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
+        if not chunks:
+            chunks = ["{}"]
+        ws.clear()
+        cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
+                 for idx, chunk in enumerate(chunks)]
+        ws.update_cells(cells)
+        return True
+    except Exception:
+        return False
+
+
+def _is_cache_valid(cache_key: str) -> bool:
+    """session_state キャッシュが有効（TTL以内）か判定する。"""
+    ts_key = f"{cache_key}_ts"
+    if cache_key not in st.session_state:
+        return False
+    if ts_key not in st.session_state:
+        return False
+    return (time.time() - st.session_state[ts_key]) < _CACHE_TTL
+
+
+def _set_cache(cache_key: str, data):
+    """session_state にデータとタイムスタンプをセットする。"""
+    st.session_state[cache_key] = data
+    st.session_state[f"{cache_key}_ts"] = time.time()
+
+
+# ---------------------------------------------------------------------------
 # メタデータ管理
 # ---------------------------------------------------------------------------
 def load_metadata() -> dict:
-    """metadata.json を読み込む。存在しない・壊れている場合は空辞書を返す。"""
+    """メタデータを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_metadata"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+    # Google Sheets
+    sh = get_sheets_client()
+    if sh is not None:
+        data = _read_json_from_sheet(sh, "metadata")
+        if data is not None:
+            _set_cache(ck, data)
+            return data
+    # ローカルフォールバック
     if METADATA_PATH.exists():
         try:
             with open(METADATA_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                _set_cache(ck, data)
+                return data
         except (json.JSONDecodeError, IOError):
-            return {}
+            pass
+    _set_cache(ck, {})
     return {}
 
 
 def save_metadata(metadata: dict) -> None:
-    """メタデータ辞書を metadata.json に保存する。"""
+    """メタデータを保存する。session_state + Sheets + ローカル（バックアップ）。"""
+    _set_cache("_cache_metadata", metadata)
+    sh = get_sheets_client()
+    if sh is not None:
+        _write_json_to_sheet(sh, "metadata", metadata)
     try:
         with open(METADATA_PATH, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
-    except IOError as e:
-        st.error(f"メタデータの保存に失敗しました: {e}")
+    except IOError:
+        pass
 
 
 def get_status(meta: dict) -> str:
@@ -180,24 +280,41 @@ def get_status_icon(meta: dict) -> str:
 # ゴミ箱管理
 # ---------------------------------------------------------------------------
 def load_trash() -> list:
-    """trash.json を読み込む。存在しない・壊れている場合は空リストを返す。"""
+    """ゴミ箱データを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_trash"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+    sh = get_sheets_client()
+    if sh is not None:
+        data = _read_json_from_sheet(sh, "trash")
+        if data is not None:
+            items = data.get("items", []) if isinstance(data, dict) else data
+            _set_cache(ck, items)
+            return items
     if TRASH_PATH.exists():
         try:
             with open(TRASH_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("items", [])
+                items = data.get("items", [])
+                _set_cache(ck, items)
+                return items
         except (json.JSONDecodeError, IOError):
-            return []
+            pass
+    _set_cache(ck, [])
     return []
 
 
 def save_trash(items: list) -> None:
-    """ゴミ箱データを trash.json に保存する。"""
+    """ゴミ箱データを保存する。session_state + Sheets + ローカル。"""
+    _set_cache("_cache_trash", items)
+    sh = get_sheets_client()
+    if sh is not None:
+        _write_json_to_sheet(sh, "trash", {"items": items})
     try:
         with open(TRASH_PATH, "w", encoding="utf-8") as f:
             json.dump({"items": items}, f, ensure_ascii=False, indent=2)
-    except IOError as e:
-        st.error(f"ゴミ箱データの保存に失敗しました: {e}")
+    except IOError:
+        pass
 
 
 def move_to_trash(file_ids: list[str], metadata: dict) -> int:
@@ -259,7 +376,19 @@ def purge_old_trash() -> int:
 # フォルダ管理
 # ---------------------------------------------------------------------------
 def load_folders() -> list[str]:
-    """folders.json からフォルダ名リストを読み込む。"""
+    """フォルダ名リストを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_folders"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+    sh = get_sheets_client()
+    if sh is not None:
+        data = _read_json_from_sheet(sh, "folders")
+        if data is not None:
+            folders = data.get("folders", []) if isinstance(data, dict) else data
+            if DEFAULT_FOLDER not in folders:
+                folders.insert(0, DEFAULT_FOLDER)
+            _set_cache(ck, folders)
+            return folders
     if FOLDERS_PATH.exists():
         try:
             with open(FOLDERS_PATH, "r", encoding="utf-8") as f:
@@ -267,21 +396,28 @@ def load_folders() -> list[str]:
                 folders = data.get("folders", [])
                 if DEFAULT_FOLDER not in folders:
                     folders.insert(0, DEFAULT_FOLDER)
+                _set_cache(ck, folders)
                 return folders
         except (json.JSONDecodeError, IOError):
             pass
-    return [DEFAULT_FOLDER]
+    result = [DEFAULT_FOLDER]
+    _set_cache(ck, result)
+    return result
 
 
 def save_folders(folders: list[str]) -> None:
-    """フォルダ名リストを folders.json に保存する。"""
+    """フォルダ名リストを保存する。session_state + Sheets + ローカル。"""
     if DEFAULT_FOLDER not in folders:
         folders.insert(0, DEFAULT_FOLDER)
+    _set_cache("_cache_folders", folders)
+    sh = get_sheets_client()
+    if sh is not None:
+        _write_json_to_sheet(sh, "folders", {"folders": folders})
     try:
         with open(FOLDERS_PATH, "w", encoding="utf-8") as f:
             json.dump({"folders": folders}, f, ensure_ascii=False, indent=2)
-    except IOError as e:
-        st.error(f"フォルダデータの保存に失敗しました: {e}")
+    except IOError:
+        pass
 
 
 def get_folder(meta: dict) -> str:
