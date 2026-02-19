@@ -3477,7 +3477,7 @@ _auto_push_started = False
 def _auto_push_loop():
     """バックグラウンドで定期的に git commit & push を実行する。"""
     repo_dir = str(Path(__file__).parent)
-    target_files = ["app.py", "metadata.json", "folders.json", ".gitignore"]
+    target_files = ["app.py", "requirements.txt", ".gitignore"]
 
     while True:
         time.sleep(_AUTO_PUSH_INTERVAL)
@@ -3537,6 +3537,64 @@ def start_auto_push():
         return  # Streamlit Cloud等では何もしない
     t = threading.Thread(target=_auto_push_loop, daemon=True)
     t.start()
+
+
+# ===========================================================================
+# ローカル → Google Sheets 移行
+# ===========================================================================
+def _migrate_local_to_sheets():
+    """ローカルJSONファイルからGoogle Sheetsにデータを一括移行する。"""
+    sh = get_sheets_client()
+    if sh is None:
+        st.error("Google Sheets に接続できません。spreadsheet_id を確認してください。")
+        return
+
+    migrated = []
+    # metadata
+    if METADATA_PATH.exists():
+        try:
+            with open(METADATA_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if _write_json_to_sheet(sh, "metadata", data):
+                migrated.append(f"metadata ({len(data)}件)")
+        except Exception as e:
+            st.warning(f"metadata移行失敗: {e}")
+    # folders
+    if FOLDERS_PATH.exists():
+        try:
+            with open(FOLDERS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if _write_json_to_sheet(sh, "folders", data):
+                migrated.append("folders")
+        except Exception as e:
+            st.warning(f"folders移行失敗: {e}")
+    # chat_sessions
+    if CHAT_SESSIONS_PATH.exists():
+        try:
+            with open(CHAT_SESSIONS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if _write_json_to_sheet(sh, "chat_sessions", data):
+                migrated.append("chat_sessions")
+        except Exception as e:
+            st.warning(f"chat_sessions移行失敗: {e}")
+    # trash
+    if TRASH_PATH.exists():
+        try:
+            with open(TRASH_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if _write_json_to_sheet(sh, "trash", data):
+                migrated.append("trash")
+        except Exception as e:
+            st.warning(f"trash移行失敗: {e}")
+
+    if migrated:
+        st.success(f"✅ 移行完了: {', '.join(migrated)}")
+        # キャッシュクリア
+        for ck in ["_cache_metadata", "_cache_folders", "_cache_chat_sessions", "_cache_trash"]:
+            st.session_state.pop(ck, None)
+            st.session_state.pop(f"{ck}_ts", None)
+    else:
+        st.warning("移行するローカルデータがありませんでした。")
 
 
 # ===========================================================================
@@ -3664,6 +3722,16 @@ def main():
             st.session_state["manual_scan_running"] = True
             list_images.clear()
             st.rerun()
+
+    # --- データ移行ツール（ローカル→Sheets 1回きり） ---
+    with st.sidebar.expander("🔧 管理者ツール", expanded=False):
+        sh_status = get_sheets_client()
+        if sh_status is not None:
+            st.success("☁️ Google Sheets: 接続済み")
+        else:
+            st.warning("☁️ Google Sheets: 未接続")
+        if st.button("📤 ローカル → Sheets 移行", key="migrate_to_sheets", width="stretch"):
+            _migrate_local_to_sheets()
 
     # --- 手動スキャン（リアルタイム進捗表示） ---
     if st.session_state.pop("manual_scan_running", False):
