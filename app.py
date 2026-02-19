@@ -162,8 +162,9 @@ _SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash"]
 _CACHE_TTL = 30  # 秒
 
 
-def _create_sheets_connection():
-    """gspread クライアントを新規作成して返す。失敗時はNone。"""
+def get_sheets_client():
+    """gspread クライアントを毎回新規作成して返す。失敗時はNone。
+    キャッシュは使わない（Cloud環境でrerun間でオブジェクトが壊れるため）。"""
     try:
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
@@ -175,30 +176,11 @@ def _create_sheets_connection():
         )
         gc = gspread.authorize(creds)
         sh = gc.open_by_key(spreadsheet_id)
-        # ワークシートが無ければ自動作成
-        existing = [ws.title for ws in sh.worksheets()]
-        for name in _SHEETS_WORKSHEETS:
-            if name not in existing:
-                sh.add_worksheet(title=name, rows=100, cols=1)
         _log.info(f"[Sheets] 接続成功: {sh.title}")
         return sh
     except Exception as e:
         _log.error(f"[Sheets] 接続エラー: {type(e).__name__}: {e}")
         return None
-
-
-# モジュールレベルでクライアントをキャッシュ（rerunでも維持される）
-_sheets_client_cache = {"client": None}
-
-
-def get_sheets_client():
-    """gspread クライアントを取得する（モジュールレベルキャッシュ）。"""
-    if _sheets_client_cache["client"] is not None:
-        return _sheets_client_cache["client"]
-    sh = _create_sheets_connection()
-    if sh is not None:
-        _sheets_client_cache["client"] = sh
-    return sh
 
 
 def _read_json_from_sheet(sh, worksheet_name: str):
@@ -219,46 +201,26 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 
 
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
-    """JSONデータをチャンク分割してワークシートに書き込む。
-    失敗時は1回だけ再接続してリトライする。"""
-    for attempt in range(2):
-        try:
-            target = sh if attempt == 0 else _reconnect_sheets()
-            if target is None:
-                _log.error(f"[Sheets] {worksheet_name} 再接続失敗")
-                return False
-            ws = target.worksheet(worksheet_name)
-            json_str = json.dumps(data, ensure_ascii=False)
-            chunks = []
-            for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
-                chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
-            if not chunks:
-                chunks = ["{}"]
-            ws.clear()
-            cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
-                     for idx, chunk in enumerate(chunks)]
-            ws.update_cells(cells)
-            _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks, attempt={attempt})")
-            return True
-        except Exception as e:
-            err_msg = f"{type(e).__name__}: {e}"
-            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー (attempt={attempt}): {err_msg}")
-            st.session_state["_save_error_detail"] = err_msg
-            if attempt == 0:
-                _log.info(f"[Sheets] {worksheet_name}: 再接続してリトライします")
-                continue
-            return False
-    return False
-
-
-def _reconnect_sheets():
-    """Sheetsクライアントのキャッシュをクリアして再接続する。"""
+    """JSONデータをチャンク分割してワークシートに書き込む。"""
     try:
-        _sheets_client_cache["client"] = None
-        return get_sheets_client()
+        ws = sh.worksheet(worksheet_name)
+        json_str = json.dumps(data, ensure_ascii=False)
+        chunks = []
+        for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
+            chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
+        if not chunks:
+            chunks = ["{}"]
+        ws.clear()
+        cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
+                 for idx, chunk in enumerate(chunks)]
+        ws.update_cells(cells)
+        _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks)")
+        return True
     except Exception as e:
-        _log.error(f"[Sheets] 再接続エラー: {type(e).__name__}: {e}")
-        return None
+        err_msg = f"{type(e).__name__}: {e}"
+        _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {err_msg}")
+        st.session_state["_save_error_detail"] = err_msg
+        return False
 
 
 def _is_cache_valid(cache_key: str) -> bool:
