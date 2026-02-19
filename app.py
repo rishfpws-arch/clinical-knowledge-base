@@ -162,12 +162,8 @@ _SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash"]
 _CACHE_TTL = 30  # 秒
 
 
-def get_sheets_client():
-    """gspread クライアントを取得する（session_stateにキャッシュ）。"""
-    # session_state にキャッシュ済みならそれを返す
-    if "_sheets_client" in st.session_state and st.session_state["_sheets_client"] is not None:
-        return st.session_state["_sheets_client"]
-    # 新規接続
+def _create_sheets_connection():
+    """gspread クライアントを新規作成して返す。失敗時はNone。"""
     try:
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
@@ -185,11 +181,24 @@ def get_sheets_client():
             if name not in existing:
                 sh.add_worksheet(title=name, rows=100, cols=1)
         _log.info(f"[Sheets] 接続成功: {sh.title}")
-        st.session_state["_sheets_client"] = sh
         return sh
     except Exception as e:
-        _log.error(f"[Sheets] 接続エラー: {e}")
+        _log.error(f"[Sheets] 接続エラー: {type(e).__name__}: {e}")
         return None
+
+
+# モジュールレベルでクライアントをキャッシュ（rerunでも維持される）
+_sheets_client_cache = {"client": None}
+
+
+def get_sheets_client():
+    """gspread クライアントを取得する（モジュールレベルキャッシュ）。"""
+    if _sheets_client_cache["client"] is not None:
+        return _sheets_client_cache["client"]
+    sh = _create_sheets_connection()
+    if sh is not None:
+        _sheets_client_cache["client"] = sh
+    return sh
 
 
 def _read_json_from_sheet(sh, worksheet_name: str):
@@ -245,10 +254,10 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
 def _reconnect_sheets():
     """Sheetsクライアントのキャッシュをクリアして再接続する。"""
     try:
-        st.session_state.pop("_sheets_client", None)
+        _sheets_client_cache["client"] = None
         return get_sheets_client()
     except Exception as e:
-        _log.error(f"[Sheets] 再接続エラー: {e}")
+        _log.error(f"[Sheets] 再接続エラー: {type(e).__name__}: {e}")
         return None
 
 
@@ -3829,7 +3838,7 @@ def main():
     # --- データ同期 ---
     if st.sidebar.button("🔄 データ再読み込み", key="reload_from_sheets", use_container_width=True):
         _invalidate_all_caches()
-        st.session_state.pop("_sheets_client", None)
+        _sheets_client_cache["client"] = None
         st.toast("☁️ Google Sheets から最新データを再読み込みしました")
         st.rerun()
 
