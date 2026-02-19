@@ -406,6 +406,11 @@ def load_folders() -> list[str]:
             if DEFAULT_FOLDER not in folders:
                 folders.insert(0, DEFAULT_FOLDER)
             _set_cache(ck, folders)
+            try:
+                with open(FOLDERS_PATH, "w", encoding="utf-8") as f:
+                    json.dump({"folders": folders}, f, ensure_ascii=False, indent=2)
+            except IOError:
+                pass
             return folders
     if FOLDERS_PATH.exists():
         try:
