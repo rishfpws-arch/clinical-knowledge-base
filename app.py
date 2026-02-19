@@ -1089,72 +1089,62 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     else:
         st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
 
+    # 前回保存成功の通知（rerun後に表示）
+    if st.session_state.pop(f"_saved_ok_{file_id}", False):
+        st.success("✅ 保存しました！知識として確定されました。")
+
     st.subheader("📝 解析結果の編集")
 
-    # session_state 初期化（画像切替時にリセット）
-    if st.session_state.get("editing_file_id") != file_id:
-        st.session_state["editing_file_id"] = file_id
-        st.session_state[f"edit_title_{file_id}"] = meta.get("title", "")
-        st.session_state[f"edit_summary_{file_id}"] = meta.get("summary", "")
-        st.session_state[f"edit_keywords_{file_id}"] = ", ".join(
-            meta.get("keywords", [])
+    with st.form(key=f"edit_form_{file_id}"):
+        edited_title = st.text_input(
+            "タイトル",
+            value=meta.get("title", ""),
+            placeholder="画像のタイトルを入力...",
+        )
+        edited_summary = st.text_area(
+            "要約",
+            value=meta.get("summary", ""),
+            height=120,
+            placeholder="医学的ポイントの要約を入力...",
+        )
+        edited_keywords_str = st.text_input(
+            "キーワード（カンマ区切り）",
+            value=", ".join(meta.get("keywords", [])),
+            placeholder="例: 心筋梗塞, 心電図, ST上昇",
         )
 
-    edited_title = st.text_input(
-        "タイトル",
-        key=f"edit_title_{file_id}",
-        placeholder="画像のタイトルを入力...",
-    )
-    edited_summary = st.text_area(
-        "要約",
-        key=f"edit_summary_{file_id}",
-        height=120,
-        placeholder="医学的ポイントの要約を入力...",
-    )
-    edited_keywords_str = st.text_input(
-        "キーワード（カンマ区切り）",
-        key=f"edit_keywords_{file_id}",
-        placeholder="例: 心筋梗塞, 心電図, ST上昇",
-    )
+        col_save, col_status = st.columns([1, 2])
+        with col_save:
+            submitted = st.form_submit_button(
+                "💾 保存して知識として確定する",
+                type="primary",
+            )
+        with col_status:
+            if get_status(meta) == STATUS_REVIEWED:
+                st.caption("ステータス: ✅ 登録済み")
+            else:
+                st.caption("ステータス: 🆕 未登録")
 
-    if edited_keywords_str:
-        parsed_keywords = [
-            kw.strip() for kw in edited_keywords_str.split(",") if kw.strip()
+    if submitted:
+        new_keywords = [
+            kw.strip()
+            for kw in edited_keywords_str.split(",")
+            if kw.strip()
         ]
-        st.markdown("**タグプレビュー:**")
-        render_keyword_tags(parsed_keywords)
-
-    st.markdown("")
-    col_save, col_status = st.columns([1, 2])
-
-    with col_save:
-        if st.button(
-            "💾 保存して知識として確定する",
-            key=f"save_{file_id}",
-            type="primary",
-        ):
-            new_keywords = [
-                kw.strip()
-                for kw in edited_keywords_str.split(",")
-                if kw.strip()
-            ]
-            existing = metadata.get(file_id, {})
-            existing.update({
-                "title": edited_title,
-                "summary": edited_summary,
-                "keywords": new_keywords,
-                "status": STATUS_REVIEWED,
-            })
-            metadata[file_id] = existing
-            save_metadata(metadata)
-            st.success("✅ 保存しました！知識として確定されました。")
-            st.rerun()
-
-    with col_status:
-        if get_status(meta) == STATUS_REVIEWED:
-            st.caption("ステータス: ✅ 登録済み")
-        else:
-            st.caption("ステータス: 🆕 未登録")
+        existing = metadata.get(file_id, {})
+        existing.update({
+            "title": edited_title,
+            "summary": edited_summary,
+            "keywords": new_keywords,
+            "status": STATUS_REVIEWED,
+        })
+        metadata[file_id] = existing
+        save_metadata(metadata)
+        _log.info(f"[display_edit_form] 保存完了: {file_id}, keywords={new_keywords}")
+        st.session_state[f"_saved_ok_{file_id}"] = True
+        st.session_state.pop("editing_file_id", None)
+        _invalidate_all_caches()
+        st.rerun()
 
 
 # ---------------------------------------------------------------------------
