@@ -1170,7 +1170,11 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             "status": STATUS_REVIEWED,
         })
         fresh_metadata[file_id] = existing
-        sheets_ok = save_metadata(fresh_metadata)
+        try:
+            sheets_ok = save_metadata(fresh_metadata)
+        except Exception as e:
+            sheets_ok = False
+            st.session_state["_save_error_detail"] = f"{type(e).__name__}: {e}"
         _log.info(f"[display_edit_form] 保存完了: {file_id}, keywords={new_keywords}, sheets_ok={sheets_ok}")
         if sheets_ok:
             st.session_state[f"_saved_ok_{file_id}"] = True
