@@ -316,14 +316,22 @@ def save_metadata(metadata: dict) -> bool:
     _log.info(f"[save_metadata] 保存開始 entries={len(metadata)}")
     _set_cache("_cache_metadata", metadata)
     sheets_ok = False
-    sh = get_sheets_client()
-    if sh is not None:
-        sheets_ok = _write_json_to_sheet(sh, "metadata", metadata)
-        _log.info(f"[save_metadata] Sheets書き込み結果: {sheets_ok}")
-        if not sheets_ok:
-            _log.error("[save_metadata] ★ Sheets書き込み失敗!")
-    else:
-        _log.warning("[save_metadata] Sheets未接続 - ローカルのみ保存")
+    try:
+        sh = get_sheets_client()
+        if sh is not None:
+            sheets_ok = _write_json_to_sheet(sh, "metadata", metadata)
+            _log.info(f"[save_metadata] Sheets書き込み結果: {sheets_ok}")
+            if not sheets_ok:
+                _log.error("[save_metadata] ★ Sheets書き込み失敗!")
+                if "_save_error_detail" not in st.session_state:
+                    st.session_state["_save_error_detail"] = "write_json_to_sheet が False を返却"
+        else:
+            _log.warning("[save_metadata] Sheets未接続 - ローカルのみ保存")
+            st.session_state["_save_error_detail"] = "Sheets未接続 (get_sheets_client=None)"
+    except Exception as e:
+        err = f"{type(e).__name__}: {e}"
+        _log.error(f"[save_metadata] 例外: {err}")
+        st.session_state["_save_error_detail"] = err
     try:
         with open(METADATA_PATH, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
@@ -1162,22 +1170,21 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             if kw.strip()
         ]
         _log.info(f"[display_edit_form] submit: file_id={file_id}, edited_keywords_str='{edited_keywords_str}', new_keywords={new_keywords}")
-        # metadataを最新で取り直す（キャッシュではなくSheetsから）
-        _invalidate_all_caches()
-        fresh_metadata = load_metadata()
-        existing = fresh_metadata.get(file_id, {})
+        # 渡されたmetadata（現在のセッションのもの）を直接更新してsave
+        # ※ load し直すとAPI呼び出しが増えレート制限に当たる可能性があるため
+        existing = metadata.get(file_id, {})
         existing.update({
             "title": edited_title,
             "summary": edited_summary,
             "keywords": new_keywords,
             "status": STATUS_REVIEWED,
         })
-        fresh_metadata[file_id] = existing
+        metadata[file_id] = existing
         try:
-            sheets_ok = save_metadata(fresh_metadata)
+            sheets_ok = save_metadata(metadata)
         except Exception as e:
             sheets_ok = False
-            st.session_state["_save_error_detail"] = f"{type(e).__name__}: {e}"
+            st.session_state["_save_error_detail"] = f"save例外: {type(e).__name__}: {e}"
         _log.info(f"[display_edit_form] 保存完了: {file_id}, keywords={new_keywords}, sheets_ok={sheets_ok}")
         if sheets_ok:
             st.session_state[f"_saved_ok_{file_id}"] = True
