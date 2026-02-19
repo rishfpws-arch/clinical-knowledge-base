@@ -3751,6 +3751,13 @@ def main():
             list_images.clear()
             st.rerun()
 
+    # --- データ同期 ---
+    if st.sidebar.button("🔄 データ再読み込み", key="reload_from_sheets", use_container_width=True):
+        _invalidate_all_caches()
+        st.cache_resource.clear()
+        st.toast("☁️ Google Sheets から最新データを再読み込みしました")
+        st.rerun()
+
     # --- データ移行ツール（ローカル→Sheets 1回きり） ---
     with st.sidebar.expander("🔧 管理者ツール", expanded=False):
         sh_status = get_sheets_client()
