@@ -1493,24 +1493,12 @@ def page_image_manager():
                     st.success("✅ 登録済み")
                 else:
                     st.warning("🆕 未登録")
-            # 要約
-            summary = meta.get("summary", "")
-            if summary:
-                st.markdown(
-                    f"<div style='background:rgba(91,139,239,0.06); "
-                    f"border-radius:8px; padding:10px 14px; "
-                    f"font-size:14px; line-height:1.7; "
-                    f"max-height:250px; overflow-y:auto;'>"
-                    f"{summary}</div>",
-                    unsafe_allow_html=True,
-                )
+            # 要約（箇条書き）
+            render_summary(meta.get("summary", ""))
             # キーワード
             keywords = meta.get("keywords", [])
             if keywords:
                 render_keyword_tags(keywords)
-            # 形式
-            fmt = selected_file["mimeType"].split("/")[-1].upper()
-            st.caption(f"形式: {fmt}")
 
         # --- 編集フォーム（折りたたみ） ---
         if file_id in metadata:
@@ -1947,16 +1935,7 @@ def page_batch_analyze():
         with rev_col_info:
             title = current_meta.get("title", current_img.get("name", "不明"))
             st.subheader(title)
-            summary = current_meta.get("summary", "")
-            if summary:
-                st.markdown(
-                    f"<div style='background:rgba(91,139,239,0.06); "
-                    f"border-radius:8px; padding:10px 14px; "
-                    f"font-size:14px; line-height:1.7; "
-                    f"max-height:250px; overflow-y:auto;'>"
-                    f"{summary}</div>",
-                    unsafe_allow_html=True,
-                )
+            render_summary(current_meta.get("summary", ""))
             keywords = current_meta.get("keywords", [])
             if keywords:
                 render_keyword_tags(keywords)
@@ -2765,16 +2744,7 @@ def page_folder_ai():
                         st.success("✅ 登録済み")
                     else:
                         st.warning("🆕 未登録")
-                summary = meta.get("summary", "")
-                if summary:
-                    st.markdown(
-                        f"<div style='background:rgba(91,139,239,0.06); "
-                        f"border-radius:8px; padding:10px 14px; "
-                        f"font-size:14px; line-height:1.7; "
-                        f"max-height:250px; overflow-y:auto;'>"
-                        f"{summary}</div>",
-                        unsafe_allow_html=True,
-                    )
+                render_summary(meta.get("summary", ""))
                 keywords = meta.get("keywords", [])
                 if keywords:
                     render_keyword_tags(keywords)
