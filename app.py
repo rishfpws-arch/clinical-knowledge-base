@@ -1094,9 +1094,11 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     else:
         st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
 
-    # 前回保存成功の通知（rerun後に表示）
+    # 前回保存結果の通知（rerun後に表示）
     if st.session_state.pop(f"_saved_ok_{file_id}", False):
-        st.success("✅ 保存しました！知識として確定されました。")
+        st.success("✅ 保存しました！（Google Sheets に同期済み）")
+    if st.session_state.pop(f"_saved_fail_{file_id}", False):
+        st.error("⚠️ ローカルには保存しましたが、Google Sheets への同期に失敗しました。")
 
     st.subheader("📝 解析結果の編集")
 
@@ -1136,17 +1138,24 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             for kw in edited_keywords_str.split(",")
             if kw.strip()
         ]
-        existing = metadata.get(file_id, {})
+        _log.info(f"[display_edit_form] submit: file_id={file_id}, edited_keywords_str='{edited_keywords_str}', new_keywords={new_keywords}")
+        # metadataを最新で取り直す（キャッシュではなくSheetsから）
+        _invalidate_all_caches()
+        fresh_metadata = load_metadata()
+        existing = fresh_metadata.get(file_id, {})
         existing.update({
             "title": edited_title,
             "summary": edited_summary,
             "keywords": new_keywords,
             "status": STATUS_REVIEWED,
         })
-        metadata[file_id] = existing
-        save_metadata(metadata)
-        _log.info(f"[display_edit_form] 保存完了: {file_id}, keywords={new_keywords}")
-        st.session_state[f"_saved_ok_{file_id}"] = True
+        fresh_metadata[file_id] = existing
+        sheets_ok = save_metadata(fresh_metadata)
+        _log.info(f"[display_edit_form] 保存完了: {file_id}, keywords={new_keywords}, sheets_ok={sheets_ok}")
+        if sheets_ok:
+            st.session_state[f"_saved_ok_{file_id}"] = True
+        else:
+            st.session_state[f"_saved_fail_{file_id}"] = True
         st.session_state.pop("editing_file_id", None)
         _invalidate_all_caches()
         st.rerun()
