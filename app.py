@@ -162,9 +162,8 @@ _SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash"]
 _CACHE_TTL = 30  # 秒
 
 
-def get_sheets_client():
-    """gspread クライアントを毎回新規作成して返す。失敗時はNone。
-    キャッシュは使わない（Cloud環境でrerun間でオブジェクトが壊れるため）。"""
+def _new_sheets_connection():
+    """gspread クライアントを新規作成して返す。失敗時はNone。"""
     try:
         spreadsheet_id = st.secrets.get("spreadsheet_id", "")
         if not spreadsheet_id:
@@ -184,6 +183,21 @@ def get_sheets_client():
         _log.error(f"[Sheets] {err}")
         st.session_state["_save_error_detail"] = err
         return None
+
+
+def get_sheets_client():
+    """gspread クライアントを取得する。
+    rerun内で同じ接続を再利用（TTLキャッシュ）。Noneはキャッシュしない。"""
+    ck = "_sheets_conn"
+    ts_key = "_sheets_conn_ts"
+    if ck in st.session_state and st.session_state[ck] is not None:
+        if (time.time() - st.session_state.get(ts_key, 0)) < 60:
+            return st.session_state[ck]
+    sh = _new_sheets_connection()
+    if sh is not None:
+        st.session_state[ck] = sh
+        st.session_state[ts_key] = time.time()
+    return sh
 
 
 def _read_json_from_sheet(sh, worksheet_name: str):
