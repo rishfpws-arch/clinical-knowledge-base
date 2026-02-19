@@ -198,10 +198,10 @@ def _read_json_from_sheet(sh, worksheet_name: str):
             return None
         json_str = "".join(all_values)
         data = json.loads(json_str)
-        print(f"[Sheets] {worksheet_name}: 読み込み成功 ({len(json_str)} chars)")
+        _log.info(f"[Sheets] {worksheet_name}: 読み込み成功 ({len(json_str)} chars)")
         return data
     except Exception as e:
-        print(f"[Sheets] {worksheet_name} 読み込みエラー: {e}")
+        _log.error(f"[Sheets] {worksheet_name} 読み込みエラー: {e}")
         return None
 
 
@@ -254,11 +254,14 @@ def load_metadata() -> dict:
     """メタデータを読み込む。session_state → Sheets → ローカルの順。"""
     ck = "_cache_metadata"
     if _is_cache_valid(ck):
+        _log.info("[load_metadata] session_state キャッシュ使用")
         return st.session_state[ck]
     # Google Sheets（接続できれば常にSheetsを信頼する）
     sh = get_sheets_client()
+    _log.info(f"[load_metadata] get_sheets_client() = {sh is not None}")
     if sh is not None:
         data = _read_json_from_sheet(sh, "metadata")
+        _log.info(f"[load_metadata] Sheets data = {data is not None}, entries = {len(data) if data else 0}")
         if data is not None:
             _set_cache(ck, data)
             # ローカルファイルも同期更新
@@ -267,8 +270,10 @@ def load_metadata() -> dict:
                     json.dump(data, f, ensure_ascii=False, indent=2)
             except IOError:
                 pass
+            _log.info("[load_metadata] ★ Sheets からデータ返却")
             return data
     # Sheets未接続時のみローカルフォールバック
+    _log.info("[load_metadata] ローカルフォールバック使用")
     if METADATA_PATH.exists():
         try:
             with open(METADATA_PATH, "r", encoding="utf-8") as f:
