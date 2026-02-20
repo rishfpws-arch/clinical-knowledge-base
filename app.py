@@ -3484,8 +3484,11 @@ def page_folder_ai():
         if not folder_images:
             continue
         with st.expander(f"📁 {folder_name}（{len(folder_images)} 件）", expanded=False):
+            pk = f"ai_result_{folder_name}_page"
+            fi_page, fi_cur, fi_tp = _paginate(folder_images, pk)
+            _render_pagination_controls(pk, fi_cur, fi_tp, len(folder_images))
             cols = st.columns(4)
-            for idx, img in enumerate(folder_images):
+            for idx, img in enumerate(fi_page):
                 fid = img["id"]
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
