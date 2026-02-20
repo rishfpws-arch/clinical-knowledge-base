@@ -2578,6 +2578,83 @@ def page_batch_analyze():
             )
 
     # =======================================================================
+    # モード: 患者データ編集
+    # =======================================================================
+    elif mode == "患者データ編集":
+        st.subheader("🏥 患者データの一括編集")
+
+        if not patient_data_images:
+            st.info("🏥 患者データはまだ取り込まれていません。")
+        else:
+            st.info(
+                f"🏥 **{len(patient_data_images)} 件**の患者データがあります。"
+                " タイトル・検査所見・キーワードを編集してください。"
+            )
+
+            # ページネーション
+            page_items, current_page, total_pages = _paginate(
+                patient_data_images, "batch_patient_page"
+            )
+            _render_pagination_controls(
+                "batch_patient_page", current_page, total_pages, len(patient_data_images)
+            )
+
+            # 各画像を編集フォーム付きで表示
+            for idx, img in enumerate(page_items):
+                fid = img["id"]
+                meta = metadata.get(fid, {})
+                fname = img.get("name", fid)
+
+                with st.expander(
+                    f"🏥 {meta.get('title', fname)}"
+                    + (" ✏️" if meta.get("summary", "") else " ⚠️ 検査所見が未入力"),
+                    expanded=not meta.get("summary", ""),
+                ):
+                    # 画像プレビュー
+                    try:
+                        img_bytes = download_image(service, fid)
+                        st.image(img_bytes, width=300)
+                    except Exception:
+                        st.caption("（画像を読み込めません）")
+
+                    # 編集フォーム
+                    with st.form(key=f"pd_edit_{fid}_{current_page}"):
+                        new_title = st.text_input(
+                            "タイトル",
+                            value=meta.get("title", fname),
+                            key=f"pd_title_{fid}_{current_page}",
+                        )
+                        new_summary = st.text_area(
+                            "検査所見",
+                            value=meta.get("summary", ""),
+                            height=120,
+                            placeholder="検査所見を入力してください...",
+                            key=f"pd_summary_{fid}_{current_page}",
+                        )
+                        new_keywords = st.text_input(
+                            "キーワード（カンマ区切り）",
+                            value=", ".join(meta.get("keywords", [])),
+                            key=f"pd_kw_{fid}_{current_page}",
+                        )
+                        submitted = st.form_submit_button(
+                            "💾 保存", type="primary"
+                        )
+                        if submitted:
+                            kw_list = [
+                                k.strip()
+                                for k in new_keywords.replace("、", ",").split(",")
+                                if k.strip()
+                            ]
+                            metadata[fid]["title"] = new_title
+                            metadata[fid]["summary"] = new_summary
+                            metadata[fid]["keywords"] = kw_list
+                            metadata[fid]["status"] = STATUS_REVIEWED
+                            save_metadata(metadata)
+                            _invalidate_all_caches()
+                            st.success(f"✅ 「{new_title}」を保存しました")
+                            st.rerun()
+
+    # =======================================================================
     # モード: レビュー（1枚ずつ）
     # =======================================================================
     elif mode == "レビュー":
