@@ -2272,12 +2272,20 @@ def page_batch_analyze():
         if img["id"] in metadata
         and not is_patient_data(metadata[img["id"]])
     ]
+    # 患者データ一覧
+    patient_data_images = [
+        img for img in images
+        if img["id"] in metadata
+        and is_patient_data(metadata[img["id"]])
+    ]
 
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
     st.sidebar.write(f"🆕 未登録: **{len(unreviewed)}** 件")
     st.sidebar.write(f"✅ 登録済み: **{len(reviewed)}** 件")
+    if patient_data_images:
+        st.sidebar.write(f"🏥 患者データ: **{len(patient_data_images)}** 件")
     st.sidebar.write(f"合計: **{len(images)}** 件")
 
     # プログレスバー
@@ -2292,7 +2300,8 @@ def page_batch_analyze():
 
     mode = st.radio(
         "操作を選択",
-        ["新規解析", "一括再解析", "指示付き再解析", "レビュー", "一括レビュー済みに変更", "解析データの削除"],
+        ["新規解析", "一括再解析", "指示付き再解析", "患者データ編集",
+         "レビュー", "一括レビュー済みに変更", "解析データの削除"],
         horizontal=True,
         key="batch_mode",
     )
