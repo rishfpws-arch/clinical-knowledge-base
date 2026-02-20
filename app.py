@@ -2643,12 +2643,17 @@ def page_batch_analyze():
     elif mode == "患者データ編集":
         st.subheader("🏥 患者データの一括編集")
 
+        # 保存成功メッセージの表示（rerun後にも表示されるように session_state を使用）
+        if st.session_state.get("_pd_save_success"):
+            st.success(st.session_state["_pd_save_success"])
+            del st.session_state["_pd_save_success"]
+
         if not patient_data_images:
             st.info("🏥 患者データはまだ取り込まれていません。")
         else:
             st.info(
                 f"🏥 **{len(patient_data_images)} 件**の患者データがあります。"
-                " タイトル・検査所見・キーワードを編集してください。"
+                " タイトルを入力し、AIキーワードを生成してください。所見は任意です。"
             )
 
             # ページネーション
@@ -2664,55 +2669,93 @@ def page_batch_analyze():
                 fid = img["id"]
                 meta = metadata.get(fid, {})
                 fname = img.get("name", fid)
+                has_title = meta.get("title", fname) != fname
+                status_icon = "✅" if meta.get("status") == STATUS_REVIEWED else "✏️"
 
                 with st.expander(
-                    f"🏥 {meta.get('title', fname)}"
-                    + (" ✏️" if meta.get("summary", "") else " ⚠️ 検査所見が未入力"),
-                    expanded=not meta.get("summary", ""),
+                    f"🏥 {meta.get('title', fname)} {status_icon}",
+                    expanded=(meta.get("status") != STATUS_REVIEWED),
                 ):
-                    # 画像プレビュー
-                    try:
-                        img_bytes = download_image(service, fid)
-                        st.image(img_bytes, width=300)
-                    except Exception:
-                        st.caption("（画像を読み込めません）")
+                    col_img, col_form = st.columns([1, 2])
+                    with col_img:
+                        # 画像プレビュー
+                        try:
+                            img_bytes = download_image(service, fid)
+                            st.image(img_bytes, use_container_width=True)
+                        except Exception:
+                            st.caption("（画像を読み込めません）")
+                            img_bytes = None
 
-                    # 編集フォーム
-                    with st.form(key=f"pd_edit_{fid}_{current_page}"):
-                        new_title = st.text_input(
-                            "タイトル",
-                            value=meta.get("title", fname),
-                            key=f"pd_title_{fid}_{current_page}",
-                        )
-                        new_summary = st.text_area(
-                            "検査所見",
-                            value=meta.get("summary", ""),
-                            height=120,
-                            placeholder="検査所見を入力してください...",
-                            key=f"pd_summary_{fid}_{current_page}",
-                        )
-                        new_keywords = st.text_input(
-                            "キーワード（カンマ区切り）",
-                            value=", ".join(meta.get("keywords", [])),
-                            key=f"pd_kw_{fid}_{current_page}",
-                        )
-                        submitted = st.form_submit_button(
-                            "💾 保存", type="primary"
-                        )
-                        if submitted:
-                            kw_list = [
-                                k.strip()
-                                for k in new_keywords.replace("、", ",").split(",")
-                                if k.strip()
-                            ]
-                            metadata[fid]["title"] = new_title
-                            metadata[fid]["summary"] = new_summary
-                            metadata[fid]["keywords"] = kw_list
-                            metadata[fid]["status"] = STATUS_REVIEWED
-                            save_metadata(metadata)
-                            _invalidate_all_caches()
-                            st.success(f"✅ 「{new_title}」を保存しました")
-                            st.rerun()
+                    with col_form:
+                        # 編集フォーム
+                        with st.form(key=f"pd_edit_{fid}_{current_page}"):
+                            new_title = st.text_input(
+                                "📌 タイトル（必須）",
+                                value=meta.get("title", fname),
+                                key=f"pd_title_{fid}_{current_page}",
+                                placeholder="例: 右膝関節MRI、腰椎X線...",
+                            )
+                            new_summary = st.text_area(
+                                "📝 検査所見（任意）",
+                                value=meta.get("summary", ""),
+                                height=80,
+                                placeholder="所見があれば入力（空欄でもOK）",
+                                key=f"pd_summary_{fid}_{current_page}",
+                            )
+                            current_kw = ", ".join(meta.get("keywords", []))
+                            # AIキーワードが生成済みならそれを表示
+                            ai_kw_key = f"_ai_keywords_{fid}"
+                            if ai_kw_key in st.session_state:
+                                current_kw = st.session_state[ai_kw_key]
+                                del st.session_state[ai_kw_key]
+                            new_keywords = st.text_input(
+                                "🏷️ キーワード（カンマ区切り）",
+                                value=current_kw,
+                                key=f"pd_kw_{fid}_{current_page}",
+                                placeholder="AIで自動生成できます →",
+                            )
+                            btn_col1, btn_col2 = st.columns([1, 1])
+                            with btn_col1:
+                                submitted = st.form_submit_button(
+                                    "💾 保存", type="primary", use_container_width=True,
+                                )
+                            with btn_col2:
+                                ai_btn = st.form_submit_button(
+                                    "🤖 AIキーワード生成", use_container_width=True,
+                                )
+
+                            if submitted:
+                                kw_list = [
+                                    k.strip()
+                                    for k in new_keywords.replace("、", ",").split(",")
+                                    if k.strip()
+                                ]
+                                metadata[fid]["title"] = new_title
+                                metadata[fid]["summary"] = new_summary
+                                metadata[fid]["keywords"] = kw_list
+                                metadata[fid]["status"] = STATUS_REVIEWED
+                                save_metadata(metadata)
+                                _invalidate_all_caches()
+                                st.session_state["_pd_save_success"] = (
+                                    f"✅ 「{new_title}」を保存しました"
+                                )
+                                st.rerun()
+
+                            if ai_btn:
+                                if not api_key:
+                                    st.warning("AIキーワード生成にはGemini API キーが必要です。")
+                                elif img_bytes is None:
+                                    st.warning("画像を読み込めないためAIキーワードを生成できません。")
+                                else:
+                                    with st.spinner("🤖 AIがキーワードを生成中..."):
+                                        ai_keywords = generate_keywords_with_gemini(
+                                            img_bytes, api_key, title=new_title,
+                                        )
+                                    if ai_keywords:
+                                        st.session_state[ai_kw_key] = ", ".join(ai_keywords)
+                                        st.rerun()
+                                    else:
+                                        st.warning("AIキーワードの生成に失敗しました。")
 
     # =======================================================================
     # モード: レビュー（1枚ずつ）
