@@ -2226,15 +2226,19 @@ def page_batch_analyze():
                     st.session_state[f"hint_sel_{img['id']}"] = False
                 st.rerun()
 
+        # ページネーション
+        hint_page_items, hint_cur, hint_total_pages = _paginate(hint_target_list, "batch_hint_page")
+        _render_pagination_controls("batch_hint_page", hint_cur, hint_total_pages, len(hint_target_list))
+
         hint_ids = []
         cols_per_row = 4
-        for row_start in range(0, len(hint_target_list), cols_per_row):
+        for row_start in range(0, len(hint_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx in range(cols_per_row):
                 img_idx = row_start + col_idx
-                if img_idx >= len(hint_target_list):
+                if img_idx >= len(hint_page_items):
                     break
-                img = hint_target_list[img_idx]
+                img = hint_page_items[img_idx]
                 fid = img["id"]
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
