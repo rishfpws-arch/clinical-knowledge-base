@@ -3007,7 +3007,9 @@ def page_folder_manual():
         st.info("表示対象の画像がありません。")
         return
 
-    st.caption(f"**{len(display_images)}** 件を表示中")
+    # ページネーション
+    mf_page_items, mf_cur, mf_total_pages = _paginate(display_images, "manual_folder_page")
+    _render_pagination_controls("manual_folder_page", mf_cur, mf_total_pages, len(display_images))
 
     # 全選択/全解除
     mc1, mc2, mc3 = st.columns([1, 1, 4])
@@ -3025,13 +3027,13 @@ def page_folder_manual():
     # グリッド表示
     move_ids = []
     cols_per_row = 4
-    for row_start in range(0, len(display_images), cols_per_row):
+    for row_start in range(0, len(mf_page_items), cols_per_row):
         cols = st.columns(cols_per_row)
         for col_idx in range(cols_per_row):
             img_idx = row_start + col_idx
-            if img_idx >= len(display_images):
+            if img_idx >= len(mf_page_items):
                 break
-            img = display_images[img_idx]
+            img = mf_page_items[img_idx]
             fid = img["id"]
             meta = metadata[fid]
             title = meta.get("title", img["name"])
