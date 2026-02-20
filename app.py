@@ -1254,6 +1254,12 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
 
         if new_patient:
+            # 「患者データ」フォルダが存在しなければ作成
+            folders = load_folders()
+            if PATIENT_DATA_FOLDER not in folders:
+                folders.append(PATIENT_DATA_FOLDER)
+                save_folders(folders)
+
             p_count = 0
             for img in new_patient:
                 fid = img["id"]
@@ -1263,7 +1269,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                     "summary": "",
                     "keywords": [],
                     "status": STATUS_REVIEWED,
-                    "folder": DEFAULT_FOLDER,
+                    "folder": PATIENT_DATA_FOLDER,
                     "source": SOURCE_PATIENT_DATA,
                 }
                 p_count += 1
