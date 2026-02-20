@@ -1847,9 +1847,13 @@ def page_image_manager():
     if "img_delete_mode" not in st.session_state:
         st.session_state["img_delete_mode"] = False
 
+    # ページネーション
+    page_items, cur_page, total_pages = _paginate(filtered_images, "img_grid_page")
+    _render_pagination_controls("img_grid_page", cur_page, total_pages, len(filtered_images))
+
     header_col1, header_col2 = st.columns([3, 1])
     with header_col1:
-        st.caption(f"**{len(filtered_images)}** / {len(images)} 件を表示中")
+        st.caption(f"**{len(filtered_images)}** / {len(images)} 件中を表示")
     with header_col2:
         if st.session_state["img_delete_mode"]:
             if st.button("✖ 削除モード終了", key="exit_delete_mode", width="stretch"):
