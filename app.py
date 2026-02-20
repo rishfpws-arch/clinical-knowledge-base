@@ -1769,6 +1769,7 @@ def page_image_manager():
 
     if st.sidebar.button("🔄 一覧を更新"):
         list_images.clear()
+        list_patient_images.clear()
         download_image.clear()
         st.rerun()
 
