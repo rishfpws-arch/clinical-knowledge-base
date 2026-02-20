@@ -1241,7 +1241,8 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             patient_images = []
 
         metadata = load_metadata()
-        new_patient = [img for img in patient_images if img["id"] not in metadata]
+        ignore_p = load_ignore_list()
+        new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
 
         if new_patient:
             p_count = 0
