@@ -1068,6 +1068,7 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
     5分間隔でチェックし、未解析の画像があればバックグラウンド的に解析する。
     自動取り込み画像は認証手続き（レビュー）を省略し、既存フォルダへ自動分類する。
+    患者データフォルダを先にスキャンし、メインフォルダのスキャンと重複しないようにする。
     """
     if not api_key:
         return
@@ -1079,78 +1080,15 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
     st.session_state["auto_scan_last"] = now
 
-    # ファイル一覧を取得（エラー表示なしで静かに取得）
-    try:
-        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
-        query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
-        results = (
-            service.files()
-            .list(
-                q=query,
-                fields="files(id, name, mimeType)",
-                pageSize=100,
-            )
-            .execute()
-        )
-        drive_images = results.get("files", [])
-    except Exception:
-        return
+    # キャッシュをクリアして最新の Drive 状態を取得
+    list_images.clear()
+    list_patient_images.clear()
 
     # 一度に解析する上限（タイムアウト防止）
     MAX_AUTO_ANALYZE = 5
 
-    # --- メインフォルダの新着画像スキャン ---
-    if drive_images:
-        metadata = load_metadata()
-        ignore = load_ignore_list()
-        new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
-
-        if new_images:
-            batch = new_images[:MAX_AUTO_ANALYZE]
-            remaining = len(new_images) - len(batch)
-
-            # フォルダ一覧を取得（自動分類用）
-            folders = load_folders()
-
-            # 新着画像を解析
-            success_count = 0
-            classified_count = 0
-            scan_placeholder = st.sidebar.empty()
-            scan_placeholder.info(
-                f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
-            )
-
-            for img in batch:
-                fid = img["id"]
-                try:
-                    image_bytes = download_image(service, fid)
-
-                    result = analyze_image_with_gemini(image_bytes, api_key)
-                    if result:
-                        # 自動取り込み: 確認済みとして登録
-                        result["status"] = STATUS_REVIEWED
-                        # 既存フォルダへ自動分類
-                        assigned_folder = _auto_classify_folder(result, api_key, folders)
-                        result["folder"] = assigned_folder
-                        if assigned_folder != DEFAULT_FOLDER:
-                            classified_count += 1
-                        metadata[fid] = result
-                        save_metadata(metadata)
-                        success_count += 1
-                except Exception:
-                    continue  # エラーが出てもスキップして続行
-
-            if success_count > 0:
-                msg = f"✅ 新着 {success_count} 件を自動登録しました！"
-                if classified_count > 0:
-                    msg += f"\n（{classified_count} 件をフォルダに自動分類）"
-                if remaining > 0:
-                    msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
-                scan_placeholder.success(msg)
-            else:
-                scan_placeholder.empty()
-
-    # --- 患者データフォルダの自動スキャン（AI解析なし） ---
+    # --- ★ 患者データフォルダを先にスキャン（AI解析なし） ---
+    patient_registered_ids: set[str] = set()
     patient_folder_id = get_patient_folder_id()
     if patient_folder_id:
         try:
@@ -1165,12 +1103,14 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
         except Exception:
             patient_images = []
 
-        metadata = load_metadata()  # メインスキャン後に再読み込み
+        # 患者データフォルダにあるファイルIDを記録（メインスキャンで除外用）
+        patient_registered_ids = {img["id"] for img in patient_images}
+
+        metadata = load_metadata()
         ignore_p = load_ignore_list()
         new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
 
         if new_patient:
-            # 「患者データ」フォルダが存在しなければ作成
             folders = load_folders()
             if PATIENT_DATA_FOLDER not in folders:
                 folders.append(PATIENT_DATA_FOLDER)
@@ -1191,9 +1131,79 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
                 p_count += 1
             if p_count > 0:
                 save_metadata(metadata)
+                _invalidate_all_caches()
                 st.sidebar.info(
                     f"🏥 患者データ {p_count} 件を自動登録しました（AI解析なし）"
                 )
+
+    # --- メインフォルダの新着画像スキャン ---
+    try:
+        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+        query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
+        results = (
+            service.files()
+            .list(
+                q=query,
+                fields="files(id, name, mimeType)",
+                pageSize=100,
+            )
+            .execute()
+        )
+        drive_images = results.get("files", [])
+    except Exception:
+        return
+
+    if drive_images:
+        metadata = load_metadata()
+        ignore = load_ignore_list()
+        # 患者データフォルダにあるファイルはメインスキャンから除外
+        new_images = [
+            img for img in drive_images
+            if img["id"] not in metadata
+            and img["id"] not in ignore
+            and img["id"] not in patient_registered_ids
+        ]
+
+        if new_images:
+            batch = new_images[:MAX_AUTO_ANALYZE]
+            remaining = len(new_images) - len(batch)
+
+            folders = load_folders()
+
+            success_count = 0
+            classified_count = 0
+            scan_placeholder = st.sidebar.empty()
+            scan_placeholder.info(
+                f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
+            )
+
+            for img in batch:
+                fid = img["id"]
+                try:
+                    image_bytes = download_image(service, fid)
+
+                    result = analyze_image_with_gemini(image_bytes, api_key)
+                    if result:
+                        result["status"] = STATUS_REVIEWED
+                        assigned_folder = _auto_classify_folder(result, api_key, folders)
+                        result["folder"] = assigned_folder
+                        if assigned_folder != DEFAULT_FOLDER:
+                            classified_count += 1
+                        metadata[fid] = result
+                        save_metadata(metadata)
+                        success_count += 1
+                except Exception:
+                    continue
+
+            if success_count > 0:
+                msg = f"✅ 新着 {success_count} 件を自動登録しました！"
+                if classified_count > 0:
+                    msg += f"\n（{classified_count} 件をフォルダに自動分類）"
+                if remaining > 0:
+                    msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
+                scan_placeholder.success(msg)
+            else:
+                scan_placeholder.empty()
 
 
 def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
