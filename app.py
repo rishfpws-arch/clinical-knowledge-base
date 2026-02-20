@@ -1018,6 +1018,44 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
     else:
         scan_placeholder.empty()
 
+    # --- 患者データフォルダの自動スキャン（AI解析なし） ---
+    patient_folder_id = get_patient_folder_id()
+    if patient_folder_id:
+        try:
+            mime_query_p = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+            query_p = f"'{patient_folder_id}' in parents and ({mime_query_p}) and trashed=false"
+            results_p = (
+                service.files()
+                .list(q=query_p, fields="files(id, name, mimeType)", pageSize=100)
+                .execute()
+            )
+            patient_images = results_p.get("files", [])
+        except Exception:
+            patient_images = []
+
+        metadata = load_metadata()  # メインスキャン後に再読み込み
+        new_patient = [img for img in patient_images if img["id"] not in metadata]
+
+        if new_patient:
+            p_count = 0
+            for img in new_patient[:MAX_AUTO_ANALYZE]:
+                fid = img["id"]
+                fname = img.get("name", fid)
+                metadata[fid] = {
+                    "title": fname,
+                    "summary": "",
+                    "keywords": [],
+                    "status": STATUS_REVIEWED,
+                    "folder": DEFAULT_FOLDER,
+                    "source": SOURCE_PATIENT_DATA,
+                }
+                p_count += 1
+            if p_count > 0:
+                save_metadata(metadata)
+                st.sidebar.info(
+                    f"🏥 患者データ {p_count} 件を自動登録しました（AI解析なし）"
+                )
+
 
 def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
     """手動スキャン: メイン画面にリアルタイム進捗を表示しながら新着画像を解析する。"""
