@@ -415,6 +415,66 @@ def save_trash(items: list) -> None:
         pass
 
 
+# ---------------------------------------------------------------------------
+# 無視リスト管理（削除した画像の再取り込み防止）
+# ---------------------------------------------------------------------------
+def load_ignore_list() -> set[str]:
+    """無視リストを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_ignore_list"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+    sh = get_sheets_client()
+    if sh is not None:
+        data = _read_json_from_sheet(sh, "ignore_list")
+        if data is not None:
+            ids = set(data.get("ids", []) if isinstance(data, dict) else data)
+            _set_cache(ck, ids)
+            try:
+                with open(IGNORE_LIST_PATH, "w", encoding="utf-8") as f:
+                    json.dump({"ids": sorted(ids)}, f, ensure_ascii=False, indent=2)
+            except IOError:
+                pass
+            return ids
+    if IGNORE_LIST_PATH.exists():
+        try:
+            with open(IGNORE_LIST_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                ids = set(data.get("ids", []))
+                _set_cache(ck, ids)
+                return ids
+        except (json.JSONDecodeError, IOError):
+            pass
+    _set_cache(ck, set())
+    return set()
+
+
+def save_ignore_list(ids: set[str]) -> None:
+    """無視リストを保存する。session_state + Sheets + ローカル。"""
+    _set_cache("_cache_ignore_list", ids)
+    sh = get_sheets_client()
+    if sh is not None:
+        _write_json_to_sheet(sh, "ignore_list", {"ids": sorted(ids)})
+    try:
+        with open(IGNORE_LIST_PATH, "w", encoding="utf-8") as f:
+            json.dump({"ids": sorted(ids)}, f, ensure_ascii=False, indent=2)
+    except IOError:
+        pass
+
+
+def add_to_ignore_list(file_ids: list[str]) -> None:
+    """指定されたファイルIDを無視リストに追加する。"""
+    ids = load_ignore_list()
+    ids.update(file_ids)
+    save_ignore_list(ids)
+
+
+def remove_from_ignore_list(file_ids: list[str]) -> None:
+    """指定されたファイルIDを無視リストから除去する。"""
+    ids = load_ignore_list()
+    ids.difference_update(file_ids)
+    save_ignore_list(ids)
+
+
 def move_to_trash(file_ids: list[str], metadata: dict) -> int:
     """指定されたファイルIDの解析データをゴミ箱に移動する。移動した件数を返す。"""
     trash = load_trash()
