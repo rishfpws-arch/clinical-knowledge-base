@@ -64,6 +64,10 @@ IMAGES_PER_PAGE = 10  # グリッド表示で1ページに表示する画像数
 STATUS_AUTO = "auto_generated"
 STATUS_REVIEWED = "reviewed"
 
+# ソース識別子
+SOURCE_PATIENT_DATA = "patient_data"
+SOURCE_UPLOAD = "upload"
+
 # ホーム画面の名言
 QUOTES = [
     ("医術が愛されるところには、人間愛もまた存在する。", "ヒポクラテス"),
