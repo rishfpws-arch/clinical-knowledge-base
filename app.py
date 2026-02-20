@@ -1207,14 +1207,68 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
 
 def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
-    """手動スキャン: メイン画面にリアルタイム進捗を表示しながら新着画像を解析する。"""
+    """手動スキャン: メイン画面にリアルタイム進捗を表示しながら新着画像を解析する。
+
+    患者データフォルダを先にスキャンし、メインフォルダとの重複を防ぐ。
+    """
     st.markdown("---")
     st.subheader("🔄 新着画像スキャン")
 
     status_text = st.empty()
     status_text.info("📡 Google Drive を確認中...")
 
-    # Drive APIで最新一覧を取得
+    # キャッシュをクリアして最新の Drive 状態を取得
+    list_images.clear()
+    list_patient_images.clear()
+
+    # --- ★ 患者データフォルダを先にスキャン（AI解析なし） ---
+    patient_registered_ids: set[str] = set()
+    patient_folder_id = get_patient_folder_id()
+    if patient_folder_id:
+        try:
+            mime_query_p = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+            query_p = f"'{patient_folder_id}' in parents and ({mime_query_p}) and trashed=false"
+            results_p = (
+                service.files()
+                .list(q=query_p, fields="files(id, name, mimeType)", pageSize=100)
+                .execute()
+            )
+            patient_images = results_p.get("files", [])
+        except Exception:
+            patient_images = []
+
+        # 患者データフォルダにあるファイルIDを記録（メインスキャンで除外用）
+        patient_registered_ids = {img["id"] for img in patient_images}
+
+        metadata = load_metadata()
+        ignore_p = load_ignore_list()
+        new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
+
+        if new_patient:
+            folders = load_folders()
+            if PATIENT_DATA_FOLDER not in folders:
+                folders.append(PATIENT_DATA_FOLDER)
+                save_folders(folders)
+
+            p_count = 0
+            for img in new_patient:
+                fid = img["id"]
+                fname = img.get("name", fid)
+                metadata[fid] = {
+                    "title": fname,
+                    "summary": "",
+                    "keywords": [],
+                    "status": STATUS_REVIEWED,
+                    "folder": PATIENT_DATA_FOLDER,
+                    "source": SOURCE_PATIENT_DATA,
+                }
+                p_count += 1
+            if p_count > 0:
+                save_metadata(metadata)
+                _invalidate_all_caches()
+                st.success(f"🏥 患者データ {p_count} 件を登録しました（AI解析なし・手動入力用）")
+
+    # --- メインフォルダの新着画像スキャン ---
     try:
         mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
         query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
@@ -1234,7 +1288,13 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
     metadata = load_metadata()
     ignore = load_ignore_list()
-    new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
+    # 患者データフォルダにあるファイルはメインスキャンから除外
+    new_images = [
+        img for img in drive_images
+        if img["id"] not in metadata
+        and img["id"] not in ignore
+        and img["id"] not in patient_registered_ids
+    ]
 
     if not new_images:
         status_text.success("✅ 新着画像はありません。すべて解析済みです。")
@@ -1244,10 +1304,8 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析・自動登録を開始します..."
         )
 
-        # フォルダ一覧を取得（自動分類用）
         folders = load_folders()
 
-        # プログレスバー
         progress_bar = st.progress(0, text="準備中...")
         results_container = st.container()
         success_count = 0
@@ -1268,7 +1326,6 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
                 result = analyze_image_with_gemini(image_bytes, api_key)
                 if result:
-                    # 自動取り込み: 確認済みとして登録 & フォルダ自動分類
                     result["status"] = STATUS_REVIEWED
                     assigned_folder = _auto_classify_folder(result, api_key, folders)
                     result["folder"] = assigned_folder
@@ -1294,7 +1351,6 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
         progress_bar.progress(1.0, text="完了！")
 
-        # 結果サマリー
         if success_count > 0:
             status_text.success(
                 f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
@@ -1303,49 +1359,6 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             st.balloons()
         else:
             status_text.warning("⚠️ 新着画像の解析に失敗しました。再度お試しください。")
-
-    # --- 患者データフォルダの手動スキャン（AI解析なし） ---
-    patient_folder_id = get_patient_folder_id()
-    if patient_folder_id:
-        try:
-            mime_query_p = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
-            query_p = f"'{patient_folder_id}' in parents and ({mime_query_p}) and trashed=false"
-            results_p = (
-                service.files()
-                .list(q=query_p, fields="files(id, name, mimeType)", pageSize=100)
-                .execute()
-            )
-            patient_images = results_p.get("files", [])
-        except Exception:
-            patient_images = []
-
-        metadata = load_metadata()
-        ignore_p = load_ignore_list()
-        new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
-
-        if new_patient:
-            # 「患者データ」フォルダが存在しなければ作成
-            folders = load_folders()
-            if PATIENT_DATA_FOLDER not in folders:
-                folders.append(PATIENT_DATA_FOLDER)
-                save_folders(folders)
-
-            p_count = 0
-            for img in new_patient:
-                fid = img["id"]
-                fname = img.get("name", fid)
-                metadata[fid] = {
-                    "title": fname,
-                    "summary": "",
-                    "keywords": [],
-                    "status": STATUS_REVIEWED,
-                    "folder": PATIENT_DATA_FOLDER,
-                    "source": SOURCE_PATIENT_DATA,
-                }
-                p_count += 1
-            if p_count > 0:
-                save_metadata(metadata)
-                st.success(f"🏥 患者データ {p_count} 件を登録しました（AI解析なし・手動入力用）")
 
 
 # ---------------------------------------------------------------------------
