@@ -759,8 +759,11 @@ def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> 
 # ---------------------------------------------------------------------------
 # Gemini AI 解析（画像）
 # ---------------------------------------------------------------------------
-def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
-    """Gemini 2.0 Flash で画像を解析し、結果辞書を返す。"""
+def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint: str = "") -> dict | None:
+    """Gemini 2.0 Flash で画像を解析し、結果辞書を返す。
+
+    correction_hint が指定された場合、プロンプトに修正指示を追加する。
+    """
     try:
         # 画像の MIME タイプを判定
         pil_image = Image.open(io.BytesIO(image_bytes))
@@ -770,8 +773,16 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str) -> dict | None:
             mime_type = "image/jpeg"
         b64_data = base64.b64encode(image_bytes).decode("utf-8")
 
+        prompt = ANALYSIS_PROMPT
+        if correction_hint.strip():
+            prompt += (
+                "\n\n【修正指示】\n"
+                "前回の解析で以下の問題が指摘されました。この指示を最優先で反映してください：\n"
+                f"{correction_hint.strip()}"
+            )
+
         parts = [
-            {"text": ANALYSIS_PROMPT},
+            {"text": prompt},
             {"inline_data": {"mime_type": mime_type, "data": b64_data}},
         ]
         response_text = _gemini_generate(api_key, parts).strip()
@@ -1960,7 +1971,7 @@ def page_batch_analyze():
 
     mode = st.radio(
         "操作を選択",
-        ["新規解析", "一括再解析", "レビュー", "一括レビュー済みに変更", "解析データの削除"],
+        ["新規解析", "一括再解析", "指示付き再解析", "レビュー", "一括レビュー済みに変更", "解析データの削除"],
         horizontal=True,
         key="batch_mode",
     )
@@ -2111,6 +2122,118 @@ def page_batch_analyze():
         ):
             target = [img for img in target_list if img["id"] in reanalyze_ids]
             _run_batch_analyze(service, target, metadata, api_key, is_reanalyze=True)
+
+    # =======================================================================
+    # モード: 指示付き再解析
+    # =======================================================================
+    elif mode == "指示付き再解析":
+        st.subheader("📝 指示付き再解析")
+        st.caption(
+            "AIの解析結果が間違っている画像を選択し、修正指示を入力してまとめて再解析できます。"
+        )
+
+        if not analyzed_all:
+            st.info("解析済みの画像がありません。まず「新規解析」を実行してください。")
+            return
+
+        # フィルタ
+        hint_filter = st.radio(
+            "対象を絞る",
+            ["すべて", "未登録のみ（🆕）", "登録済みのみ（✅）"],
+            horizontal=True,
+            key="hint_reanalyze_filter",
+        )
+        if hint_filter == "未登録のみ（🆕）":
+            hint_target_list = unreviewed
+        elif hint_filter == "登録済みのみ（✅）":
+            hint_target_list = reviewed
+        else:
+            hint_target_list = analyzed_all
+
+        if not hint_target_list:
+            st.info("該当する画像がありません。")
+            return
+
+        st.info(f"**{len(hint_target_list)} 件**の画像が対象です。修正したい画像を選択してください。")
+
+        hc1, hc2, hc3 = st.columns([1, 1, 3])
+        with hc1:
+            if st.button("☑️ 全選択", key="hint_sel_all"):
+                for img in hint_target_list:
+                    st.session_state[f"hint_sel_{img['id']}"] = True
+                st.rerun()
+        with hc2:
+            if st.button("☐ 全解除", key="hint_sel_none"):
+                for img in hint_target_list:
+                    st.session_state[f"hint_sel_{img['id']}"] = False
+                st.rerun()
+
+        hint_ids = []
+        cols_per_row = 4
+        for row_start in range(0, len(hint_target_list), cols_per_row):
+            cols = st.columns(cols_per_row)
+            for col_idx in range(cols_per_row):
+                img_idx = row_start + col_idx
+                if img_idx >= len(hint_target_list):
+                    break
+                img = hint_target_list[img_idx]
+                fid = img["id"]
+                meta = metadata[fid]
+                title = meta.get("title", img["name"])
+                status_icon = get_status_icon(meta)
+                kw = meta.get("keywords", [])
+                with cols[col_idx]:
+                    try:
+                        thumb_bytes = download_image(service, fid)
+                        st.image(thumb_bytes, width="stretch")
+                    except Exception:
+                        st.markdown(
+                            '<div style="background:#333;border-radius:8px;'
+                            'height:80px;display:flex;align-items:center;'
+                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            unsafe_allow_html=True,
+                        )
+                    st.caption(f"{status_icon} {title}")
+                    if kw:
+                        st.caption(" ".join(f"`{k}`" for k in kw[:5]))
+                    if st.checkbox(
+                        "修正する",
+                        value=st.session_state.get(f"hint_sel_{fid}", False),
+                        key=f"hint_sel_{fid}",
+                    ):
+                        hint_ids.append(fid)
+
+        st.markdown("---")
+
+        # 修正指示の入力
+        correction_hint = st.text_area(
+            "🔧 修正指示（選択した全画像に共通で適用されます）",
+            placeholder=(
+                "例:\n"
+                "・「骨折」ではなく「ストレス骨折」が正しいです\n"
+                "・キーワードに「シンスプリント」を追加してください\n"
+                "・この画像はMRIではなくCTです"
+            ),
+            height=120,
+            key="correction_hint_text",
+        )
+
+        hint_count = len(hint_ids)
+        if hint_count > 0 and not correction_hint.strip():
+            st.warning("⚠️ 修正指示を入力してください。指示なしの再解析は「一括再解析」モードをお使いください。")
+
+        can_run = hint_count > 0 and bool(correction_hint.strip())
+        if st.button(
+            f"🤖 選択した {hint_count} 件を指示付きで再解析",
+            type="primary",
+            key="hint_reanalyze_run",
+            disabled=(not can_run),
+        ):
+            target = [img for img in hint_target_list if img["id"] in hint_ids]
+            _run_batch_analyze(
+                service, target, metadata, api_key,
+                is_reanalyze=True, correction_hint=correction_hint,
+            )
 
     # =======================================================================
     # モード: レビュー（1枚ずつ）
@@ -2382,13 +2505,15 @@ def page_batch_analyze():
             st.rerun()
 
 
-def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False):
+def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False, correction_hint=""):
     """一括解析 / 一括再解析の共通実行処理。
 
     新規解析の場合: 確認済み（STATUS_REVIEWED）として登録し、既存フォルダへ自動分類する。
     再解析の場合: 既存のfolder, sourceを保持する。
+    correction_hint が指定された場合、AIに修正指示を渡す。
     """
     total = len(target_images)
+    label = "指示付き再解析" if correction_hint else ("再解析" if is_reanalyze else "解析・登録")
     progress_bar = st.progress(0, text="解析を開始...")
     success_count = 0
     fail_count = 0
@@ -2399,13 +2524,13 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
         fname = img["name"]
         progress_bar.progress(
             i / total,
-            text=f"{'再解析' if is_reanalyze else '解析・登録'}中... ({i + 1}/{total}) {fname}",
+            text=f"{label}中... ({i + 1}/{total}) {fname}",
         )
 
         try:
             image_bytes = download_image(service, fid)
 
-            result = analyze_image_with_gemini(image_bytes, api_key)
+            result = analyze_image_with_gemini(image_bytes, api_key, correction_hint=correction_hint)
             if result:
                 if is_reanalyze and fid in metadata:
                     # 再解析: 既存のfolder, sourceを保持
