@@ -2084,7 +2084,8 @@ def page_image_manager():
                         title = meta.get("title", img["name"])
                         status = get_status(meta)
                         icon = get_status_icon(meta)
-                        st.caption(f"{icon} {title}")
+                        pd_badge = " 🏥" if is_patient_data(meta) else ""
+                        st.caption(f"{icon}{pd_badge} {title}")
                     else:
                         st.caption(f"📄 {img['name']}")
                     # クリックで詳細
