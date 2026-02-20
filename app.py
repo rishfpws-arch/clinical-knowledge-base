@@ -58,6 +58,7 @@ FOLDERS_PATH = Path(__file__).parent / "folders.json"
 UPLOADS_DIR = Path(__file__).parent / "uploads"
 TRASH_RETENTION_DAYS = 30  # ゴミ箱の保持日数
 DEFAULT_FOLDER = "未分類"
+IMAGES_PER_PAGE = 10  # グリッド表示で1ページに表示する画像数
 
 # ステータス定数
 STATUS_AUTO = "auto_generated"
