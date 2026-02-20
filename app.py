@@ -4460,6 +4460,8 @@ def main():
         st.session_state["ai_view_folder"] = None
 
     metadata_for_folders = load_metadata()
+    # 患者データの folder を自動修正（「未分類」→「患者データ」）
+    _ensure_patient_data_folder(metadata_for_folders)
     all_sidebar_folders = get_all_folders_from_metadata(metadata_for_folders)
     folder_counts_sidebar = {}
     for fid, meta in metadata_for_folders.items():
