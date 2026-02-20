@@ -54,6 +54,7 @@ SCOPES = [
 METADATA_PATH = Path(__file__).parent / "metadata.json"
 CHAT_SESSIONS_PATH = Path(__file__).parent / "chat_sessions.json"
 TRASH_PATH = Path(__file__).parent / "trash.json"
+IGNORE_LIST_PATH = Path(__file__).parent / "ignore_list.json"
 FOLDERS_PATH = Path(__file__).parent / "folders.json"
 UPLOADS_DIR = Path(__file__).parent / "uploads"
 TRASH_RETENTION_DAYS = 30  # ゴミ箱の保持日数
