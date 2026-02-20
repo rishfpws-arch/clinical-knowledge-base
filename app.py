@@ -708,15 +708,57 @@ def list_images(_service, folder_id: str) -> list[dict]:
             return []
 
 
-def list_all_images(_service, folder_id: str, metadata: dict) -> list[dict]:
-    """Google Drive画像 + ローカルアップロード画像を統合した一覧を返す。"""
+@st.cache_data(ttl=120, show_spinner="患者データを取得中...")
+def list_patient_images(_service, patient_folder_id: str) -> list[dict]:
+    """患者データフォルダ内の画像ファイル一覧を取得する（2分キャッシュ）。"""
+    mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+    query = f"'{patient_folder_id}' in parents and ({mime_query}) and trashed=false"
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            results = (
+                _service.files()
+                .list(
+                    q=query,
+                    fields="files(id, name, mimeType, createdTime, modifiedTime, thumbnailLink)",
+                    orderBy="modifiedTime desc",
+                    pageSize=100,
+                )
+                .execute()
+            )
+            return results.get("files", [])
+        except HttpError as e:
+            if e.resp.status == 404:
+                return []
+            if attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+            return []
+        except Exception:
+            if attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+            return []
+
+
+def list_all_images(_service, folder_id: str, metadata: dict,
+                    patient_folder_id: str | None = None) -> list[dict]:
+    """Google Drive画像 + 患者データ画像 + ローカルアップロード画像を統合した一覧を返す。"""
     images = list_images(_service, folder_id)
     drive_ids = {img["id"] for img in images}
+
+    # 患者データフォルダの画像を追加
+    if patient_folder_id:
+        patient_imgs = list_patient_images(_service, patient_folder_id)
+        for img in patient_imgs:
+            if img["id"] not in drive_ids:
+                images.append(img)
+                drive_ids.add(img["id"])
 
     # メタデータにあるがDrive一覧にないローカル画像を追加
     if UPLOADS_DIR.exists():
         for fid, meta in metadata.items():
-            if fid not in drive_ids and meta.get("source") == "upload":
+            if fid not in drive_ids and meta.get("source") == SOURCE_UPLOAD:
                 # ローカルファイルが存在するか確認
                 exists = any(
                     (UPLOADS_DIR / f"{fid}.{ext}").exists()
