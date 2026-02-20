@@ -2750,6 +2750,9 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
     for i, img in enumerate(target_images):
         fid = img["id"]
         fname = img["name"]
+        # 患者データはAI解析をスキップ
+        if fid in metadata and is_patient_data(metadata[fid]):
+            continue
         progress_bar.progress(
             i / total,
             text=f"{label}中... ({i + 1}/{total}) {fname}",
