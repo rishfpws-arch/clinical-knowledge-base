@@ -2911,6 +2911,9 @@ def page_trash():
     # --- サイドバー ---
     st.sidebar.header("🗑️ ゴミ箱")
     st.sidebar.write(f"ゴミ箱内: **{len(trash)}** 件")
+    ignore_count = len(load_ignore_list())
+    if ignore_count > 0:
+        st.sidebar.caption(f"🚫 再取り込み防止中: {ignore_count} 件")
     st.sidebar.caption(f"削除後 {TRASH_RETENTION_DAYS} 日で自動的に完全削除されます")
 
     if not trash:
