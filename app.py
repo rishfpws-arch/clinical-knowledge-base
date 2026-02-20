@@ -962,6 +962,66 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         return None
 
 
+def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str = "") -> list[str] | None:
+    """Gemini で画像からキーワード（タグ）のみを生成する。
+
+    患者データ用：フル解析ではなくキーワード抽出のみ。
+    """
+    try:
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+        title_hint = f"\nこの画像のタイトル: 「{title}」" if title else ""
+        prompt = (
+            "あなたは臨床経験豊富な専門医です。\n"
+            "この医療画像に適切なキーワード（タグ）を6〜8個生成してください。\n"
+            f"{title_hint}\n\n"
+            "以下のカテゴリから幅広くタグ付けしてください：\n"
+            "- 疾患名・病態\n"
+            "- 解剖学的部位\n"
+            "- 画像モダリティ（MRI、CT、X線など）\n"
+            "- 主要所見\n"
+            "- 鑑別疾患\n"
+            "- 関連する臨床情報\n\n"
+            "【重要】出力はJSON配列のみ。他のテキストは一切不要。\n"
+            '例: ["大腿骨頭壊死", "股関節", "MRI T2強調", "骨髄浮腫", "ステロイド内服歴"]'
+        )
+
+        parts = [
+            {"text": prompt},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        response_text = _gemini_generate(api_key, parts).strip()
+
+        # ```json ... ``` コードブロック対応
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            json_lines = []
+            inside_block = False
+            for line in lines:
+                if line.startswith("```") and not inside_block:
+                    inside_block = True
+                    continue
+                elif line.startswith("```") and inside_block:
+                    break
+                elif inside_block:
+                    json_lines.append(line)
+            response_text = "\n".join(json_lines)
+
+        result = json.loads(response_text)
+        if isinstance(result, list):
+            return [str(k) for k in result if k]
+        return None
+
+    except Exception as e:
+        st.error(f"AIキーワード生成中にエラーが発生しました: {e}")
+        return None
+
+
 # ---------------------------------------------------------------------------
 # 新着画像の自動検知 & AI解析
 # ---------------------------------------------------------------------------
