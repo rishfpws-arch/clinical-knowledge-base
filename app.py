@@ -1940,9 +1940,13 @@ def page_image_manager():
 
         # --- 編集フォーム（折りたたみ） ---
         if file_id in metadata:
-            with st.expander("📝 編集", expanded=False):
+            _is_pd = is_patient_data(metadata[file_id])
+            edit_label = "📝 検査所見を編集" if _is_pd else "📝 編集"
+            with st.expander(edit_label, expanded=_is_pd):
                 display_edit_form(file_id, metadata[file_id], metadata)
-            if api_key:
+            if _is_pd:
+                st.info("🏥 患者データ: AI解析は行いません。手動で検査所見を入力してください。")
+            elif api_key:
                 if st.button("🤖 AIで再解析する", key=f"reanalyze_{file_id}"):
                     with st.spinner("Gemini で再解析中..."):
                         result = analyze_image_with_gemini(image_bytes, api_key)
