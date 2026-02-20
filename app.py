@@ -3319,9 +3319,15 @@ def page_folder_manual():
     for img in analyzed:
         f = get_folder(metadata[img["id"]])
         folder_counts[f] = folder_counts.get(f, 0) + 1
-    for f in folders:
+    # folders リストに含まれるフォルダ + メタデータに存在するフォルダの両方を表示
+    display_folders = list(folders)
+    for f in sorted(folder_counts.keys()):
+        if f not in display_folders:
+            display_folders.append(f)
+    for f in display_folders:
         cnt = folder_counts.get(f, 0)
-        st.sidebar.write(f"📁 {f}: **{cnt}** 件")
+        icon = "🏥" if f == PATIENT_DATA_FOLDER else "📁"
+        st.sidebar.write(f"{icon} {f}: **{cnt}** 件")
 
     # フォルダ削除
     st.sidebar.markdown("---")
