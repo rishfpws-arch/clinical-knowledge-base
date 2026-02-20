@@ -1034,7 +1034,8 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
         return
 
     metadata = load_metadata()
-    new_images = [img for img in drive_images if img["id"] not in metadata]
+    ignore = load_ignore_list()
+    new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
 
     if not new_images:
         return
