@@ -1035,61 +1035,59 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
     except Exception:
         return
 
-    if not drive_images:
-        return
-
-    metadata = load_metadata()
-    ignore = load_ignore_list()
-    new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
-
-    if not new_images:
-        return
-
     # 一度に解析する上限（タイムアウト防止）
     MAX_AUTO_ANALYZE = 5
-    batch = new_images[:MAX_AUTO_ANALYZE]
-    remaining = len(new_images) - len(batch)
 
-    # フォルダ一覧を取得（自動分類用）
-    folders = load_folders()
+    # --- メインフォルダの新着画像スキャン ---
+    if drive_images:
+        metadata = load_metadata()
+        ignore = load_ignore_list()
+        new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
 
-    # 新着画像を解析
-    success_count = 0
-    classified_count = 0
-    scan_placeholder = st.sidebar.empty()
-    scan_placeholder.info(
-        f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
-    )
+        if new_images:
+            batch = new_images[:MAX_AUTO_ANALYZE]
+            remaining = len(new_images) - len(batch)
 
-    for img in batch:
-        fid = img["id"]
-        try:
-            image_bytes = download_image(service, fid)
+            # フォルダ一覧を取得（自動分類用）
+            folders = load_folders()
 
-            result = analyze_image_with_gemini(image_bytes, api_key)
-            if result:
-                # 自動取り込み: 確認済みとして登録
-                result["status"] = STATUS_REVIEWED
-                # 既存フォルダへ自動分類
-                assigned_folder = _auto_classify_folder(result, api_key, folders)
-                result["folder"] = assigned_folder
-                if assigned_folder != DEFAULT_FOLDER:
-                    classified_count += 1
-                metadata[fid] = result
-                save_metadata(metadata)
-                success_count += 1
-        except Exception:
-            continue  # エラーが出てもスキップして続行
+            # 新着画像を解析
+            success_count = 0
+            classified_count = 0
+            scan_placeholder = st.sidebar.empty()
+            scan_placeholder.info(
+                f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
+            )
 
-    if success_count > 0:
-        msg = f"✅ 新着 {success_count} 件を自動登録しました！"
-        if classified_count > 0:
-            msg += f"\n（{classified_count} 件をフォルダに自動分類）"
-        if remaining > 0:
-            msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
-        scan_placeholder.success(msg)
-    else:
-        scan_placeholder.empty()
+            for img in batch:
+                fid = img["id"]
+                try:
+                    image_bytes = download_image(service, fid)
+
+                    result = analyze_image_with_gemini(image_bytes, api_key)
+                    if result:
+                        # 自動取り込み: 確認済みとして登録
+                        result["status"] = STATUS_REVIEWED
+                        # 既存フォルダへ自動分類
+                        assigned_folder = _auto_classify_folder(result, api_key, folders)
+                        result["folder"] = assigned_folder
+                        if assigned_folder != DEFAULT_FOLDER:
+                            classified_count += 1
+                        metadata[fid] = result
+                        save_metadata(metadata)
+                        success_count += 1
+                except Exception:
+                    continue  # エラーが出てもスキップして続行
+
+            if success_count > 0:
+                msg = f"✅ 新着 {success_count} 件を自動登録しました！"
+                if classified_count > 0:
+                    msg += f"\n（{classified_count} 件をフォルダに自動分類）"
+                if remaining > 0:
+                    msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
+                scan_placeholder.success(msg)
+            else:
+                scan_placeholder.empty()
 
     # --- 患者データフォルダの自動スキャン（AI解析なし） ---
     patient_folder_id = get_patient_folder_id()
