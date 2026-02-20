@@ -2290,12 +2290,33 @@ def page_image_manager():
 # ===========================================================================
 # ページ: 一括解析
 # ===========================================================================
+def _ensure_patient_data_folder(metadata: dict) -> bool:
+    """患者データのfolder値が正しいか確認し、修正があればTrueを返す。"""
+    fixed = False
+    for fid, meta in metadata.items():
+        if is_patient_data(meta) and get_folder(meta) != PATIENT_DATA_FOLDER:
+            meta["folder"] = PATIENT_DATA_FOLDER
+            fixed = True
+    if fixed:
+        save_metadata(metadata)
+        _invalidate_all_caches()
+        # フォルダリストにも追加
+        folders = load_folders()
+        if PATIENT_DATA_FOLDER not in folders:
+            folders.append(PATIENT_DATA_FOLDER)
+            save_folders(folders)
+    return fixed
+
+
 def page_batch_analyze():
     """一括解析ページ — AI解析・再解析・レビュー・削除をまとめて行う。"""
     service = get_drive_service()
     folder_id = get_folder_id()
     api_key = get_gemini_api_key()
     metadata = load_metadata()
+
+    # 患者データのfolder値を自動修正（「未分類」→「患者データ」）
+    _ensure_patient_data_folder(metadata)
 
     images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
     if not images:
