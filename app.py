@@ -1884,13 +1884,13 @@ def page_image_manager():
                 st.rerun()
 
     cols_per_row = 4
-    for row_start in range(0, len(filtered_images), cols_per_row):
+    for row_start in range(0, len(page_items), cols_per_row):
         cols = st.columns(cols_per_row)
         for col_idx in range(cols_per_row):
             img_idx = row_start + col_idx
-            if img_idx >= len(filtered_images):
+            if img_idx >= len(page_items):
                 break
-            img = filtered_images[img_idx]
+            img = page_items[img_idx]
             fid = img["id"]
 
             with cols[col_idx]:
