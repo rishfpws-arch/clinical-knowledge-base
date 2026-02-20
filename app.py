@@ -3331,7 +3331,7 @@ def page_folder_manual():
 
     # フォルダ削除
     st.sidebar.markdown("---")
-    deletable = [f for f in folders if f != DEFAULT_FOLDER]
+    deletable = [f for f in folders if f not in (DEFAULT_FOLDER, PATIENT_DATA_FOLDER)]
     if deletable:
         del_folder = st.sidebar.selectbox("フォルダを削除", ["---"] + deletable, key="del_folder_sel")
         if st.sidebar.button("🗑️ このフォルダを削除", width="stretch") and del_folder != "---":
