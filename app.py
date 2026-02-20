@@ -4362,7 +4362,9 @@ def main():
                 st.session_state["active_tab"] == TAB_NAMES[5]
                 and st.session_state["ai_view_folder"] == f
             )
-            label = f"📂 {f}（{cnt}）" if is_viewing else f"📁 {f}（{cnt}）"
+            icon_active = "🏥" if f == PATIENT_DATA_FOLDER else "📂"
+            icon_normal = "🏥" if f == PATIENT_DATA_FOLDER else "📁"
+            label = f"{icon_active} {f}（{cnt}）" if is_viewing else f"{icon_normal} {f}（{cnt}）"
             if st.sidebar.button(
                 label,
                 key=f"global_folder_{f}",
