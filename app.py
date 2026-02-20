@@ -3345,9 +3345,13 @@ def page_folder_ai():
 
             # --- 編集フォーム（折りたたみ） ---
             if file_id in metadata:
-                with st.expander("📝 編集", expanded=False):
+                _is_pd_f = is_patient_data(metadata[file_id])
+                edit_label_f = "📝 検査所見を編集" if _is_pd_f else "📝 編集"
+                with st.expander(edit_label_f, expanded=_is_pd_f):
                     display_edit_form(file_id, metadata[file_id], metadata)
-                if api_key:
+                if _is_pd_f:
+                    st.info("🏥 患者データ: AI解析は行いません。手動で検査所見を入力してください。")
+                elif api_key:
                     if st.button("🤖 AIで再解析する", key=f"folder_reanalyze_{file_id}"):
                         with st.spinner("Gemini で再解析中..."):
                             image_bytes = download_image(service, file_id)
