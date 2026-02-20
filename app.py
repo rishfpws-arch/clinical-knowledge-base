@@ -1316,8 +1316,13 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     """解析結果の編集フォームを表示し、保存処理を行う。"""
     st.markdown("---")
 
+    _is_pd_edit = is_patient_data(meta)
+    summary_label = get_summary_label(meta)
+
     status = get_status(meta)
-    if status == STATUS_REVIEWED:
+    if _is_pd_edit:
+        st.info("🏥 患者データ — 検査所見を手動で入力してください")
+    elif status == STATUS_REVIEWED:
         st.success("✅ 登録済み")
     else:
         st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
@@ -1329,7 +1334,8 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
         err_detail = st.session_state.pop("_save_error_detail", "不明")
         st.error(f"⚠️ Google Sheets への同期に失敗しました。\n\nエラー: {err_detail}")
 
-    st.subheader("📝 解析結果の編集")
+    form_heading = "📝 検査所見の編集" if _is_pd_edit else "📝 解析結果の編集"
+    st.subheader(form_heading)
 
     with st.form(key=f"edit_form_{file_id}"):
         edited_title = st.text_input(
@@ -1338,10 +1344,10 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             placeholder="画像のタイトルを入力...",
         )
         edited_summary = st.text_area(
-            "要約",
+            summary_label,
             value=meta.get("summary", ""),
             height=120,
-            placeholder="医学的ポイントの要約を入力...",
+            placeholder="検査所見を入力..." if _is_pd_edit else "医学的ポイントの要約を入力...",
         )
         edited_keywords_str = st.text_input(
             "キーワード（カンマ区切り）",
@@ -1351,8 +1357,12 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
         col_save, col_status = st.columns([1, 2])
         with col_save:
+            save_btn_label = (
+                "💾 保存して検査所見を確定する" if _is_pd_edit
+                else "💾 保存して知識として確定する"
+            )
             submitted = st.form_submit_button(
-                "💾 保存して知識として確定する",
+                save_btn_label,
                 type="primary",
             )
         with col_status:
