@@ -3093,6 +3093,20 @@ def page_batch_analyze():
             "削除するとタイトル・要約・キーワードが消去され、未解析の状態に戻ります。"
         )
 
+        # 削除方法の選択
+        del_method = st.radio(
+            "削除方法",
+            ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
+            key="del_method",
+            horizontal=True,
+        )
+
+        if del_method == "🔄 メタデータのみ削除（再取り込み可能）":
+            st.info(
+                "💡 画像ファイルはDriveに残ります。メタデータのみ削除するので、"
+                "別フォルダに移動してから再スキャンすると再取り込みできます。"
+            )
+
         del_col1, del_col2, del_col3 = st.columns([1, 1, 3])
         with del_col1:
             if st.button("☑️ 全選択", key="del_select_all"):
@@ -3140,20 +3154,50 @@ def page_batch_analyze():
 
         st.markdown("---")
         delete_count = len(delete_ids)
-        if delete_count > 0:
-            st.warning(f"🗑️ **{delete_count} 件**の解析データをゴミ箱に移動します（{TRASH_RETENTION_DAYS}日後に完全削除）。")
-            st.caption("💡 削除した画像は再スキャンしても再取り込みされません。ゴミ箱から復元すると再取り込み対象に戻ります。")
-        if st.button(
-            f"🗑️ 選択した {delete_count} 件をゴミ箱へ",
-            type="primary",
-            key="batch_delete_run",
-            disabled=(delete_count == 0),
-        ):
-            moved = move_to_trash(delete_ids, metadata)
-            for fid in delete_ids:
-                st.session_state.pop(f"del_sel_{fid}", None)
-            st.success(f"✅ {moved} 件をゴミ箱に移動しました。「🗑️ ゴミ箱」ページから復元できます。")
-            st.rerun()
+
+        if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
+            if delete_count > 0:
+                st.warning(f"🗑️ **{delete_count} 件**の解析データをゴミ箱に移動します（{TRASH_RETENTION_DAYS}日後に完全削除）。")
+                st.caption("💡 削除した画像は再スキャンしても再取り込みされません。ゴミ箱から復元すると再取り込み対象に戻ります。")
+            if st.button(
+                f"🗑️ 選択した {delete_count} 件をゴミ箱へ",
+                type="primary",
+                key="batch_delete_run",
+                disabled=(delete_count == 0),
+            ):
+                moved = move_to_trash(delete_ids, metadata)
+                for fid in delete_ids:
+                    st.session_state.pop(f"del_sel_{fid}", None)
+                st.success(f"✅ {moved} 件をゴミ箱に移動しました。「🗑️ ゴミ箱」ページから復元できます。")
+                st.rerun()
+        else:
+            # メタデータのみ削除（無視リスト追加なし・ゴミ箱なし）
+            if delete_count > 0:
+                st.info(
+                    f"🔄 **{delete_count} 件**のメタデータを削除します。\n"
+                    "画像ファイルはDriveに残り、再スキャンで再取り込みできます。"
+                )
+            if st.button(
+                f"🔄 選択した {delete_count} 件のメタデータを削除",
+                type="primary",
+                key="batch_meta_delete_run",
+                disabled=(delete_count == 0),
+            ):
+                removed = 0
+                for fid in delete_ids:
+                    if fid in metadata:
+                        del metadata[fid]
+                        removed += 1
+                    st.session_state.pop(f"del_sel_{fid}", None)
+                # 無視リストからも除去（念のため）
+                remove_from_ignore_list(delete_ids)
+                save_metadata(metadata)
+                _invalidate_all_caches()
+                st.success(
+                    f"✅ {removed} 件のメタデータを削除しました。\n"
+                    "Driveで患者データフォルダに移動してからスキャンすると再取り込みされます。"
+                )
+                st.rerun()
 
 
 def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False, correction_hint=""):
