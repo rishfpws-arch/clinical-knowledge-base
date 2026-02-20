@@ -2525,15 +2525,19 @@ def page_batch_analyze():
                     st.session_state[f"del_sel_{img['id']}"] = False
                 st.rerun()
 
+        # ページネーション
+        del_page_items, del_cur, del_total_pages = _paginate(analyzed_images, "batch_delete_page")
+        _render_pagination_controls("batch_delete_page", del_cur, del_total_pages, len(analyzed_images))
+
         delete_ids = []
         cols_per_row = 4
-        for row_start in range(0, len(analyzed_images), cols_per_row):
+        for row_start in range(0, len(del_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx in range(cols_per_row):
                 img_idx = row_start + col_idx
-                if img_idx >= len(analyzed_images):
+                if img_idx >= len(del_page_items):
                     break
-                img = analyzed_images[img_idx]
+                img = del_page_items[img_idx]
                 fid = img["id"]
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
