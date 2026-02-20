@@ -264,7 +264,7 @@ def _set_cache(cache_key: str, data):
 
 def _invalidate_all_caches():
     """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
-    for ck in ["_cache_metadata", "_cache_trash", "_cache_folders", "_cache_chat_sessions"]:
+    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions"]:
         st.session_state.pop(ck, None)
         st.session_state.pop(f"{ck}_ts", None)
 
