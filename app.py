@@ -2132,19 +2132,29 @@ def page_batch_analyze():
         )
         return
 
-    # --- 画像の分類 ---
-    unanalyzed = [img for img in images if img["id"] not in metadata]
+    # --- 画像の分類（患者データはAI解析対象外） ---
+    unanalyzed = [
+        img for img in images
+        if img["id"] not in metadata
+        and not is_patient_data(metadata.get(img["id"], {}))
+    ]
     unreviewed = [
         img for img in images
         if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
         and get_status(metadata[img["id"]]) == STATUS_AUTO
     ]
     reviewed = [
         img for img in images
         if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
         and get_status(metadata[img["id"]]) == STATUS_REVIEWED
     ]
-    analyzed_all = [img for img in images if img["id"] in metadata]
+    analyzed_all = [
+        img for img in images
+        if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
+    ]
 
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
