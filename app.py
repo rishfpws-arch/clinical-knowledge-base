@@ -2052,15 +2052,19 @@ def page_batch_analyze():
                     st.session_state[f"batch_sel_{img['id']}"] = False
                 st.rerun()
 
+        # ページネーション
+        batch_page_items, batch_cur, batch_total_pages = _paginate(unanalyzed, "batch_new_page")
+        _render_pagination_controls("batch_new_page", batch_cur, batch_total_pages, len(unanalyzed))
+
         selected_ids = []
         cols_per_row = 4
-        for row_start in range(0, len(unanalyzed), cols_per_row):
+        for row_start in range(0, len(batch_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx in range(cols_per_row):
                 img_idx = row_start + col_idx
-                if img_idx >= len(unanalyzed):
+                if img_idx >= len(batch_page_items):
                     break
-                img = unanalyzed[img_idx]
+                img = batch_page_items[img_idx]
                 fid = img["id"]
                 with cols[col_idx]:
                     try:
