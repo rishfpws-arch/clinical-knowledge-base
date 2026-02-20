@@ -356,6 +356,18 @@ def get_status_icon(meta: dict) -> str:
     return "🆕"
 
 
+def is_patient_data(meta: dict) -> bool:
+    """メタデータが患者データ由来かどうかを判定する。"""
+    return meta.get("source") == SOURCE_PATIENT_DATA
+
+
+def get_summary_label(meta: dict) -> str:
+    """メタデータソースに応じて要約フィールドのラベルを返す。"""
+    if is_patient_data(meta):
+        return "検査所見"
+    return "要約"
+
+
 # ---------------------------------------------------------------------------
 # ゴミ箱管理
 # ---------------------------------------------------------------------------
