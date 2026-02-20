@@ -1737,7 +1737,7 @@ def page_image_manager():
     api_key = get_gemini_api_key()
     metadata = load_metadata()
 
-    images = list_all_images(service, folder_id, metadata)
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
     if not images:
         st.info(
             "画像が見つかりませんでした。\n\n"
@@ -2045,7 +2045,7 @@ def page_batch_analyze():
     api_key = get_gemini_api_key()
     metadata = load_metadata()
 
-    images = list_all_images(service, folder_id, metadata)
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
@@ -2991,7 +2991,7 @@ def page_folder_manual():
     metadata = load_metadata()
     folders = load_folders()
 
-    images = list_all_images(service, folder_id, metadata)
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
@@ -3160,7 +3160,7 @@ def page_folder_ai():
     metadata = load_metadata()
     folders = load_folders()
 
-    images = list_all_images(service, folder_id, metadata)
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
     if not images:
         st.info("フォルダ内に画像が見つかりませんでした。")
         return
