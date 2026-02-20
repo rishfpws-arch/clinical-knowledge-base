@@ -1162,71 +1162,70 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
     if not new_images:
         status_text.success("✅ 新着画像はありません。すべて解析済みです。")
         st.caption(f"Google Drive: {len(drive_images)} 件 / 解析済み: {len(metadata)} 件")
-        return
-
-    status_text.info(
-        f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析・自動登録を開始します..."
-    )
-
-    # フォルダ一覧を取得（自動分類用）
-    folders = load_folders()
-
-    # プログレスバー
-    progress_bar = st.progress(0, text="準備中...")
-    results_container = st.container()
-    success_count = 0
-    fail_count = 0
-    total = len(new_images)
-
-    for i, img in enumerate(new_images):
-        fid = img["id"]
-        fname = img.get("name", fid)
-
-        progress_bar.progress(
-            (i) / total,
-            text=f"解析中... ({i + 1}/{total}) {fname}",
+    else:
+        status_text.info(
+            f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析・自動登録を開始します..."
         )
 
-        try:
-            image_bytes = download_image(service, fid)
+        # フォルダ一覧を取得（自動分類用）
+        folders = load_folders()
 
-            result = analyze_image_with_gemini(image_bytes, api_key)
-            if result:
-                # 自動取り込み: 確認済みとして登録 & フォルダ自動分類
-                result["status"] = STATUS_REVIEWED
-                assigned_folder = _auto_classify_folder(result, api_key, folders)
-                result["folder"] = assigned_folder
-                metadata[fid] = result
-                save_metadata(metadata)
-                success_count += 1
-                folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
-                with results_container:
-                    st.markdown(
-                        f"✅ **{result.get('title', fname)}**{folder_label}  \n"
-                        f"<span style='color:#888;font-size:12px;'>"
-                        f"{', '.join(result.get('keywords', [])[:4])}</span>",
-                        unsafe_allow_html=True,
-                    )
-            else:
+        # プログレスバー
+        progress_bar = st.progress(0, text="準備中...")
+        results_container = st.container()
+        success_count = 0
+        fail_count = 0
+        total = len(new_images)
+
+        for i, img in enumerate(new_images):
+            fid = img["id"]
+            fname = img.get("name", fid)
+
+            progress_bar.progress(
+                (i) / total,
+                text=f"解析中... ({i + 1}/{total}) {fname}",
+            )
+
+            try:
+                image_bytes = download_image(service, fid)
+
+                result = analyze_image_with_gemini(image_bytes, api_key)
+                if result:
+                    # 自動取り込み: 確認済みとして登録 & フォルダ自動分類
+                    result["status"] = STATUS_REVIEWED
+                    assigned_folder = _auto_classify_folder(result, api_key, folders)
+                    result["folder"] = assigned_folder
+                    metadata[fid] = result
+                    save_metadata(metadata)
+                    success_count += 1
+                    folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
+                    with results_container:
+                        st.markdown(
+                            f"✅ **{result.get('title', fname)}**{folder_label}  \n"
+                            f"<span style='color:#888;font-size:12px;'>"
+                            f"{', '.join(result.get('keywords', [])[:4])}</span>",
+                            unsafe_allow_html=True,
+                        )
+                else:
+                    fail_count += 1
+                    with results_container:
+                        st.markdown(f"⚠️ {fname} — 解析失敗")
+            except Exception as e:
                 fail_count += 1
                 with results_container:
-                    st.markdown(f"⚠️ {fname} — 解析失敗")
-        except Exception as e:
-            fail_count += 1
-            with results_container:
-                st.markdown(f"⚠️ {fname} — エラー: {e}")
+                    st.markdown(f"⚠️ {fname} — エラー: {e}")
 
-    progress_bar.progress(1.0, text="完了！")
+        progress_bar.progress(1.0, text="完了！")
 
-    # 結果サマリー
-    if success_count > 0:
-        status_text.success(
-            f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
-            + (f"（{fail_count} 件失敗）" if fail_count else "")
-        )
-        st.balloons()
-    else:
-        status_text.warning("⚠️ 新着画像の解析に失敗しました。再度お試しください。")
+        # 結果サマリー
+        if success_count > 0:
+            status_text.success(
+                f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
+                + (f"（{fail_count} 件失敗）" if fail_count else "")
+            )
+            st.balloons()
+        else:
+            status_text.warning("⚠️ 新着画像の解析に失敗しました。再度お試しください。")
 
     # --- 患者データフォルダの手動スキャン（AI解析なし） ---
     patient_folder_id = get_patient_folder_id()
