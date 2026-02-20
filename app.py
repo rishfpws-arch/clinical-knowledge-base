@@ -1153,7 +1153,8 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         return
 
     metadata = load_metadata()
-    new_images = [img for img in drive_images if img["id"] not in metadata]
+    ignore = load_ignore_list()
+    new_images = [img for img in drive_images if img["id"] not in metadata and img["id"] not in ignore]
 
     if not new_images:
         status_text.success("✅ 新着画像はありません。すべて解析済みです。")
