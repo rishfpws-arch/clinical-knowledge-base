@@ -2425,15 +2425,19 @@ def page_batch_analyze():
                     st.session_state[f"{action_key_prefix}_{img['id']}"] = False
                 st.rerun()
 
+        # ページネーション
+        br_page_items, br_cur, br_total_pages = _paginate(target_list, "batch_bulkreview_page")
+        _render_pagination_controls("batch_bulkreview_page", br_cur, br_total_pages, len(target_list))
+
         action_ids = []
         cols_per_row = 4
-        for row_start in range(0, len(target_list), cols_per_row):
+        for row_start in range(0, len(br_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx in range(cols_per_row):
                 img_idx = row_start + col_idx
-                if img_idx >= len(target_list):
+                if img_idx >= len(br_page_items):
                     break
-                img = target_list[img_idx]
+                img = br_page_items[img_idx]
                 fid = img["id"]
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
