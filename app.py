@@ -2674,7 +2674,7 @@ def page_batch_analyze():
         else:
             st.info(
                 f"🏥 **{len(patient_data_images)} 件**の患者データがあります。"
-                " タイトルを入力し、AIキーワードを生成してください。所見は任意です。"
+                " タイトルを入力し、🤖ボタンでAIキーワードを生成してください。所見は任意です。"
             )
 
             # ページネーション
@@ -2690,7 +2690,6 @@ def page_batch_analyze():
                 fid = img["id"]
                 meta = metadata.get(fid, {})
                 fname = img.get("name", fid)
-                has_title = meta.get("title", fname) != fname
                 status_icon = "✅" if meta.get("status") == STATUS_REVIEWED else "✏️"
 
                 with st.expander(
@@ -2708,7 +2707,35 @@ def page_batch_analyze():
                             img_bytes = None
 
                     with col_form:
-                        # 編集フォーム
+                        # --- AIキーワード生成ボタン（フォーム外） ---
+                        kw_widget_key = f"pd_kw_{fid}_{current_page}"
+                        ai_btn_key = f"pd_ai_btn_{fid}_{current_page}"
+                        if st.button(
+                            "🤖 AIキーワード自動生成",
+                            key=ai_btn_key,
+                            use_container_width=True,
+                        ):
+                            if not api_key:
+                                st.warning("Gemini API キーが必要です。")
+                            elif img_bytes is None:
+                                st.warning("画像を読み込めません。")
+                            else:
+                                with st.spinner("🤖 AIがキーワードを生成中..."):
+                                    title_for_ai = st.session_state.get(
+                                        f"pd_title_{fid}_{current_page}",
+                                        meta.get("title", fname),
+                                    )
+                                    ai_keywords = generate_keywords_with_gemini(
+                                        img_bytes, api_key, title=title_for_ai,
+                                    )
+                                if ai_keywords:
+                                    # キーワード欄のウィジェットキーに直接セット
+                                    st.session_state[kw_widget_key] = ", ".join(ai_keywords)
+                                    st.rerun()
+                                else:
+                                    st.warning("AIキーワードの生成に失敗しました。")
+
+                        # --- 編集フォーム ---
                         with st.form(key=f"pd_edit_{fid}_{current_page}"):
                             new_title = st.text_input(
                                 "📌 タイトル（必須）",
@@ -2723,28 +2750,15 @@ def page_batch_analyze():
                                 placeholder="所見があれば入力（空欄でもOK）",
                                 key=f"pd_summary_{fid}_{current_page}",
                             )
-                            current_kw = ", ".join(meta.get("keywords", []))
-                            # AIキーワードが生成済みならそれを表示
-                            ai_kw_key = f"_ai_keywords_{fid}"
-                            if ai_kw_key in st.session_state:
-                                current_kw = st.session_state[ai_kw_key]
-                                del st.session_state[ai_kw_key]
                             new_keywords = st.text_input(
                                 "🏷️ キーワード（カンマ区切り）",
-                                value=current_kw,
-                                key=f"pd_kw_{fid}_{current_page}",
-                                placeholder="AIで自動生成できます →",
+                                value=", ".join(meta.get("keywords", [])),
+                                key=kw_widget_key,
+                                placeholder="上の🤖ボタンでAI生成できます",
                             )
-                            btn_col1, btn_col2 = st.columns([1, 1])
-                            with btn_col1:
-                                submitted = st.form_submit_button(
-                                    "💾 保存", type="primary", use_container_width=True,
-                                )
-                            with btn_col2:
-                                ai_btn = st.form_submit_button(
-                                    "🤖 AIキーワード生成", use_container_width=True,
-                                )
-
+                            submitted = st.form_submit_button(
+                                "💾 保存", type="primary", use_container_width=True,
+                            )
                             if submitted:
                                 kw_list = [
                                     k.strip()
@@ -2761,22 +2775,6 @@ def page_batch_analyze():
                                     f"✅ 「{new_title}」を保存しました"
                                 )
                                 st.rerun()
-
-                            if ai_btn:
-                                if not api_key:
-                                    st.warning("AIキーワード生成にはGemini API キーが必要です。")
-                                elif img_bytes is None:
-                                    st.warning("画像を読み込めないためAIキーワードを生成できません。")
-                                else:
-                                    with st.spinner("🤖 AIがキーワードを生成中..."):
-                                        ai_keywords = generate_keywords_with_gemini(
-                                            img_bytes, api_key, title=new_title,
-                                        )
-                                    if ai_keywords:
-                                        st.session_state[ai_kw_key] = ", ".join(ai_keywords)
-                                        st.rerun()
-                                    else:
-                                        st.warning("AIキーワードの生成に失敗しました。")
 
     # =======================================================================
     # モード: レビュー（1枚ずつ）
