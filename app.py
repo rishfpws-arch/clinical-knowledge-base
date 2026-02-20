@@ -2202,6 +2202,7 @@ def page_image_manager():
         del_count = len(delete_ids)
         if del_count > 0:
             st.warning(f"🗑️ **{del_count} 件**の解析データをゴミ箱に移動します（{TRASH_RETENTION_DAYS}日後に完全削除）。")
+            st.caption("💡 削除した画像は再スキャンしても再取り込みされません。ゴミ箱から復元すると再取り込み対象に戻ります。")
         if st.button(
             f"🗑️ 選択した {del_count} 件をゴミ箱へ",
             type="primary",
