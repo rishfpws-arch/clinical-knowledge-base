@@ -1417,15 +1417,17 @@ def build_knowledge_context(metadata: dict) -> str:
     entries = []
     for file_id, meta in metadata.items():
         title = meta.get("title", "不明")
-        summary = meta.get("summary", "要約なし")
+        summary_label = get_summary_label(meta)
+        summary = meta.get("summary", "") or "未入力"
         keywords = ", ".join(meta.get("keywords", []))
         s = get_status(meta)
         status = "登録済み" if s == STATUS_REVIEWED else "未登録"
+        source_note = "（患者データ）" if is_patient_data(meta) else ""
 
         entry = (
             f"ID: {file_id}\n"
-            f"タイトル: {title}\n"
-            f"要約: {summary}\n"
+            f"タイトル: {title}{source_note}\n"
+            f"{summary_label}: {summary}\n"
             f"キーワード: {keywords}\n"
             f"ステータス: {status}"
         )
