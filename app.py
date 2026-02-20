@@ -643,6 +643,17 @@ def get_folder_id() -> str:
         st.stop()
 
 
+def get_patient_folder_id() -> str | None:
+    """secrets.toml から患者データフォルダIDを取得する。未設定なら None。"""
+    try:
+        fid = st.secrets.get("patient_folder_id", "")
+        if not fid:
+            return None
+        return fid
+    except Exception:
+        return None
+
+
 def get_gemini_api_key() -> str | None:
     """secrets.toml から Gemini APIキーを取得する。未設定なら None。"""
     try:
