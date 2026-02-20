@@ -504,15 +504,20 @@ def restore_from_trash(indices: list[int]) -> int:
     trash = load_trash()
     metadata = load_metadata()
     restored = 0
+    restored_ids: list[str] = []
     # インデックスを降順にソートして削除時にずれないようにする
     for idx in sorted(indices, reverse=True):
         if 0 <= idx < len(trash):
             item = trash.pop(idx)
             fid = item["file_id"]
             metadata[fid] = item["metadata"]
+            restored_ids.append(fid)
             restored += 1
     save_metadata(metadata)
     save_trash(trash)
+    # 無視リストからも除去して再スキャン対象に戻す
+    if restored_ids:
+        remove_from_ignore_list(restored_ids)
     return restored
 
 
