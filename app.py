@@ -476,9 +476,11 @@ def remove_from_ignore_list(file_ids: list[str]) -> None:
 
 
 def move_to_trash(file_ids: list[str], metadata: dict) -> int:
-    """指定されたファイルIDの解析データをゴミ箱に移動する。移動した件数を返す。"""
+    """指定されたファイルIDの解析データをゴミ箱に移動する。移動した件数を返す。
+    同時に無視リストにも追加し、再スキャンで再取り込みされないようにする。"""
     trash = load_trash()
     moved = 0
+    moved_ids: list[str] = []
     for fid in file_ids:
         if fid in metadata:
             trash.append({
@@ -487,9 +489,13 @@ def move_to_trash(file_ids: list[str], metadata: dict) -> int:
                 "deleted_at": datetime.now().isoformat(),
             })
             del metadata[fid]
+            moved_ids.append(fid)
             moved += 1
     save_metadata(metadata)
     save_trash(trash)
+    # 無視リストに追加して再スキャン時の再取り込みを防止
+    if moved_ids:
+        add_to_ignore_list(moved_ids)
     return moved
 
 
