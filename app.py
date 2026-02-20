@@ -3212,16 +3212,18 @@ def page_folder_ai():
             st.info("このフォルダには画像がありません。")
             return
 
-        st.caption(f"**{len(folder_images)}** 件")
+        # ページネーション
+        fd_page_items, fd_cur, fd_total_pages = _paginate(folder_images, "ai_folder_grid_page")
+        _render_pagination_controls("ai_folder_grid_page", fd_cur, fd_total_pages, len(folder_images))
 
         cols_per_row = 4
-        for row_start in range(0, len(folder_images), cols_per_row):
+        for row_start in range(0, len(fd_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
             for col_idx in range(cols_per_row):
                 img_idx = row_start + col_idx
-                if img_idx >= len(folder_images):
+                if img_idx >= len(fd_page_items):
                     break
-                img = folder_images[img_idx]
+                img = fd_page_items[img_idx]
                 fid = img["id"]
                 meta = metadata[fid]
                 title = meta.get("title", img["name"])
