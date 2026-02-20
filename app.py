@@ -1122,6 +1122,51 @@ def render_keyword_tags(keywords: list[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# UI部品: ページネーション
+# ---------------------------------------------------------------------------
+def _paginate(items: list, page_key: str, per_page: int = IMAGES_PER_PAGE) -> tuple[list, int, int]:
+    """リストをページ分割し、現在ページの要素・現在ページ番号・総ページ数を返す。
+
+    page_key: session_state に保存するページ番号のキー名。
+    戻り値: (現在ページの要素リスト, 現在ページ番号(0始まり), 総ページ数)
+    """
+    total = len(items)
+    if total == 0:
+        return [], 0, 0
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    current = st.session_state.get(page_key, 0)
+    if current >= total_pages:
+        current = total_pages - 1
+    if current < 0:
+        current = 0
+    st.session_state[page_key] = current
+    start = current * per_page
+    end = min(start + per_page, total)
+    return items[start:end], current, total_pages
+
+
+def _render_pagination_controls(page_key: str, current: int, total_pages: int, total_items: int) -> None:
+    """ページ送りボタンを描画する。"""
+    if total_pages <= 1:
+        st.caption(f"全 {total_items} 件")
+        return
+    nav1, nav2, nav3 = st.columns([1, 2, 1])
+    with nav1:
+        if st.button("⬅️ 前へ", disabled=(current == 0), key=f"{page_key}_prev"):
+            st.session_state[page_key] = current - 1
+            st.rerun()
+    with nav2:
+        st.markdown(
+            f"<div style='text-align:center;'>ページ <b>{current + 1}</b> / {total_pages}（全 {total_items} 件）</div>",
+            unsafe_allow_html=True,
+        )
+    with nav3:
+        if st.button("次へ ➡️", disabled=(current >= total_pages - 1), key=f"{page_key}_next"):
+            st.session_state[page_key] = current + 1
+            st.rerun()
+
+
+# ---------------------------------------------------------------------------
 # UI部品: 編集フォーム
 # ---------------------------------------------------------------------------
 def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
