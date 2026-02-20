@@ -1934,15 +1934,28 @@ def page_image_manager():
             # タイトル
             title = meta.get("title", selected_file["name"])
             st.subheader(title)
+            # 患者データバッジ
+            if is_patient_data(meta):
+                st.markdown(
+                    '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
+                    'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
+                    unsafe_allow_html=True,
+                )
             # ステータス
-            if file_id in metadata:
+            if file_id in metadata and not is_patient_data(meta):
                 s = get_status(meta)
                 if s == STATUS_REVIEWED:
                     st.success("✅ 登録済み")
                 else:
                     st.warning("🆕 未登録")
-            # 要約（箇条書き）
-            render_summary(meta.get("summary", ""))
+            # 要約/検査所見
+            _sl = get_summary_label(meta)
+            summary_text = meta.get("summary", "")
+            if summary_text:
+                st.markdown(f"**{_sl}:**")
+                render_summary(summary_text)
+            elif is_patient_data(meta):
+                st.info("検査所見が未入力です。編集から入力してください。")
             # キーワード
             keywords = meta.get("keywords", [])
             if keywords:
