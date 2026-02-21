@@ -4384,8 +4384,8 @@ def page_chat():
                         st.button("✅ 認証済み", key="upload_reviewed", disabled=True, width="stretch")
                 with btn_c2:
                     if st.button("📝 詳細編集", key="upload_detail", width="stretch"):
-                        st.session_state["active_tab"] = "📸 画像管理"
-                        st.session_state["selected_image_id"] = last_upload_id
+                        st.session_state["active_tab"] = "📸 画像ライブラリ"
+                        st.session_state["lib_selected_id"] = last_upload_id
                         st.session_state.pop("last_upload_id", None)
                         st.rerun()
                 with btn_c3:
