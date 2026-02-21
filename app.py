@@ -1895,6 +1895,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                     width="stretch",
                 ):
                     st.session_state["lib_selected_id"] = fid
+                    st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
                     st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
 
