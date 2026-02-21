@@ -4950,6 +4950,7 @@ def page_image_library():
                 if st.session_state["lib_mode"] == "browse":
                     if st.button("🔍 詳細を見る", key=f"lib_open_{fid}", width="stretch"):
                         st.session_state["lib_selected_id"] = fid
+                        st.session_state.pop("lib_back_tab", None)
                         st.rerun()
                 else:
                     # 削除/移動モード: チェックボックス
