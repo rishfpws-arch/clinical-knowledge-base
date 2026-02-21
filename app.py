@@ -3871,15 +3871,50 @@ def page_folder_ai():
             return
 
         # --- フォルダ内グリッド一覧 ---
-        st.subheader(f"📁 {view_folder}")
+        folder_icon = "🏥" if view_folder == PATIENT_DATA_FOLDER else "📁"
+        st.subheader(f"{folder_icon} {view_folder}")
         if not folder_images:
             st.info("このフォルダには画像がありません。")
             return
+
+        # --- 削除モード切替 ---
+        if "folder_delete_mode" not in st.session_state:
+            st.session_state["folder_delete_mode"] = False
+
+        fd_btn_c1, fd_btn_c2, fd_btn_c3 = st.columns([1, 1, 4])
+        with fd_btn_c1:
+            if st.session_state["folder_delete_mode"]:
+                if st.button("✖ 削除モード終了", key="fd_exit_del", width="stretch"):
+                    st.session_state["folder_delete_mode"] = False
+                    for img in folder_images:
+                        st.session_state.pop(f"fd_del_{img['id']}", None)
+                    st.rerun()
+            else:
+                if st.button("🗑️ 削除モード", key="fd_enter_del", width="stretch"):
+                    st.session_state["folder_delete_mode"] = True
+                    st.rerun()
+        with fd_btn_c2:
+            st.caption(f"{len(folder_images)} 件")
+
+        # 削除モード: 全選択/全解除
+        if st.session_state["folder_delete_mode"]:
+            fd_sel_c1, fd_sel_c2, fd_sel_c3 = st.columns([1, 1, 4])
+            with fd_sel_c1:
+                if st.button("☑️ 全選択", key="fd_del_sel_all"):
+                    for img in folder_images:
+                        st.session_state[f"fd_del_{img['id']}"] = True
+                    st.rerun()
+            with fd_sel_c2:
+                if st.button("☐ 全解除", key="fd_del_desel_all"):
+                    for img in folder_images:
+                        st.session_state[f"fd_del_{img['id']}"] = False
+                    st.rerun()
 
         # ページネーション
         fd_page_items, fd_cur, fd_total_pages = _paginate(folder_images, "ai_folder_grid_page")
         _render_pagination_controls("ai_folder_grid_page", fd_cur, fd_total_pages, len(folder_images))
 
+        fd_delete_ids = []
         cols_per_row = 4
         for row_start in range(0, len(fd_page_items), cols_per_row):
             cols = st.columns(cols_per_row)
@@ -3908,10 +3943,63 @@ def page_folder_ai():
                     kw = meta.get("keywords", [])
                     if kw:
                         st.caption(" ".join(f"`{k}`" for k in kw[:3]))
-                    # 詳細ボタン
-                    if st.button("🔍 詳細を見る", key=f"folder_open_{fid}", width="stretch"):
-                        st.session_state["folder_detail_id"] = fid
-                        st.rerun()
+
+                    if st.session_state["folder_delete_mode"]:
+                        if st.checkbox(
+                            "削除する", value=st.session_state.get(f"fd_del_{fid}", False),
+                            key=f"fd_del_{fid}",
+                        ):
+                            fd_delete_ids.append(fid)
+                    else:
+                        if st.button("🔍 詳細を見る", key=f"folder_open_{fid}", width="stretch"):
+                            st.session_state["folder_detail_id"] = fid
+                            st.rerun()
+
+        # --- 削除実行エリア ---
+        if st.session_state["folder_delete_mode"]:
+            st.markdown("---")
+            fd_del_count = len(fd_delete_ids)
+
+            fd_del_method = st.radio(
+                "削除方法",
+                ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
+                key="fd_del_method",
+                horizontal=True,
+            )
+
+            if fd_del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
+                if st.button(
+                    f"🗑️ 選択した {fd_del_count} 件をゴミ箱へ",
+                    type="primary",
+                    key="fd_del_trash_run",
+                    disabled=(fd_del_count == 0),
+                ):
+                    moved = move_to_trash(fd_delete_ids, metadata)
+                    for fid in fd_delete_ids:
+                        st.session_state.pop(f"fd_del_{fid}", None)
+                    st.session_state["folder_delete_mode"] = False
+                    _invalidate_all_caches()
+                    st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
+                    st.rerun()
+            else:
+                if st.button(
+                    f"🔄 選択した {fd_del_count} 件のメタデータを削除",
+                    type="primary",
+                    key="fd_del_meta_run",
+                    disabled=(fd_del_count == 0),
+                ):
+                    removed = 0
+                    for fid in fd_delete_ids:
+                        if fid in metadata:
+                            del metadata[fid]
+                            removed += 1
+                        st.session_state.pop(f"fd_del_{fid}", None)
+                    remove_from_ignore_list(fd_delete_ids)
+                    save_metadata(metadata)
+                    st.session_state["folder_delete_mode"] = False
+                    _invalidate_all_caches()
+                    st.success(f"✅ {removed} 件のメタデータを削除しました。")
+                    st.rerun()
         return
 
     st.subheader("🤖 AI自動フォルダ整理")
