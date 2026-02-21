@@ -4440,7 +4440,7 @@ def page_chat():
     if knowledge_count == 0 and not st.session_state.get("chat_messages"):
         st.info(
             "まだ知識が登録されていません。\n\n"
-            "上の📷から画像を取り込むか、「📸 画像管理」タブで画像をAI解析して知識を蓄積してください。"
+            "上の📷から画像を取り込むか、「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
         )
 
     # 質問例クリックからの送信処理
