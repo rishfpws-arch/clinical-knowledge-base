@@ -1733,8 +1733,8 @@ def display_kb_response_with_images(
                     key=f"kb_detail_{fid}{key_suffix}",
                     use_container_width=True,
                 ):
-                    st.session_state["selected_image_id"] = fid
-                    st.session_state["active_tab"] = "📸 画像管理"
+                    st.session_state["lib_selected_id"] = fid
+                    st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
         st.markdown("---")
 
