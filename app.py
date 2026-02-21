@@ -1893,8 +1893,8 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                     key=f"home_img_{fid}",
                     width="stretch",
                 ):
-                    st.session_state["selected_image_id"] = fid
-                    st.session_state["active_tab"] = "📸 画像管理"
+                    st.session_state["lib_selected_id"] = fid
+                    st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
 
     # 知識件数バッジ
