@@ -6060,10 +6060,23 @@ def main():
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
         unsafe_allow_html=True,
     )
-    # アクティブタブの管理
-    TAB_NAMES = ["💬 チャット検索", "📸 画像管理", "⚡ 一括解析", "🗂️ フォルダ設定", "📂 手動整理", "🤖 AI整理", "🗑️ ゴミ箱"]
+
+    # アクティブタブの管理（4タブ構成）
+    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
+    # 旧タブ名からのマイグレーション
+    old_tab_map = {
+        "💬 チャット検索": TAB_NAMES[0],
+        "📸 画像管理": TAB_NAMES[1],
+        "📂 手動整理": TAB_NAMES[1],
+        "🤖 AI整理": TAB_NAMES[1],
+        "⚡ 一括解析": TAB_NAMES[2],
+        "🗂️ フォルダ設定": TAB_NAMES[3],
+        "🗑️ ゴミ箱": TAB_NAMES[3],
+    }
+    if st.session_state["active_tab"] in old_tab_map:
+        st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
 
     home_clicked = st.button("🧸 Clinical Knowledge Base", key="home_btn")
     st.markdown(
@@ -6089,12 +6102,11 @@ def main():
         st.session_state["active_tab"] = TAB_NAMES[0]
         st.session_state["active_session_id"] = None
         st.session_state["chat_messages"] = []
-        st.session_state.pop("ai_view_folder", None)
-        st.session_state.pop("folder_detail_id", None)
+        st.session_state.pop("lib_selected_id", None)
         st.session_state.pop("last_upload_id", None)
         st.rerun()
 
-    # サイドバー上部にタブ切り替えボタン
+    # ─── サイドバー: ページ切り替え（4ボタンのみ）───
     st.sidebar.markdown("### ページ切り替え")
     for tab_name in TAB_NAMES:
         is_active = st.session_state["active_tab"] == tab_name
@@ -6105,89 +6117,37 @@ def main():
             type="primary" if is_active else "secondary",
         ):
             st.session_state["active_tab"] = tab_name
-            # AI整理以外に移動するときはフォルダ表示をリセット
-            if tab_name != TAB_NAMES[5]:
-                st.session_state["ai_view_folder"] = None
             st.rerun()
-
-    # --- フォルダ一覧（常時表示） ---
-    if "ai_view_folder" not in st.session_state:
-        st.session_state["ai_view_folder"] = None
-
-    metadata_for_folders = load_metadata()
-    # 患者データの folder を自動修正（「未分類」→「患者データ」）
-    _ensure_patient_data_folder(metadata_for_folders)
-    all_sidebar_folders = get_all_folders_from_metadata(metadata_for_folders)
-    folder_counts_sidebar = {}
-    for fid, meta in metadata_for_folders.items():
-        # ローカルアップロード画像はファイルが存在する場合のみカウント
-        if meta.get("source") == "upload":
-            exists = any(
-                (UPLOADS_DIR / f"{fid}.{ext}").exists()
-                for ext in ("png", "jpg", "jpeg")
-            )
-            if not exists:
-                continue
-        f = get_folder(meta)
-        folder_counts_sidebar[f] = folder_counts_sidebar.get(f, 0) + 1
-
-    if all_sidebar_folders:
-        st.sidebar.markdown("### 📁 フォルダ")
-        for f in all_sidebar_folders:
-            cnt = folder_counts_sidebar.get(f, 0)
-            if cnt == 0:
-                continue
-            is_viewing = (
-                st.session_state["active_tab"] == TAB_NAMES[5]
-                and st.session_state["ai_view_folder"] == f
-            )
-            icon_active = "🏥" if f == PATIENT_DATA_FOLDER else "📂"
-            icon_normal = "🏥" if f == PATIENT_DATA_FOLDER else "📁"
-            label = f"{icon_active} {f}（{cnt}）" if is_viewing else f"{icon_normal} {f}（{cnt}）"
-            if st.sidebar.button(
-                label,
-                key=f"global_folder_{f}",
-                width="stretch",
-                type="primary" if is_viewing else "secondary",
-            ):
-                st.session_state["active_tab"] = TAB_NAMES[5]
-                st.session_state["ai_view_folder"] = f
-                st.session_state.pop("folder_detail_id", None)
-                st.rerun()
 
     st.sidebar.markdown("---")
 
-    # --- 新着画像の自動検知 & AI解析 ---
+    # ─── サイドバー: 統計サマリー（1行表示）───
+    metadata_for_sidebar = load_metadata()
+    _ensure_patient_data_folder(metadata_for_sidebar)
+    total_count = len(metadata_for_sidebar)
+    reviewed_sidebar = sum(
+        1 for m in metadata_for_sidebar.values()
+        if get_status(m) == STATUS_REVIEWED
+    )
+    st.sidebar.caption(f"📊 登録済み {reviewed_sidebar} / 全 {total_count} 件")
+
+    # ─── サイドバー: 自動取り込み ON/OFF ───
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
 
-    with st.sidebar.expander("⚙️ 自動取り込み設定", expanded=False):
-        st.session_state["auto_scan_enabled"] = st.checkbox(
-            "新着画像を自動でAI解析",
-            value=st.session_state["auto_scan_enabled"],
-            key="auto_scan_toggle",
-        )
-        st.caption(f"Google Driveに追加された画像を{AUTO_SCAN_INTERVAL // 60}分ごとに検知して自動解析します。")
-        if st.button("🔄 今すぐスキャン", key="manual_scan", width="stretch"):
-            st.session_state["manual_scan_running"] = True
-            list_images.clear()
-            st.rerun()
+    st.sidebar.toggle(
+        "🔄 自動取り込み",
+        value=st.session_state["auto_scan_enabled"],
+        key="auto_scan_toggle_main",
+        on_change=lambda: st.session_state.update(
+            auto_scan_enabled=st.session_state["auto_scan_toggle_main"]
+        ),
+    )
 
-    # --- データ同期 ---
-    if st.sidebar.button("🔄 データ再読み込み", key="reload_from_sheets", use_container_width=True):
-        _invalidate_all_caches()
-        st.toast("☁️ Google Sheets から最新データを再読み込みしました")
+    if st.sidebar.button("🔄 今すぐスキャン", key="manual_scan", width="stretch"):
+        st.session_state["manual_scan_running"] = True
+        list_images.clear()
         st.rerun()
-
-    # --- データ移行ツール（ローカル→Sheets 1回きり） ---
-    with st.sidebar.expander("🔧 管理者ツール", expanded=False):
-        sh_status = get_sheets_client()
-        if sh_status is not None:
-            st.success("☁️ Google Sheets: 接続済み")
-        else:
-            st.warning("☁️ Google Sheets: 未接続")
-        if st.button("📤 ローカル → Sheets 移行", key="migrate_to_sheets", width="stretch"):
-            _migrate_local_to_sheets()
 
     # --- 手動スキャン（リアルタイム進捗表示） ---
     if st.session_state.pop("manual_scan_running", False):
@@ -6202,7 +6162,7 @@ def main():
         st.session_state["auto_scan_last"] = time.time()
 
     # --- 自動スキャン（バックグラウンド） ---
-    elif st.session_state["auto_scan_enabled"]:
+    elif st.session_state.get("auto_scan_enabled", True):
         try:
             _scan_service = get_drive_service()
             _scan_folder_id = get_folder_id()
@@ -6211,22 +6171,16 @@ def main():
         except Exception:
             pass
 
-    # 選択されたタブに応じてページを表示
+    # ─── ページ表示 ───
     active = st.session_state["active_tab"]
     if active == TAB_NAMES[0]:
         page_chat()
     elif active == TAB_NAMES[1]:
-        page_image_manager()
+        page_image_library()
     elif active == TAB_NAMES[2]:
-        page_batch_analyze()
+        page_import_analyze()
     elif active == TAB_NAMES[3]:
-        page_folder_settings()
-    elif active == TAB_NAMES[4]:
-        page_folder_manual()
-    elif active == TAB_NAMES[5]:
-        page_folder_ai()
-    elif active == TAB_NAMES[6]:
-        page_trash()
+        page_settings_all()
 
 
 if __name__ == "__main__":
