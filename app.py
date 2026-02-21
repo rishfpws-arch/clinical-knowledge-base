@@ -4743,9 +4743,15 @@ def page_image_library():
 
         file_id = selected_file["id"]
 
-        if st.button("⬅️ 一覧に戻る", key="lib_back_to_grid"):
+        # 遷移元のページがあればそちらに戻る、なければ一覧に戻る
+        back_tab = st.session_state.get("lib_back_tab")
+        back_label = "⬅️ チャットに戻る" if back_tab == "💬 チャット" else "⬅️ 一覧に戻る"
+        if st.button(back_label, key="lib_back_to_grid"):
             st.session_state["lib_selected_id"] = None
             st.session_state.pop("editing_file_id", None)
+            if back_tab and back_tab != "📸 画像ライブラリ":
+                st.session_state["active_tab"] = back_tab
+                st.session_state.pop("lib_back_tab", None)
             st.rerun()
 
         # --- 画像読み込み ---
