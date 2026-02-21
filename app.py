@@ -4645,6 +4645,1405 @@ def _migrate_local_to_sheets():
 
 
 # ===========================================================================
+# 統合ページ: 📸 画像ライブラリ（画像管理 + 手動整理 + フォルダ表示 統合）
+# ===========================================================================
+def page_image_library():
+    """画像ライブラリページ — 全画像の閲覧・検索・移動・削除を1つのページに統合。"""
+    service = get_drive_service()
+    folder_id = get_folder_id()
+    api_key = get_gemini_api_key()
+    metadata = load_metadata()
+    folders = load_folders()
+
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
+    if not images:
+        st.info(
+            "画像が見つかりませんでした。\n\n"
+            "Google Driveに画像を追加するか、チャット画面から画像を貼り付けて取り込んでください。"
+        )
+        return
+
+    # --- サイドバー ---
+    st.sidebar.header("🔍 検索・フィルタ")
+    search_keyword = st.sidebar.text_input(
+        "キーワード検索",
+        placeholder="タイトル、要約、タグで検索...",
+        key="lib_search",
+    )
+
+    # フォルダ選択（ラジオボタンスタイル）
+    all_folders = get_all_folders_from_metadata(metadata)
+    folder_options = ["すべて"] + all_folders
+    selected_folder = st.sidebar.radio(
+        "📂 フォルダ",
+        folder_options,
+        key="lib_folder_filter",
+    )
+
+    if st.sidebar.button("🔄 一覧を更新", key="lib_refresh"):
+        list_images.clear()
+        list_patient_images.clear()
+        download_image.clear()
+        st.rerun()
+
+    # --- フィルタ適用 ---
+    filtered_images = filter_images_by_keyword(images, search_keyword, metadata)
+    if selected_folder != "すべて":
+        filtered_images = [
+            img for img in filtered_images
+            if img["id"] in metadata and get_folder(metadata[img["id"]]) == selected_folder
+        ]
+
+    # --- サイドバー統計 ---
+    st.sidebar.markdown("---")
+    total = len(images)
+    analyzed = sum(1 for img in images if img["id"] in metadata)
+    reviewed_count = sum(
+        1 for img in images
+        if img["id"] in metadata
+        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
+    )
+    st.sidebar.caption(
+        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅登録済み {reviewed_count} 件"
+    )
+
+    if not filtered_images:
+        st.warning("検索条件に一致する画像がありません。")
+        return
+
+    # --- 選択中の画像ID（詳細表示用） ---
+    if "lib_selected_id" not in st.session_state:
+        st.session_state["lib_selected_id"] = None
+
+    selected_fid = st.session_state["lib_selected_id"]
+
+    # =======================================================================
+    # 詳細表示モード（画像が選択されている場合）
+    # =======================================================================
+    if selected_fid is not None:
+        selected_file = None
+        for img in filtered_images:
+            if img["id"] == selected_fid:
+                selected_file = img
+                break
+        # フィルタ外の場合は全画像から探す
+        if selected_file is None:
+            for img in images:
+                if img["id"] == selected_fid:
+                    selected_file = img
+                    break
+
+        if selected_file is None:
+            st.session_state["lib_selected_id"] = None
+            st.rerun()
+            return
+
+        file_id = selected_file["id"]
+
+        if st.button("⬅️ 一覧に戻る", key="lib_back_to_grid"):
+            st.session_state["lib_selected_id"] = None
+            st.session_state.pop("editing_file_id", None)
+            st.rerun()
+
+        # --- 画像読み込み ---
+        image_bytes = None
+        try:
+            image_bytes = download_image(service, file_id)
+        except Exception as e:
+            st.error(f"画像の表示中にエラーが発生しました: {e}")
+            return
+
+        meta = metadata.get(file_id, {})
+
+        # --- 横並びレイアウト ---
+        col_img, col_info = st.columns([1, 1])
+        with col_img:
+            st.image(image_bytes, width="stretch")
+        with col_info:
+            title = meta.get("title", selected_file["name"])
+            st.subheader(title)
+            if is_patient_data(meta):
+                st.markdown(
+                    '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
+                    'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
+                    unsafe_allow_html=True,
+                )
+            if file_id in metadata and not is_patient_data(meta):
+                s = get_status(meta)
+                if s == STATUS_REVIEWED:
+                    st.success("✅ 登録済み")
+                else:
+                    st.warning("🆕 未登録")
+            _sl = get_summary_label(meta)
+            summary_text = meta.get("summary", "")
+            if summary_text:
+                st.markdown(f"**{_sl}:**")
+                render_summary(summary_text)
+            elif is_patient_data(meta):
+                st.info("検査所見が未入力です。編集から入力してください。")
+            keywords = meta.get("keywords", [])
+            if keywords:
+                render_keyword_tags(keywords)
+            # フォルダ表示
+            cur_f = get_folder(meta)
+            f_icon = "🏥" if cur_f == PATIENT_DATA_FOLDER else "📁"
+            st.caption(f"{f_icon} {cur_f}")
+
+        # --- 編集フォーム ---
+        if file_id in metadata:
+            _is_pd = is_patient_data(metadata[file_id])
+            edit_label = "📝 検査所見を編集" if _is_pd else "📝 編集"
+            with st.expander(edit_label, expanded=_is_pd):
+                display_edit_form(file_id, metadata[file_id], metadata)
+            if _is_pd:
+                st.info("🏥 患者データ: AI解析は行いません。手動で検査所見を入力してください。")
+            elif api_key:
+                if st.button("🤖 AIで再解析する", key=f"lib_reanalyze_{file_id}"):
+                    with st.spinner("Gemini で再解析中..."):
+                        result = analyze_image_with_gemini(image_bytes, api_key)
+                        if result:
+                            old = metadata.get(file_id, {})
+                            for keep_key in ("folder", "source"):
+                                if keep_key in old:
+                                    result[keep_key] = old[keep_key]
+                            metadata[file_id] = result
+                            save_metadata(metadata)
+                            st.session_state.pop("editing_file_id", None)
+                            st.success("再解析が完了しました！")
+                            st.rerun()
+        else:
+            st.markdown("---")
+            if api_key:
+                st.info("この画像はまだAI解析されていません。")
+                if st.button("🤖 AI解析を実行", key=f"lib_analyze_{file_id}", type="primary"):
+                    with st.spinner("Gemini 2.0 Flash で解析中..."):
+                        result = analyze_image_with_gemini(image_bytes, api_key)
+                        if result:
+                            old = metadata.get(file_id, {})
+                            for keep_key in ("folder", "source"):
+                                if keep_key in old:
+                                    result[keep_key] = old[keep_key]
+                            metadata[file_id] = result
+                            save_metadata(metadata)
+                            st.success("解析が完了しました！")
+                            st.rerun()
+        return
+
+    # =======================================================================
+    # グリッド一覧表示（デフォルト）
+    # =======================================================================
+    # フォルダ名 + 件数ヘッダー
+    if selected_folder != "すべて":
+        folder_icon = "🏥" if selected_folder == PATIENT_DATA_FOLDER else "📁"
+        st.subheader(f"{folder_icon} {selected_folder}")
+    else:
+        st.subheader("📸 画像ライブラリ")
+
+    # モード切替ボタン
+    if "lib_mode" not in st.session_state:
+        st.session_state["lib_mode"] = "browse"  # browse / delete / move
+
+    mode_c1, mode_c2, mode_c3, mode_c4 = st.columns([1, 1, 1, 3])
+    with mode_c1:
+        if st.session_state["lib_mode"] != "browse":
+            if st.button("✖ モード終了", key="lib_exit_mode", width="stretch"):
+                st.session_state["lib_mode"] = "browse"
+                # チェック状態クリア
+                for img in filtered_images:
+                    st.session_state.pop(f"lib_sel_{img['id']}", None)
+                st.rerun()
+    with mode_c2:
+        if st.session_state["lib_mode"] != "delete":
+            if st.button("🗑️ 削除モード", key="lib_enter_delete", width="stretch"):
+                st.session_state["lib_mode"] = "delete"
+                st.rerun()
+    with mode_c3:
+        if st.session_state["lib_mode"] != "move":
+            if st.button("📂 移動モード", key="lib_enter_move", width="stretch"):
+                st.session_state["lib_mode"] = "move"
+                st.rerun()
+
+    st.caption(f"{len(filtered_images)} 件")
+
+    # 移動モード: 移動先フォルダ選択
+    if st.session_state["lib_mode"] == "move":
+        dest_folder = st.selectbox(
+            "移動先フォルダ",
+            folders,
+            key="lib_dest_folder",
+        )
+
+    # 削除モード: 削除方法の選択
+    if st.session_state["lib_mode"] == "delete":
+        del_method = st.radio(
+            "削除方法",
+            ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
+            key="lib_del_method",
+            horizontal=True,
+        )
+
+    # 全選択/全解除（削除・移動モード時）
+    if st.session_state["lib_mode"] in ("delete", "move"):
+        sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
+        with sel_c1:
+            if st.button("☑️ 全選択", key="lib_sel_all"):
+                for img in filtered_images:
+                    if img["id"] in metadata:
+                        st.session_state[f"lib_sel_{img['id']}"] = True
+                st.rerun()
+        with sel_c2:
+            if st.button("☐ 全解除", key="lib_sel_none"):
+                for img in filtered_images:
+                    st.session_state.pop(f"lib_sel_{img['id']}", None)
+                st.rerun()
+
+    # ページネーション
+    page_items, cur_page, total_pages = _paginate(filtered_images, "lib_grid_page")
+    _render_pagination_controls("lib_grid_page", cur_page, total_pages, len(filtered_images))
+
+    # グリッド表示
+    selected_ids = []
+    cols_per_row = 4
+    for row_start in range(0, len(page_items), cols_per_row):
+        cols = st.columns(cols_per_row)
+        for col_idx in range(cols_per_row):
+            img_idx = row_start + col_idx
+            if img_idx >= len(page_items):
+                break
+            img = page_items[img_idx]
+            fid = img["id"]
+
+            with cols[col_idx]:
+                try:
+                    thumb_bytes = download_image(service, fid)
+                    st.image(thumb_bytes, width="stretch")
+                except Exception:
+                    st.markdown(
+                        '<div style="background:#333;border-radius:8px;'
+                        'height:80px;display:flex;align-items:center;'
+                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                if fid in metadata:
+                    meta = metadata[fid]
+                    title = meta.get("title", img["name"])
+                    icon = get_status_icon(meta)
+                    pd_badge = " 🏥" if is_patient_data(meta) else ""
+                    cur_folder = get_folder(meta)
+                    st.caption(f"{icon}{pd_badge} {title}")
+                    if selected_folder == "すべて":
+                        f_icon = "🏥" if cur_folder == PATIENT_DATA_FOLDER else "📁"
+                        st.caption(f"{f_icon} {cur_folder}")
+                else:
+                    st.caption(f"📄 {img['name']}")
+
+                if st.session_state["lib_mode"] == "browse":
+                    if st.button("🔍 詳細を見る", key=f"lib_open_{fid}", width="stretch"):
+                        st.session_state["lib_selected_id"] = fid
+                        st.rerun()
+                else:
+                    # 削除/移動モード: チェックボックス
+                    if fid in metadata:
+                        action_label = "削除" if st.session_state["lib_mode"] == "delete" else "選択"
+                        if st.checkbox(
+                            action_label,
+                            value=st.session_state.get(f"lib_sel_{fid}", False),
+                            key=f"lib_sel_{fid}",
+                        ):
+                            selected_ids.append(fid)
+
+    # --- アクションボタン ---
+    if st.session_state["lib_mode"] == "delete":
+        st.markdown("---")
+        del_count = len(selected_ids)
+        if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
+            if del_count > 0:
+                st.warning(f"🗑️ **{del_count} 件**をゴミ箱に移動します。")
+            if st.button(
+                f"🗑️ 選択した {del_count} 件をゴミ箱へ",
+                type="primary", key="lib_del_trash_run",
+                disabled=(del_count == 0),
+            ):
+                moved = move_to_trash(selected_ids, metadata)
+                for fid in selected_ids:
+                    st.session_state.pop(f"lib_sel_{fid}", None)
+                st.session_state["lib_mode"] = "browse"
+                _invalidate_all_caches()
+                st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
+                st.rerun()
+        else:
+            if del_count > 0:
+                st.info(f"🔄 **{del_count} 件**のメタデータを削除します。")
+            if st.button(
+                f"🔄 選択した {del_count} 件のメタデータを削除",
+                type="primary", key="lib_del_meta_run",
+                disabled=(del_count == 0),
+            ):
+                removed = 0
+                for fid in selected_ids:
+                    if fid in metadata:
+                        del metadata[fid]
+                        removed += 1
+                    st.session_state.pop(f"lib_sel_{fid}", None)
+                remove_from_ignore_list(selected_ids)
+                save_metadata(metadata)
+                st.session_state["lib_mode"] = "browse"
+                _invalidate_all_caches()
+                st.success(f"✅ {removed} 件のメタデータを削除しました。")
+                st.rerun()
+
+    elif st.session_state["lib_mode"] == "move":
+        st.markdown("---")
+        move_count = len(selected_ids)
+        if st.button(
+            f"📁 選択した {move_count} 件を「{dest_folder}」に移動",
+            type="primary", key="lib_move_run",
+            disabled=(move_count == 0),
+        ):
+            for fid in selected_ids:
+                if fid in metadata:
+                    metadata[fid]["folder"] = dest_folder
+            save_metadata(metadata)
+            for fid in selected_ids:
+                st.session_state.pop(f"lib_sel_{fid}", None)
+            st.session_state["lib_mode"] = "browse"
+            _invalidate_all_caches()
+            st.success(f"✅ {move_count} 件を「{dest_folder}」に移動しました。")
+            st.rerun()
+
+
+# ===========================================================================
+# 統合ページ: ⚡ 取り込み・解析（一括解析 + AI整理の分類 + 患者データ 統合）
+# ===========================================================================
+def page_import_analyze():
+    """取り込み・解析ページ — 3つのサブタブで構成。"""
+    service = get_drive_service()
+    folder_id = get_folder_id()
+    api_key = get_gemini_api_key()
+    metadata = load_metadata()
+
+    _ensure_patient_data_folder(metadata)
+
+    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
+    if not images:
+        st.info("フォルダ内に画像が見つかりませんでした。")
+        return
+
+    if not api_key:
+        st.warning(
+            "この機能を使用するには `GOOGLE_API_KEY` を "
+            "`.streamlit/secrets.toml` に設定してください。"
+        )
+        return
+
+    # --- 画像分類 ---
+    unanalyzed = [
+        img for img in images
+        if img["id"] not in metadata
+        and not is_patient_data(metadata.get(img["id"], {}))
+    ]
+    unreviewed = [
+        img for img in images
+        if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
+        and get_status(metadata[img["id"]]) == STATUS_AUTO
+    ]
+    reviewed = [
+        img for img in images
+        if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
+        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
+    ]
+    analyzed_all = [
+        img for img in images
+        if img["id"] in metadata
+        and not is_patient_data(metadata[img["id"]])
+    ]
+    patient_data_images = [
+        img for img in images
+        if img["id"] in metadata
+        and is_patient_data(metadata[img["id"]])
+    ]
+
+    # --- サイドバー: 統計 ---
+    st.sidebar.header("📊 処理状況")
+    st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
+    st.sidebar.write(f"🆕 未登録: **{len(unreviewed)}** 件")
+    st.sidebar.write(f"✅ 登録済み: **{len(reviewed)}** 件")
+    if patient_data_images:
+        st.sidebar.write(f"🏥 患者データ: **{len(patient_data_images)}** 件")
+    st.sidebar.write(f"合計: **{len(images)}** 件")
+    if images:
+        done_count = len(reviewed)
+        progress = done_count / len(images)
+        st.sidebar.progress(progress, text=f"登録済み: {done_count}/{len(images)}")
+
+    # --- 3つのサブタブ ---
+    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+        "📥 新規取り込み", "🏥 患者データ", "🔧 詳細操作"
+    ])
+
+    # =======================================================================
+    # サブタブ1: 📥 新規取り込み
+    # =======================================================================
+    with sub_tab1:
+        st.subheader("📥 新規取り込み")
+
+        # 処理状況サマリー
+        sum_c1, sum_c2, sum_c3 = st.columns(3)
+        with sum_c1:
+            st.metric("未解析", f"{len(unanalyzed)} 件")
+        with sum_c2:
+            st.metric("未登録", f"{len(unreviewed)} 件")
+        with sum_c3:
+            st.metric("登録済み", f"{len(reviewed)} 件")
+
+        st.markdown("---")
+
+        # スキャン＆解析
+        if not unanalyzed:
+            st.success("すべての画像が解析済みです ✅")
+        else:
+            st.info(f"**{len(unanalyzed)} 件**の未解析画像があります。")
+
+            sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
+            with sel_col1:
+                if st.button("☑️ 全選択", key="imp_sel_all"):
+                    for img in unanalyzed:
+                        st.session_state[f"imp_sel_{img['id']}"] = True
+                    st.rerun()
+            with sel_col2:
+                if st.button("☐ 全解除", key="imp_desel_all"):
+                    for img in unanalyzed:
+                        st.session_state[f"imp_sel_{img['id']}"] = False
+                    st.rerun()
+
+            batch_page_items, batch_cur, batch_total_pages = _paginate(unanalyzed, "imp_new_page")
+            _render_pagination_controls("imp_new_page", batch_cur, batch_total_pages, len(unanalyzed))
+
+            selected_ids = []
+            cols_per_row = 4
+            for row_start in range(0, len(batch_page_items), cols_per_row):
+                cols = st.columns(cols_per_row)
+                for col_idx in range(cols_per_row):
+                    img_idx = row_start + col_idx
+                    if img_idx >= len(batch_page_items):
+                        break
+                    img = batch_page_items[img_idx]
+                    fid = img["id"]
+                    with cols[col_idx]:
+                        try:
+                            thumb_bytes = download_image(service, fid)
+                            st.image(thumb_bytes, width="stretch")
+                        except Exception:
+                            st.markdown(
+                                '<div style="background:#333;border-radius:8px;'
+                                'height:80px;display:flex;align-items:center;'
+                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                unsafe_allow_html=True,
+                            )
+                        st.caption(f"📄 {img['name']}")
+                        if st.checkbox("解析する", value=st.session_state.get(f"imp_sel_{fid}", False), key=f"imp_sel_{fid}"):
+                            selected_ids.append(fid)
+
+            st.markdown("---")
+            selected_count = len(selected_ids)
+            if st.button(
+                f"🤖 選択した {selected_count} 件を解析",
+                type="primary", key="imp_run",
+                disabled=(selected_count == 0),
+            ):
+                target = [img for img in unanalyzed if img["id"] in selected_ids]
+                _run_batch_analyze(service, target, metadata, api_key)
+
+    # =======================================================================
+    # サブタブ2: 🏥 患者データ
+    # =======================================================================
+    with sub_tab2:
+        st.subheader("🏥 患者データの一括編集")
+
+        if st.session_state.get("_pd_save_success"):
+            st.success(st.session_state["_pd_save_success"])
+            del st.session_state["_pd_save_success"]
+
+        if not patient_data_images:
+            st.info("🏥 患者データはまだ取り込まれていません。")
+        else:
+            st.info(f"🏥 **{len(patient_data_images)} 件**の患者データがあります。")
+
+            # 一括操作パネル
+            with st.expander("⚡ 一括操作", expanded=True):
+                bulk_tab1, bulk_tab2 = st.tabs(["📌 一括タイトル入力", "🤖 一括AIキーワード生成"])
+
+                with bulk_tab1:
+                    st.caption(
+                        "各行に「画像番号（1始まり）: タイトル」を入力してください。\n"
+                        "例:\n```\n1: 右膝関節MRI\n2: 腰椎X線\n3: 頸椎CT\n```"
+                    )
+                    default_lines = []
+                    for i, img in enumerate(patient_data_images):
+                        m = metadata.get(img["id"], {})
+                        current_title = m.get("title", img.get("name", ""))
+                        default_lines.append(f"{i + 1}: {current_title}")
+                    bulk_titles_text = st.text_area(
+                        "タイトル一覧",
+                        value="\n".join(default_lines),
+                        height=min(300, 30 + 25 * len(patient_data_images)),
+                        key="imp_pd_bulk_titles",
+                    )
+                    if st.button("💾 タイトルを一括保存", key="imp_pd_bulk_title_save",
+                                 type="primary", use_container_width=True):
+                        saved_count = 0
+                        for line in bulk_titles_text.strip().split("\n"):
+                            line = line.strip()
+                            if not line or ":" not in line and "：" not in line:
+                                continue
+                            sep = "：" if "：" in line else ":"
+                            parts = line.split(sep, 1)
+                            try:
+                                idx_str = parts[0].strip()
+                                idx_num = int("".join(c for c in idx_str if c.isdigit()))
+                                title_val = parts[1].strip()
+                            except (ValueError, IndexError):
+                                continue
+                            if 1 <= idx_num <= len(patient_data_images):
+                                target_fid = patient_data_images[idx_num - 1]["id"]
+                                if target_fid in metadata:
+                                    metadata[target_fid]["title"] = title_val
+                                    saved_count += 1
+                        if saved_count > 0:
+                            save_metadata(metadata)
+                            _invalidate_all_caches()
+                            st.session_state["_pd_save_success"] = (
+                                f"✅ {saved_count} 件のタイトルを一括保存しました"
+                            )
+                            st.rerun()
+                        else:
+                            st.warning("保存するタイトルがありませんでした。")
+
+                with bulk_tab2:
+                    no_kw_count = sum(
+                        1 for img in patient_data_images
+                        if not metadata.get(img["id"], {}).get("keywords")
+                    )
+                    all_count = len(patient_data_images)
+                    st.caption(f"全 {all_count} 件中、キーワード未設定: **{no_kw_count} 件**")
+                    ai_target = st.radio(
+                        "対象",
+                        ["キーワード未設定のみ", "すべて（上書き）"],
+                        horizontal=True,
+                        key="imp_pd_ai_target",
+                    )
+                    if st.button(
+                        f"🤖 一括AIキーワード生成（{no_kw_count if ai_target == 'キーワード未設定のみ' else all_count} 件）",
+                        key="imp_pd_bulk_ai_kw", type="primary", use_container_width=True,
+                    ):
+                        if not api_key:
+                            st.warning("Gemini API キーが必要です。")
+                        else:
+                            target_imgs = []
+                            for img in patient_data_images:
+                                m = metadata.get(img["id"], {})
+                                if ai_target == "キーワード未設定のみ" and m.get("keywords"):
+                                    continue
+                                target_imgs.append(img)
+                            if not target_imgs:
+                                st.info("対象の画像がありません。")
+                            else:
+                                progress_bar = st.progress(0, text="AIキーワード生成中...")
+                                generated = 0
+                                for i, img in enumerate(target_imgs):
+                                    fid = img["id"]
+                                    m = metadata.get(fid, {})
+                                    progress_bar.progress(
+                                        (i + 1) / len(target_imgs),
+                                        text=f"🤖 {i + 1}/{len(target_imgs)}: {m.get('title', img.get('name', '')[:20])}...",
+                                    )
+                                    try:
+                                        ib = download_image(service, fid)
+                                        kws = generate_keywords_with_gemini(
+                                            ib, api_key, title=m.get("title", ""),
+                                        )
+                                        if kws:
+                                            metadata[fid]["keywords"] = kws
+                                            generated += 1
+                                    except Exception:
+                                        pass
+                                progress_bar.empty()
+                                if generated > 0:
+                                    save_metadata(metadata)
+                                    _invalidate_all_caches()
+                                    st.session_state["_pd_save_success"] = (
+                                        f"🤖 {generated} 件のAIキーワードを生成しました"
+                                    )
+                                    st.rerun()
+                                else:
+                                    st.warning("キーワードを生成できませんでした。")
+
+            st.markdown("---")
+
+            # 個別編集
+            st.subheader("📝 個別編集")
+            page_items, current_page, total_pages = _paginate(
+                patient_data_images, "imp_patient_page"
+            )
+            _render_pagination_controls(
+                "imp_patient_page", current_page, total_pages, len(patient_data_images)
+            )
+
+            for idx, img in enumerate(page_items):
+                fid = img["id"]
+                meta = metadata.get(fid, {})
+                fname = img.get("name", fid)
+                global_idx = (current_page - 1) * IMAGES_PER_PAGE + idx + 1
+                status_icon = "✅" if meta.get("status") == STATUS_REVIEWED else "✏️"
+                kw_preview = ", ".join(meta.get("keywords", [])[:3])
+                if kw_preview:
+                    kw_preview = f" 🏷️{kw_preview}"
+
+                with st.expander(
+                    f"{global_idx}. {meta.get('title', fname)} {status_icon}{kw_preview}",
+                    expanded=False,
+                ):
+                    col_img, col_form = st.columns([1, 2])
+                    with col_img:
+                        try:
+                            img_bytes = download_image(service, fid)
+                            st.image(img_bytes, use_container_width=True)
+                        except Exception:
+                            st.caption("（画像を読み込めません）")
+
+                    with col_form:
+                        with st.form(key=f"imp_pd_edit_{fid}_{current_page}"):
+                            new_title = st.text_input(
+                                "📌 タイトル",
+                                value=meta.get("title", fname),
+                                key=f"imp_pd_title_{fid}_{current_page}",
+                            )
+                            new_summary = st.text_area(
+                                "📝 検査所見（任意）",
+                                value=meta.get("summary", ""),
+                                height=80,
+                                placeholder="所見があれば入力（空欄でもOK）",
+                                key=f"imp_pd_summary_{fid}_{current_page}",
+                            )
+                            new_keywords = st.text_input(
+                                "🏷️ キーワード（カンマ区切り）",
+                                value=", ".join(meta.get("keywords", [])),
+                                key=f"imp_pd_kw_{fid}_{current_page}",
+                            )
+                            submitted = st.form_submit_button(
+                                "💾 保存", type="primary", use_container_width=True,
+                            )
+                            if submitted:
+                                kw_list = [
+                                    k.strip()
+                                    for k in new_keywords.replace("、", ",").split(",")
+                                    if k.strip()
+                                ]
+                                metadata[fid]["title"] = new_title
+                                metadata[fid]["summary"] = new_summary
+                                metadata[fid]["keywords"] = kw_list
+                                metadata[fid]["status"] = STATUS_REVIEWED
+                                save_metadata(metadata)
+                                _invalidate_all_caches()
+                                st.session_state["_pd_save_success"] = (
+                                    f"✅ 「{new_title}」を保存しました"
+                                )
+                                st.rerun()
+
+    # =======================================================================
+    # サブタブ3: 🔧 詳細操作
+    # =======================================================================
+    with sub_tab3:
+        st.subheader("🔧 詳細操作")
+
+        adv_mode = st.selectbox(
+            "操作を選択",
+            ["一括再解析", "指示付き再解析", "AI自動フォルダ分類",
+             "レビュー（1枚ずつ確認）", "一括レビュー済みに変更"],
+            key="imp_adv_mode",
+        )
+
+        st.markdown("---")
+
+        # --- 一括再解析 ---
+        if adv_mode == "一括再解析":
+            st.caption("プロンプト改善後などに、解析済みの画像をまとめて再解析できます。")
+            if not analyzed_all:
+                st.info("解析済みの画像がありません。")
+            else:
+                filter_choice = st.radio(
+                    "対象を絞る",
+                    ["すべて", "未登録のみ（🆕）", "登録済みのみ（✅）"],
+                    horizontal=True, key="imp_reanalyze_filter",
+                )
+                if filter_choice == "未登録のみ（🆕）":
+                    target_list = unreviewed
+                elif filter_choice == "登録済みのみ（✅）":
+                    target_list = reviewed
+                else:
+                    target_list = analyzed_all
+
+                if not target_list:
+                    st.info("該当する画像がありません。")
+                else:
+                    st.info(f"**{len(target_list)} 件**が対象です。")
+                    rc1, rc2, rc3 = st.columns([1, 1, 3])
+                    with rc1:
+                        if st.button("☑️ 全選択", key="imp_ra_sel_all"):
+                            for img in target_list:
+                                st.session_state[f"imp_ra_sel_{img['id']}"] = True
+                            st.rerun()
+                    with rc2:
+                        if st.button("☐ 全解除", key="imp_ra_sel_none"):
+                            for img in target_list:
+                                st.session_state[f"imp_ra_sel_{img['id']}"] = False
+                            st.rerun()
+
+                    ra_page_items, ra_cur, ra_total_pages = _paginate(target_list, "imp_reanalyze_page")
+                    _render_pagination_controls("imp_reanalyze_page", ra_cur, ra_total_pages, len(target_list))
+
+                    reanalyze_ids = []
+                    cols_per_row = 4
+                    for row_start in range(0, len(ra_page_items), cols_per_row):
+                        cols = st.columns(cols_per_row)
+                        for col_idx in range(cols_per_row):
+                            img_idx = row_start + col_idx
+                            if img_idx >= len(ra_page_items):
+                                break
+                            img = ra_page_items[img_idx]
+                            fid = img["id"]
+                            meta = metadata[fid]
+                            title = meta.get("title", img["name"])
+                            status_icon = get_status_icon(meta)
+                            with cols[col_idx]:
+                                try:
+                                    thumb_bytes = download_image(service, fid)
+                                    st.image(thumb_bytes, width="stretch")
+                                except Exception:
+                                    st.markdown(
+                                        '<div style="background:#333;border-radius:8px;'
+                                        'height:80px;display:flex;align-items:center;'
+                                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                        unsafe_allow_html=True,
+                                    )
+                                st.caption(f"{status_icon} {title}")
+                                if st.checkbox("再解析", value=st.session_state.get(f"imp_ra_sel_{fid}", True), key=f"imp_ra_sel_{fid}"):
+                                    reanalyze_ids.append(fid)
+
+                    st.markdown("---")
+                    reanalyze_count = len(reanalyze_ids)
+                    if reanalyze_count > 0:
+                        st.warning("⚠️ 再解析すると現在の解析データが上書きされます。")
+                    if st.button(
+                        f"🔄 選択した {reanalyze_count} 件を再解析",
+                        type="primary", key="imp_reanalyze_run",
+                        disabled=(reanalyze_count == 0),
+                    ):
+                        target = [img for img in target_list if img["id"] in reanalyze_ids]
+                        _run_batch_analyze(service, target, metadata, api_key, is_reanalyze=True)
+
+        # --- 指示付き再解析 ---
+        elif adv_mode == "指示付き再解析":
+            st.caption("修正指示を入力してまとめて再解析できます。")
+            if not analyzed_all:
+                st.info("解析済みの画像がありません。")
+            else:
+                hint_filter = st.radio(
+                    "対象を絞る",
+                    ["すべて", "未登録のみ（🆕）", "登録済みのみ（✅）"],
+                    horizontal=True, key="imp_hint_filter",
+                )
+                if hint_filter == "未登録のみ（🆕）":
+                    hint_target_list = unreviewed
+                elif hint_filter == "登録済みのみ（✅）":
+                    hint_target_list = reviewed
+                else:
+                    hint_target_list = analyzed_all
+
+                if not hint_target_list:
+                    st.info("該当する画像がありません。")
+                else:
+                    st.info(f"**{len(hint_target_list)} 件**が対象です。")
+                    hc1, hc2, hc3 = st.columns([1, 1, 3])
+                    with hc1:
+                        if st.button("☑️ 全選択", key="imp_hint_sel_all"):
+                            for img in hint_target_list:
+                                st.session_state[f"imp_hint_sel_{img['id']}"] = True
+                            st.rerun()
+                    with hc2:
+                        if st.button("☐ 全解除", key="imp_hint_sel_none"):
+                            for img in hint_target_list:
+                                st.session_state[f"imp_hint_sel_{img['id']}"] = False
+                            st.rerun()
+
+                    hint_page_items, hint_cur, hint_total_pages = _paginate(hint_target_list, "imp_hint_page")
+                    _render_pagination_controls("imp_hint_page", hint_cur, hint_total_pages, len(hint_target_list))
+
+                    hint_ids = []
+                    cols_per_row = 4
+                    for row_start in range(0, len(hint_page_items), cols_per_row):
+                        cols = st.columns(cols_per_row)
+                        for col_idx in range(cols_per_row):
+                            img_idx = row_start + col_idx
+                            if img_idx >= len(hint_page_items):
+                                break
+                            img = hint_page_items[img_idx]
+                            fid = img["id"]
+                            meta = metadata[fid]
+                            title = meta.get("title", img["name"])
+                            status_icon = get_status_icon(meta)
+                            kw = meta.get("keywords", [])
+                            with cols[col_idx]:
+                                try:
+                                    thumb_bytes = download_image(service, fid)
+                                    st.image(thumb_bytes, width="stretch")
+                                except Exception:
+                                    st.markdown(
+                                        '<div style="background:#333;border-radius:8px;'
+                                        'height:80px;display:flex;align-items:center;'
+                                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                        unsafe_allow_html=True,
+                                    )
+                                st.caption(f"{status_icon} {title}")
+                                if kw:
+                                    st.caption(" ".join(f"`{k}`" for k in kw[:5]))
+                                if st.checkbox(
+                                    "修正する",
+                                    value=st.session_state.get(f"imp_hint_sel_{fid}", False),
+                                    key=f"imp_hint_sel_{fid}",
+                                ):
+                                    hint_ids.append(fid)
+
+                    st.markdown("---")
+                    correction_hint = st.text_area(
+                        "🔧 修正指示（選択した全画像に共通で適用）",
+                        placeholder="例:\n・「骨折」ではなく「ストレス骨折」が正しいです\n・キーワードに「シンスプリント」を追加してください",
+                        height=120, key="imp_correction_hint",
+                    )
+                    hint_count = len(hint_ids)
+                    if hint_count > 0 and not correction_hint.strip():
+                        st.warning("⚠️ 修正指示を入力してください。")
+                    can_run = hint_count > 0 and bool(correction_hint.strip())
+                    if st.button(
+                        f"🤖 選択した {hint_count} 件を指示付きで再解析",
+                        type="primary", key="imp_hint_run",
+                        disabled=(not can_run),
+                    ):
+                        target = [img for img in hint_target_list if img["id"] in hint_ids]
+                        _run_batch_analyze(
+                            service, target, metadata, api_key,
+                            is_reanalyze=True, correction_hint=correction_hint,
+                        )
+
+        # --- AI自動フォルダ分類 ---
+        elif adv_mode == "AI自動フォルダ分類":
+            folders = load_folders()
+            analyzed = [img for img in images if img["id"] in metadata]
+            if not analyzed:
+                st.info("解析済みの画像がありません。先に画像をAI解析してください。")
+            else:
+                # 整理方針
+                st.markdown("#### 📝 整理方針")
+                st.caption("AIにどのような観点で整理してほしいかを指示できます。空欄の場合はAIが自動判断します。")
+                user_instruction = st.text_area(
+                    "整理の指示（任意）",
+                    value=st.session_state.get("imp_ai_folder_instruction", ""),
+                    placeholder="例:\n・解剖学的部位で分けて\n・疾患カテゴリで分類して",
+                    height=100, key="imp_ai_folder_instruction",
+                )
+
+                st.markdown("---")
+                st.markdown("#### ① フォルダ設定")
+                mode = st.radio(
+                    "フォルダの決め方",
+                    ["既存フォルダを使う", "AIに新しいフォルダを提案させる"],
+                    key="imp_ai_folder_mode", horizontal=True,
+                )
+
+                if mode == "AIに新しいフォルダを提案させる":
+                    if st.button("🤖 フォルダ名を提案", key="imp_ai_suggest"):
+                        with st.spinner("AIがフォルダ構成を考えています..."):
+                            try:
+                                summaries = []
+                                for img in analyzed:
+                                    meta = metadata[img["id"]]
+                                    t = meta.get("title", "")
+                                    kw = ", ".join(meta.get("keywords", []))
+                                    summaries.append(f"- {t} [{kw}]")
+                                instruction_part = ""
+                                if user_instruction.strip():
+                                    instruction_part = (
+                                        f"\n\n【ユーザーからの整理方針】\n{user_instruction.strip()}\n"
+                                        "上記の方針に従ってフォルダ名を提案してください。"
+                                    )
+                                else:
+                                    instruction_part = "\n解剖学的部位、疾患カテゴリ、画像モダリティなどで分類してください。"
+                                prompt = (
+                                    "以下は医療画像の解析データ一覧です。\n"
+                                    + "\n".join(summaries)
+                                    + f"\n\nこれらを整理するための最適なフォルダ名を5〜10個提案してください。"
+                                    + instruction_part
+                                    + "\nフォルダ名のみをカンマ区切りで出力してください。日本語で。"
+                                )
+                                resp_text = _gemini_generate(api_key, [{"text": prompt}])
+                                suggested = [s.strip() for s in resp_text.strip().split(",") if s.strip()]
+                                st.session_state["imp_ai_suggested_folders"] = suggested
+                            except Exception as e:
+                                st.error(f"フォルダ提案に失敗しました: {e}")
+
+                    if "imp_ai_suggested_folders" in st.session_state:
+                        suggested = st.session_state["imp_ai_suggested_folders"]
+                        st.markdown("**AIの提案（編集できます）:**")
+                        edited_folders = []
+                        remove_idx = None
+                        for i, fname in enumerate(suggested):
+                            ec1, ec2 = st.columns([5, 1])
+                            with ec1:
+                                edited = st.text_input(
+                                    f"フォルダ {i + 1}", value=fname,
+                                    key=f"imp_ai_edit_folder_{i}", label_visibility="collapsed",
+                                )
+                            with ec2:
+                                if st.button("✖", key=f"imp_ai_remove_folder_{i}"):
+                                    remove_idx = i
+                            if edited.strip():
+                                edited_folders.append(edited.strip())
+
+                        if remove_idx is not None:
+                            new_suggested = []
+                            for i in range(len(suggested)):
+                                val = st.session_state.get(f"imp_ai_edit_folder_{i}", suggested[i]).strip()
+                                if i != remove_idx and val:
+                                    new_suggested.append(val)
+                            for i in range(len(suggested)):
+                                st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
+                            st.session_state["imp_ai_suggested_folders"] = new_suggested
+                            st.rerun()
+
+                        ac1, ac2 = st.columns([5, 1])
+                        with ac1:
+                            new_name = st.text_input(
+                                "追加するフォルダ名", placeholder="フォルダ名を入力…",
+                                key="imp_ai_add_folder_input", label_visibility="collapsed",
+                            )
+                        with ac2:
+                            if st.button("➕", key="imp_ai_add_folder_btn") and new_name.strip():
+                                new_suggested = []
+                                for i in range(len(suggested)):
+                                    val = st.session_state.get(f"imp_ai_edit_folder_{i}", suggested[i]).strip()
+                                    if val:
+                                        new_suggested.append(val)
+                                new_suggested.append(new_name.strip())
+                                for i in range(len(suggested)):
+                                    st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
+                                st.session_state["imp_ai_suggested_folders"] = new_suggested
+                                st.rerun()
+
+                        if st.button("✅ これらのフォルダを作成して使用", key="imp_ai_create_suggested"):
+                            for f in edited_folders:
+                                if f not in folders:
+                                    folders.append(f)
+                            save_folders(folders)
+                            for i in range(len(suggested)):
+                                st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
+                            st.success(f"フォルダを作成しました！（{len(edited_folders)} 件）")
+                            st.session_state.pop("imp_ai_suggested_folders", None)
+                            st.rerun()
+
+                folders = load_folders()
+                st.markdown("**現在のフォルダ:**")
+                st.write(" / ".join(f"📁 {f}" for f in folders))
+
+                st.markdown("---")
+                st.markdown("#### ② AI自動分類を実行")
+                target_choice = st.radio(
+                    "分類対象",
+                    ["未分類の画像のみ", "すべての画像（再分類）"],
+                    key="imp_ai_target", horizontal=True,
+                )
+                if target_choice == "未分類の画像のみ":
+                    targets = [img for img in analyzed if get_folder(metadata[img["id"]]) == DEFAULT_FOLDER]
+                else:
+                    targets = analyzed
+
+                st.write(f"対象: **{len(targets)}** 件")
+                if not targets:
+                    st.success("分類対象の画像がありません。")
+                elif st.button(
+                    f"🤖 {len(targets)} 件をAIで自動分類",
+                    type="primary", key="imp_ai_classify_run",
+                ):
+                    folder_names = ", ".join(folders)
+                    progress_bar = st.progress(0, text="AI分類を開始...")
+                    classified = 0
+                    errors = 0
+                    for i, img in enumerate(targets):
+                        fid = img["id"]
+                        meta = metadata[fid]
+                        title = meta.get("title", "")
+                        summary = meta.get("summary", "")
+                        keywords = ", ".join(meta.get("keywords", []))
+                        progress_bar.progress(i / len(targets), text=f"分類中... ({i + 1}/{len(targets)}) {title}")
+
+                        instruction_hint = ""
+                        if user_instruction.strip():
+                            instruction_hint = (
+                                f"\n【整理方針】{user_instruction.strip()}\n"
+                                "上記の方針を考慮して最適なフォルダを選んでください。\n"
+                            )
+                        prompt = (
+                            f"以下の医療画像を最も適切なフォルダに分類してください。\n\n"
+                            f"タイトル: {title}\n要約: {summary}\nキーワード: {keywords}\n\n"
+                            f"選択肢: {folder_names}\n{instruction_hint}\n"
+                            f"必ず上記の選択肢の中から1つだけ選び、フォルダ名のみを出力してください。"
+                        )
+                        try:
+                            result = _gemini_generate(api_key, [{"text": prompt}]).strip()
+                            matched = None
+                            for f in folders:
+                                if f in result or result in f:
+                                    matched = f
+                                    break
+                            if matched is None:
+                                matched = DEFAULT_FOLDER
+                            metadata[fid]["folder"] = matched
+                            classified += 1
+                        except Exception:
+                            errors += 1
+                        if i < len(targets) - 1:
+                            time.sleep(0.5)
+
+                    save_metadata(metadata)
+                    progress_bar.progress(1.0, text="完了！")
+                    st.success(f"✅ 分類完了！ 成功: {classified} 件 / 失敗: {errors} 件")
+                    st.rerun()
+
+        # --- レビュー ---
+        elif adv_mode == "レビュー（1枚ずつ確認）":
+            metadata = load_metadata()
+            unreviewed_now = [
+                img for img in images
+                if img["id"] in metadata
+                and get_status(metadata[img["id"]]) == STATUS_AUTO
+            ]
+            if not unreviewed_now:
+                if reviewed:
+                    st.success("すべての画像がレビュー済みです 🎉")
+                else:
+                    st.info("まず「新規取り込み」で一括AI解析を実行してください。")
+            else:
+                st.info(f"**{len(unreviewed_now)} 件**の未登録画像があります。")
+                if "imp_review_index" not in st.session_state:
+                    st.session_state["imp_review_index"] = 0
+                if st.session_state["imp_review_index"] >= len(unreviewed_now):
+                    st.session_state["imp_review_index"] = 0
+
+                current_idx = st.session_state["imp_review_index"]
+                current_img = unreviewed_now[current_idx]
+                current_fid = current_img["id"]
+                current_meta = metadata[current_fid]
+
+                nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+                with nav_col1:
+                    if st.button("⬅️ 前へ", disabled=(current_idx == 0), key="imp_rev_prev"):
+                        st.session_state["imp_review_index"] = current_idx - 1
+                        st.session_state.pop("editing_file_id", None)
+                        st.rerun()
+                with nav_col2:
+                    st.write(f"**{current_idx + 1} / {len(unreviewed_now)}** 件目")
+                with nav_col3:
+                    if st.button("次へ ➡️", disabled=(current_idx >= len(unreviewed_now) - 1), key="imp_rev_next"):
+                        st.session_state["imp_review_index"] = current_idx + 1
+                        st.session_state.pop("editing_file_id", None)
+                        st.rerun()
+
+                st.markdown("---")
+                try:
+                    image_bytes = download_image(service, current_fid)
+                except Exception as e:
+                    st.error(f"画像の読み込みに失敗: {e}")
+                    return
+
+                rev_col_img, rev_col_info = st.columns([1, 1])
+                with rev_col_img:
+                    st.image(image_bytes, width="stretch")
+                with rev_col_info:
+                    title = current_meta.get("title", current_img.get("name", "不明"))
+                    st.subheader(title)
+                    render_summary(current_meta.get("summary", ""))
+                    keywords = current_meta.get("keywords", [])
+                    if keywords:
+                        render_keyword_tags(keywords)
+
+                display_edit_form(current_fid, current_meta, metadata)
+
+                st.markdown("---")
+                if st.button("⏭️ スキップして次へ", key="imp_rev_skip"):
+                    if current_idx < len(unreviewed_now) - 1:
+                        st.session_state["imp_review_index"] = current_idx + 1
+                    else:
+                        st.session_state["imp_review_index"] = 0
+                    st.session_state.pop("editing_file_id", None)
+                    st.rerun()
+
+        # --- 一括レビュー済みに変更 ---
+        elif adv_mode == "一括レビュー済みに変更":
+            st.caption("未登録の画像をまとめて登録済みに変更、または登録済みを未登録に戻せます。")
+            metadata = load_metadata()
+            review_filter = st.radio(
+                "対象",
+                ["未登録→登録済み（🆕→✅）", "登録済み→未登録に戻す（✅→🆕）"],
+                horizontal=True, key="imp_bulk_review_filter",
+            )
+            if review_filter == "未登録→登録済み（🆕→✅）":
+                target_list = [
+                    img for img in images
+                    if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_AUTO
+                ]
+                action_label = "登録済みにする"
+                action_key_prefix = "imp_bulkrev"
+            else:
+                target_list = [
+                    img for img in images
+                    if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_REVIEWED
+                ]
+                action_label = "未登録に戻す"
+                action_key_prefix = "imp_bulkunrev"
+
+            if not target_list:
+                st.success("該当する画像がありません。")
+            else:
+                st.info(f"**{len(target_list)} 件**が対象です。")
+                bc1, bc2, bc3 = st.columns([1, 1, 3])
+                with bc1:
+                    if st.button("☑️ 全選択", key=f"{action_key_prefix}_sel_all"):
+                        for img in target_list:
+                            st.session_state[f"{action_key_prefix}_{img['id']}"] = True
+                        st.rerun()
+                with bc2:
+                    if st.button("☐ 全解除", key=f"{action_key_prefix}_sel_none"):
+                        for img in target_list:
+                            st.session_state[f"{action_key_prefix}_{img['id']}"] = False
+                        st.rerun()
+
+                br_page_items, br_cur, br_total_pages = _paginate(target_list, "imp_bulkreview_page")
+                _render_pagination_controls("imp_bulkreview_page", br_cur, br_total_pages, len(target_list))
+
+                action_ids = []
+                cols_per_row = 4
+                for row_start in range(0, len(br_page_items), cols_per_row):
+                    cols = st.columns(cols_per_row)
+                    for col_idx in range(cols_per_row):
+                        img_idx = row_start + col_idx
+                        if img_idx >= len(br_page_items):
+                            break
+                        img = br_page_items[img_idx]
+                        fid = img["id"]
+                        meta = metadata[fid]
+                        title = meta.get("title", img["name"])
+                        status_icon = get_status_icon(meta)
+                        with cols[col_idx]:
+                            try:
+                                thumb_bytes = download_image(service, fid)
+                                st.image(thumb_bytes, width="stretch")
+                            except Exception:
+                                st.markdown(
+                                    '<div style="background:#333;border-radius:8px;'
+                                    'height:80px;display:flex;align-items:center;'
+                                    'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                    unsafe_allow_html=True,
+                                )
+                            st.caption(f"{status_icon} {title}")
+                            kw = meta.get("keywords", [])
+                            if kw:
+                                st.caption(" ".join(f"`{k}`" for k in kw[:3]))
+                            if st.checkbox(action_label, value=st.session_state.get(f"{action_key_prefix}_{fid}", False), key=f"{action_key_prefix}_{fid}"):
+                                action_ids.append(fid)
+
+                st.markdown("---")
+                action_count = len(action_ids)
+                if review_filter == "未登録→登録済み（🆕→✅）":
+                    if st.button(
+                        f"✅ 選択した {action_count} 件を登録済みにする",
+                        type="primary", key="imp_bulk_review_run",
+                        disabled=(action_count == 0),
+                    ):
+                        for fid in action_ids:
+                            if fid in metadata:
+                                metadata[fid]["status"] = STATUS_REVIEWED
+                        save_metadata(metadata)
+                        for fid in action_ids:
+                            st.session_state.pop(f"{action_key_prefix}_{fid}", None)
+                        st.success(f"✅ {action_count} 件を登録済みにしました。")
+                        st.rerun()
+                else:
+                    if st.button(
+                        f"🆕 選択した {action_count} 件を未登録に戻す",
+                        type="primary", key="imp_bulk_unreview_run",
+                        disabled=(action_count == 0),
+                    ):
+                        for fid in action_ids:
+                            if fid in metadata:
+                                metadata[fid]["status"] = STATUS_AUTO
+                        save_metadata(metadata)
+                        for fid in action_ids:
+                            st.session_state.pop(f"{action_key_prefix}_{fid}", None)
+                        st.success(f"🆕 {action_count} 件を未登録に戻しました。")
+                        st.rerun()
+
+
+# ===========================================================================
+# 統合ページ: ⚙️ 設定（フォルダ管理 + ゴミ箱 + システム 統合）
+# ===========================================================================
+def page_settings_all():
+    """設定ページ — フォルダ管理・ゴミ箱・システム設定を3つのサブタブに統合。"""
+    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+        "📂 フォルダ管理", "🗑️ ゴミ箱", "🔧 システム"
+    ])
+
+    # =======================================================================
+    # サブタブ1: フォルダ管理
+    # =======================================================================
+    with sub_tab1:
+        page_folder_settings()
+
+    # =======================================================================
+    # サブタブ2: ゴミ箱
+    # =======================================================================
+    with sub_tab2:
+        page_trash()
+
+    # =======================================================================
+    # サブタブ3: システム
+    # =======================================================================
+    with sub_tab3:
+        st.subheader("🔧 システム")
+
+        # --- 解析データの一括削除 ---
+        st.markdown("#### 🗑️ 解析データの一括削除")
+        metadata = load_metadata()
+        service = get_drive_service()
+        folder_id = get_folder_id()
+        images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
+        analyzed_images = [img for img in images if img["id"] in metadata]
+
+        if not analyzed_images:
+            st.info("解析済みの画像データはありません。")
+        else:
+            st.warning(
+                f"**{len(analyzed_images)} 件**の解析済みデータがあります。"
+            )
+            sys_del_method = st.radio(
+                "削除方法",
+                ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
+                key="sys_del_method", horizontal=True,
+            )
+            if sys_del_method == "🔄 メタデータのみ削除（再取り込み可能）":
+                st.info("💡 画像ファイルはDriveに残ります。メタデータのみ削除します。")
+
+            sdel_c1, sdel_c2, sdel_c3 = st.columns([1, 1, 3])
+            with sdel_c1:
+                if st.button("☑️ 全選択", key="sys_del_sel_all"):
+                    for img in analyzed_images:
+                        st.session_state[f"sys_del_{img['id']}"] = True
+                    st.rerun()
+            with sdel_c2:
+                if st.button("☐ 全解除", key="sys_del_sel_none"):
+                    for img in analyzed_images:
+                        st.session_state[f"sys_del_{img['id']}"] = False
+                    st.rerun()
+
+            del_page_items, del_cur, del_total_pages = _paginate(analyzed_images, "sys_delete_page")
+            _render_pagination_controls("sys_delete_page", del_cur, del_total_pages, len(analyzed_images))
+
+            delete_ids = []
+            cols_per_row = 4
+            for row_start in range(0, len(del_page_items), cols_per_row):
+                cols = st.columns(cols_per_row)
+                for col_idx in range(cols_per_row):
+                    img_idx = row_start + col_idx
+                    if img_idx >= len(del_page_items):
+                        break
+                    img = del_page_items[img_idx]
+                    fid = img["id"]
+                    meta = metadata[fid]
+                    title = meta.get("title", img["name"])
+                    status_icon = get_status_icon(meta)
+                    with cols[col_idx]:
+                        try:
+                            thumb_bytes = download_image(service, fid)
+                            st.image(thumb_bytes, width="stretch")
+                        except Exception:
+                            st.markdown(
+                                '<div style="background:#333;border-radius:8px;'
+                                'height:80px;display:flex;align-items:center;'
+                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                unsafe_allow_html=True,
+                            )
+                        st.caption(f"{status_icon} {title}")
+                        if st.checkbox("削除する", value=st.session_state.get(f"sys_del_{fid}", False), key=f"sys_del_{fid}"):
+                            delete_ids.append(fid)
+
+            st.markdown("---")
+            delete_count = len(delete_ids)
+            if sys_del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
+                if delete_count > 0:
+                    st.warning(f"🗑️ **{delete_count} 件**をゴミ箱に移動します。")
+                if st.button(
+                    f"🗑️ 選択した {delete_count} 件をゴミ箱へ",
+                    type="primary", key="sys_del_trash_run",
+                    disabled=(delete_count == 0),
+                ):
+                    moved = move_to_trash(delete_ids, metadata)
+                    for fid in delete_ids:
+                        st.session_state.pop(f"sys_del_{fid}", None)
+                    st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
+                    st.rerun()
+            else:
+                if delete_count > 0:
+                    st.info(f"🔄 **{delete_count} 件**のメタデータを削除します。")
+                if st.button(
+                    f"🔄 選択した {delete_count} 件のメタデータを削除",
+                    type="primary", key="sys_del_meta_run",
+                    disabled=(delete_count == 0),
+                ):
+                    removed = 0
+                    for fid in delete_ids:
+                        if fid in metadata:
+                            del metadata[fid]
+                            removed += 1
+                        st.session_state.pop(f"sys_del_{fid}", None)
+                    remove_from_ignore_list(delete_ids)
+                    save_metadata(metadata)
+                    _invalidate_all_caches()
+                    st.success(f"✅ {removed} 件のメタデータを削除しました。")
+                    st.rerun()
+
+        st.markdown("---")
+
+        # --- Sheets接続状態 + 移行ツール ---
+        st.markdown("#### ☁️ データ管理")
+        sh_status = get_sheets_client()
+        if sh_status is not None:
+            st.success("☁️ Google Sheets: 接続済み")
+        else:
+            st.warning("☁️ Google Sheets: 未接続")
+
+        col_sys1, col_sys2 = st.columns(2)
+        with col_sys1:
+            if st.button("📤 ローカル → Sheets 移行", key="sys_migrate", width="stretch"):
+                _migrate_local_to_sheets()
+        with col_sys2:
+            if st.button("🔄 データ再読み込み", key="sys_reload", width="stretch"):
+                _invalidate_all_caches()
+                st.toast("☁️ Google Sheets から最新データを再読み込みしました")
+                st.rerun()
+
+
+# ===========================================================================
 # メインエントリポイント
 # ===========================================================================
 def main():
