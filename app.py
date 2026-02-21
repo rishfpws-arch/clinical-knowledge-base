@@ -6135,14 +6135,12 @@ def main():
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
 
-    st.sidebar.toggle(
+    auto_scan_val = st.sidebar.toggle(
         "🔄 自動取り込み",
         value=st.session_state["auto_scan_enabled"],
         key="auto_scan_toggle_main",
-        on_change=lambda: st.session_state.update(
-            auto_scan_enabled=st.session_state["auto_scan_toggle_main"]
-        ),
     )
+    st.session_state["auto_scan_enabled"] = auto_scan_val
 
     if st.sidebar.button("🔄 今すぐスキャン", key="manual_scan", width="stretch"):
         st.session_state["manual_scan_running"] = True
