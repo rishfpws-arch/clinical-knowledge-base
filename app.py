@@ -4894,11 +4894,20 @@ def _migrate_local_to_sheets():
                 migrated.append("trash")
         except Exception as e:
             st.warning(f"trash移行失敗: {e}")
+    # weight_data
+    if WEIGHT_DATA_PATH.exists():
+        try:
+            with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if _write_json_to_sheet(sh, "weight_data", data):
+                migrated.append("weight_data")
+        except Exception as e:
+            st.warning(f"weight_data移行失敗: {e}")
 
     if migrated:
         st.success(f"✅ 移行完了: {', '.join(migrated)}")
         # キャッシュクリア
-        for ck in ["_cache_metadata", "_cache_folders", "_cache_chat_sessions", "_cache_trash"]:
+        for ck in ["_cache_metadata", "_cache_folders", "_cache_chat_sessions", "_cache_trash", "_cache_weight_data"]:
             st.session_state.pop(ck, None)
             st.session_state.pop(f"{ck}_ts", None)
     else:
@@ -6619,8 +6628,8 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # アクティブタブの管理（4タブ構成）
-    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "⚙️ 設定"]
+    # アクティブタブの管理（5タブ構成）
+    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "⚖️ 体重管理", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
     # 旧タブ名からのマイグレーション
@@ -6630,8 +6639,9 @@ def main():
         "📂 手動整理": TAB_NAMES[1],
         "🤖 AI整理": TAB_NAMES[1],
         "⚡ 一括解析": TAB_NAMES[2],
-        "🗂️ フォルダ設定": TAB_NAMES[3],
-        "🗑️ ゴミ箱": TAB_NAMES[3],
+        "🗂️ フォルダ設定": TAB_NAMES[4],
+        "🗑️ ゴミ箱": TAB_NAMES[4],
+        "⚙️ 設定": TAB_NAMES[4],
     }
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
@@ -6736,6 +6746,8 @@ def main():
     elif active == TAB_NAMES[2]:
         page_import_analyze()
     elif active == TAB_NAMES[3]:
+        page_weight_management()
+    elif active == TAB_NAMES[4]:
         page_settings_all()
 
 
