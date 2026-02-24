@@ -1116,6 +1116,110 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         return None
 
 
+# ---------------------------------------------------------------------------
+# 体重管理 AI 解析
+# ---------------------------------------------------------------------------
+def _parse_gemini_json(response_text: str) -> dict | None:
+    """Gemini レスポンスから JSON を抽出してパースする。"""
+    text = response_text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        json_lines = []
+        inside = False
+        for line in lines:
+            if line.startswith("```") and not inside:
+                inside = True
+                continue
+            elif line.startswith("```") and inside:
+                break
+            elif inside:
+                json_lines.append(line)
+        text = "\n".join(json_lines)
+    return json.loads(text)
+
+
+def analyze_food_image(image_bytes: bytes, api_key: str) -> dict | None:
+    """食事画像を Gemini で解析し、品目とカロリーを推定する。"""
+    try:
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+        parts = [
+            {"text": FOOD_ANALYSIS_PROMPT},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        response_text = _gemini_generate(api_key, parts)
+        result = _parse_gemini_json(response_text)
+        if "items" not in result:
+            return None
+        return result
+    except (json.JSONDecodeError, KeyError):
+        st.error("食事画像の解析結果をJSONとして読み取れませんでした。")
+        return None
+    except Exception as e:
+        st.error(f"食事画像の解析中にエラーが発生しました: {e}")
+        return None
+
+
+def analyze_weight_scale_image(image_bytes: bytes, api_key: str) -> dict | None:
+    """体重計の画像から Gemini で数値を読み取る。"""
+    try:
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+        parts = [
+            {"text": WEIGHT_SCALE_PROMPT},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        response_text = _gemini_generate(api_key, parts)
+        result = _parse_gemini_json(response_text)
+        return result
+    except (json.JSONDecodeError, KeyError):
+        st.error("体重計の読み取り結果をJSONとして解析できませんでした。")
+        return None
+    except Exception as e:
+        st.error(f"体重計の読み取り中にエラーが発生しました: {e}")
+        return None
+
+
+def _generate_weight_comment(day_data: dict, goals: dict) -> str:
+    """目標に対する日次コメントを生成する（ルールベース）。"""
+    comments = []
+    target_cal = goals.get("daily_calorie_target")
+    target_wt = goals.get("target_weight_kg")
+    total_cal = day_data.get("total_calories", 0)
+    weight = day_data.get("weight")
+
+    if target_cal and target_cal > 0:
+        diff = target_cal - total_cal
+        if diff > 0:
+            comments.append(f"あと **{diff} kcal** 摂取できます。")
+        elif diff == 0:
+            comments.append("目標カロリーぴったりです！")
+        else:
+            comments.append(f"⚠️ 目標カロリーを **{abs(diff)} kcal** オーバーしています。")
+
+    if target_wt and target_wt > 0 and weight:
+        wt_diff = round(weight - target_wt, 1)
+        if wt_diff > 0:
+            comments.append(f"目標体重まであと **{wt_diff} kg** です。")
+        elif wt_diff == 0:
+            comments.append("🎉 目標体重を達成しています！")
+        else:
+            comments.append(f"🎉 目標体重を **{abs(wt_diff)} kg** 下回っています！")
+
+    if not comments:
+        comments.append("🎯 目標を設定すると進捗コメントが表示されます。")
+
+    return "  \n".join(comments)
+
+
 def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str = "") -> list[str] | None:
     """Gemini で画像からキーワード（タグ）のみを生成する。
 
