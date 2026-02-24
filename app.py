@@ -1142,17 +1142,21 @@ def _parse_gemini_json(response_text: str) -> dict | None:
 
 def analyze_food_image(image_bytes: bytes, api_key: str) -> dict | None:
     """食事画像を Gemini で解析し、品目とカロリーを推定する。"""
+    return analyze_food_images([image_bytes], api_key)
+
+
+def analyze_food_images(images_bytes_list: list[bytes], api_key: str) -> dict | None:
+    """複数の食事画像をまとめて Gemini で解析し、品目とカロリーを推定する。"""
     try:
-        pil_image = Image.open(io.BytesIO(image_bytes))
-        fmt = pil_image.format or "PNG"
-        mime_type = f"image/{fmt.lower()}"
-        if mime_type == "image/jpg":
-            mime_type = "image/jpeg"
-        b64_data = base64.b64encode(image_bytes).decode("utf-8")
-        parts = [
-            {"text": FOOD_ANALYSIS_PROMPT},
-            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
-        ]
+        parts = [{"text": FOOD_ANALYSIS_PROMPT}]
+        for img_bytes in images_bytes_list:
+            pil_image = Image.open(io.BytesIO(img_bytes))
+            fmt = pil_image.format or "PNG"
+            mime_type = f"image/{fmt.lower()}"
+            if mime_type == "image/jpg":
+                mime_type = "image/jpeg"
+            b64_data = base64.b64encode(img_bytes).decode("utf-8")
+            parts.append({"inline_data": {"mime_type": mime_type, "data": b64_data}})
         response_text = _gemini_generate(api_key, parts)
         result = _parse_gemini_json(response_text)
         if "items" not in result:
@@ -1195,9 +1199,11 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
     comments = []
     target_cal = goals.get("daily_calorie_target")
     target_wt = goals.get("target_weight_kg")
+    target_date_str = goals.get("target_date")
     total_cal = day_data.get("total_calories", 0)
     weight = day_data.get("weight")
 
+    # カロリー目標コメント
     if target_cal and target_cal > 0:
         diff = target_cal - total_cal
         if diff > 0:
@@ -1207,6 +1213,7 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
         else:
             comments.append(f"⚠️ 目標カロリーを **{abs(diff)} kcal** オーバーしています。")
 
+    # 体重目標コメント
     if target_wt and target_wt > 0 and weight:
         wt_diff = round(weight - target_wt, 1)
         if wt_diff > 0:
@@ -1215,6 +1222,24 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
             comments.append("🎉 目標体重を達成しています！")
         else:
             comments.append(f"🎉 目標体重を **{abs(wt_diff)} kg** 下回っています！")
+
+    # 目標期日コメント
+    if target_date_str:
+        try:
+            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d").date()
+            remaining_days = (target_dt - date.today()).days
+            if remaining_days > 0:
+                comments.append(f"目標期日まであと **{remaining_days}日** です。")
+                if weight and target_wt and weight > target_wt:
+                    need_loss = round(weight - target_wt, 1)
+                    daily_loss = round(need_loss / remaining_days, 2)
+                    comments.append(f"1日あたり約 **{daily_loss} kg** のペースが必要です。")
+            elif remaining_days == 0:
+                comments.append("今日が目標期日です！")
+            else:
+                comments.append(f"⚠️ 目標期日を **{abs(remaining_days)}日** 過ぎています。")
+        except (ValueError, TypeError):
+            pass
 
     if not comments:
         comments.append("🎯 目標を設定すると進捗コメントが表示されます。")
