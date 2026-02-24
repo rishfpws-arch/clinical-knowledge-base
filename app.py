@@ -6502,6 +6502,10 @@ def page_settings_all():
                 # URLからトークンも削除
                 if "token" in st.query_params:
                     del st.query_params["token"]
+                # localStorageからもトークンを削除
+                components.html("""<script>
+                try { localStorage.removeItem('ckb_auth_token'); } catch(e) {}
+                </script>""", height=0)
                 st.rerun()
         else:
             st.caption("認証が設定されていないか、フリーアクセスモードです。")
