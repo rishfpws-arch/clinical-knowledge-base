@@ -6487,47 +6487,78 @@ def page_weight_management():
                 st.warning("0 より大きい値を入力してください。")
 
     # --- 食事を記録 ---
-    # expanderを使わず直接配置（スマホでのファイルアップロード互換性向上）
     st.markdown("### 🍽️ 食事を記録")
 
-    # 複数画像アップロード対応
-    food_files = st.file_uploader(
-        "食事画像（複数選択可）",
-        type=["png", "jpg", "jpeg"],
-        key=f"wm_food_upload_{date_key}",
-        accept_multiple_files=True,
-    )
+    # スマホでBrowse filesがフォトギャラリーを開くよう accept属性を書き換え
+    components.html("""
+    <script>
+    (function() {
+        const inputs = window.parent.document.querySelectorAll('input[type="file"]');
+        inputs.forEach(function(input) {
+            input.setAttribute('accept', 'image/*');
+        });
+    })();
+    </script>
+    """, height=0)
 
-    # EXIF日時の自動取得
-    exif_time = None
-    all_food_bytes = []
-    if food_files:
-        # サムネイル表示
-        thumb_cols = st.columns(min(len(food_files), 4))
-        for i, f in enumerate(food_files):
+    # st.form でラップ（スマホでアップロードが完了しない問題の対策）
+    with st.form("wm_food_form", clear_on_submit=True):
+        food_files = st.file_uploader(
+            "食事画像（複数選択可・タップで写真を選択）",
+            type=["png", "jpg", "jpeg"],
+            accept_multiple_files=True,
+            key="wm_food_upload",
+        )
+        form_meal_time = st.time_input("食事時間", value=datetime.now().time(), key="wm_meal_time_form")
+        submitted = st.form_submit_button("📤 画像をアップロード", type="primary")
+
+    # submit後: session_stateに画像データを保存
+    if submitted and food_files:
+        uploaded_foods = []
+        for f in food_files:
             fb = f.getvalue()
-            all_food_bytes.append({"bytes": fb, "name": f.name})
-            with thumb_cols[i % len(thumb_cols)]:
-                st.image(fb, width=150, caption=f.name)
-
-        # 全画像からEXIF日時を取得（最も古いものを採用）
+            uploaded_foods.append({"bytes": fb, "name": f.name})
+        st.session_state["wm_uploaded_foods"] = uploaded_foods
+        st.session_state["wm_upload_meal_time"] = form_meal_time.strftime("%H:%M")
+        # EXIF日時を取得
         exif_times = []
-        for fb_info in all_food_bytes:
+        for fb_info in uploaded_foods:
             dt = _extract_exif_datetime(fb_info["bytes"])
             if dt is not None:
                 exif_times.append(dt)
         if exif_times:
-            exif_time = min(exif_times)
+            exif_dt = min(exif_times)
+            st.session_state["wm_upload_meal_time"] = exif_dt.strftime("%H:%M")
+            st.session_state["wm_exif_info"] = exif_dt.strftime("%Y-%m-%d %H:%M")
+        else:
+            st.session_state.pop("wm_exif_info", None)
+        st.rerun()
+    elif submitted and not food_files:
+        st.warning("画像を選択してからアップロードしてください。")
 
-    # 食事時間（EXIF優先、なければ現在時刻）
-    default_time = exif_time.time() if exif_time else datetime.now().time()
-    meal_time = st.time_input("食事時間", value=default_time, key=f"wm_meal_time_{date_key}")
+    # --- アップロード済み画像がある場合: サムネイル + AI解析 + 記録 ---
+    all_food_bytes = st.session_state.get("wm_uploaded_foods", [])
+    meal_time_str = st.session_state.get("wm_upload_meal_time", datetime.now().strftime("%H:%M"))
 
-    if exif_time:
-        st.caption(f"📷 写真の撮影日時から自動取得: {exif_time.strftime('%Y-%m-%d %H:%M')}")
-
-    # AI解析ボタン
     if all_food_bytes:
+        st.success(f"📷 {len(all_food_bytes)} 枚の画像がアップロードされました")
+
+        # サムネイル表示
+        thumb_cols = st.columns(min(len(all_food_bytes), 4))
+        for i, fb_info in enumerate(all_food_bytes):
+            with thumb_cols[i % len(thumb_cols)]:
+                st.image(fb_info["bytes"], width=150, caption=fb_info["name"])
+
+        # EXIF情報表示
+        exif_info = st.session_state.get("wm_exif_info")
+        if exif_info:
+            st.caption(f"📷 写真の撮影日時から自動取得: {exif_info}")
+
+        # 食事時間の調整（form外なので自由に編集可能）
+        parsed_time = datetime.strptime(meal_time_str, "%H:%M").time()
+        meal_time = st.time_input("食事時間（変更可）", value=parsed_time, key=f"wm_meal_time_adj_{date_key}")
+
+        # AI解析ボタン
         if st.button("🤖 AIでカロリー解析", key="wm_food_ai"):
             if api_key:
                 with st.spinner(f"食事を解析中...（{len(all_food_bytes)}枚）"):
@@ -6542,74 +6573,89 @@ def page_weight_management():
             else:
                 st.warning("Gemini APIキーが設定されていません。")
 
-    # AI解析結果または手動入力
-    items = st.session_state.get("wm_food_items", [])
-    if items:
-        st.markdown("**🤖 AI解析結果（編集できます）:**")
-        edited_items = []
-        for i, item in enumerate(items):
-            c1, c2, c3 = st.columns([3, 2, 1])
-            with c1:
-                name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
-            with c2:
-                cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
-            with c3:
-                st.markdown("<br>", unsafe_allow_html=True)
-                remove = st.checkbox("削除", key=f"wm_item_del_{date_key}_{i}")
-            if not remove and name.strip():
-                edited_items.append({"name": name.strip(), "calories": cal})
-        # 手動追加行
-        st.markdown("---")
-        ac1, ac2 = st.columns([3, 2])
-        with ac1:
-            add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
-        with ac2:
-            add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
-        if add_name.strip():
-            edited_items.append({"name": add_name.strip(), "calories": add_cal})
+        # AI解析結果または手動入力
+        items = st.session_state.get("wm_food_items", [])
+        if items:
+            st.markdown("**🤖 AI解析結果（編集できます）:**")
+            edited_items = []
+            for i, item in enumerate(items):
+                c1, c2, c3 = st.columns([3, 2, 1])
+                with c1:
+                    name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
+                with c2:
+                    cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
+                with c3:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    remove = st.checkbox("削除", key=f"wm_item_del_{date_key}_{i}")
+                if not remove and name.strip():
+                    edited_items.append({"name": name.strip(), "calories": cal})
+            # 手動追加行
+            st.markdown("---")
+            ac1, ac2 = st.columns([3, 2])
+            with ac1:
+                add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
+            with ac2:
+                add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
+            if add_name.strip():
+                edited_items.append({"name": add_name.strip(), "calories": add_cal})
 
-        new_total = sum(it["calories"] for it in edited_items)
-        st.markdown(f"**合計: {new_total} kcal**")
-    else:
-        edited_items = []
-        st.caption("画像をアップロードしてAI解析するか、下から手動で品目を入力してください。")
-        # 手動入力（AI未使用時）
-        ac1, ac2 = st.columns([3, 2])
-        with ac1:
-            add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
-        with ac2:
-            add_cal = st.number_input("カロリー(kcal)", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
-        if add_name.strip():
-            edited_items.append({"name": add_name.strip(), "calories": add_cal})
-        new_total = sum(it["calories"] for it in edited_items)
+            new_total = sum(it["calories"] for it in edited_items)
+            st.markdown(f"**合計: {new_total} kcal**")
+        else:
+            edited_items = []
+            st.caption("上の「🤖 AIでカロリー解析」を押すか、下から手動で品目を入力してください。")
+            # 手動入力（AI未使用時）
+            ac1, ac2 = st.columns([3, 2])
+            with ac1:
+                add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
+            with ac2:
+                add_cal = st.number_input("カロリー(kcal)", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
+            if add_name.strip():
+                edited_items.append({"name": add_name.strip(), "calories": add_cal})
+            new_total = sum(it["calories"] for it in edited_items)
 
-    if st.button("📝 この食事を記録する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
-        meal_id = f"meal_{uuid.uuid4().hex[:12]}"
-        meal_record = {
-            "id": meal_id,
-            "time": meal_time.strftime("%H:%M"),
-            "items": edited_items,
-            "total_calories": new_total,
-        }
-        # 複数画像保存
-        if all_food_bytes:
-            WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
-            saved_images = []
-            for fb_info in all_food_bytes:
-                img_id = f"wm_{uuid.uuid4().hex[:12]}"
-                ext = fb_info["name"].rsplit(".", 1)[-1].lower() if "." in fb_info["name"] else "png"
-                (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(fb_info["bytes"])
-                saved_images.append({"id": img_id, "ext": ext})
-            meal_record["images"] = saved_images
+        # 記録ボタンとキャンセルボタン
+        btn_col1, btn_col2 = st.columns([3, 1])
+        with btn_col1:
+            if st.button("📝 この食事を記録する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
+                meal_id = f"meal_{uuid.uuid4().hex[:12]}"
+                meal_record = {
+                    "id": meal_id,
+                    "time": meal_time.strftime("%H:%M"),
+                    "items": edited_items,
+                    "total_calories": new_total,
+                }
+                # 複数画像保存
+                if all_food_bytes:
+                    WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
+                    saved_images = []
+                    for fb_info in all_food_bytes:
+                        img_id = f"wm_{uuid.uuid4().hex[:12]}"
+                        ext = fb_info["name"].rsplit(".", 1)[-1].lower() if "." in fb_info["name"] else "png"
+                        (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(fb_info["bytes"])
+                        saved_images.append({"id": img_id, "ext": ext})
+                    meal_record["images"] = saved_images
 
-        day_data.setdefault("meals", []).append(meal_record)
-        # 合計カロリー再計算
-        day_data["total_calories"] = sum(m.get("total_calories", 0) for m in day_data["meals"])
-        save_weight_data(weight_data)
-        st.session_state.pop("wm_food_items", None)
-        st.session_state.pop("wm_food_total", None)
-        st.success(f"✅ {meal_time.strftime('%H:%M')} の食事（{new_total} kcal）を記録しました。")
-        st.rerun()
+                day_data.setdefault("meals", []).append(meal_record)
+                # 合計カロリー再計算
+                day_data["total_calories"] = sum(m.get("total_calories", 0) for m in day_data["meals"])
+                save_weight_data(weight_data)
+                # session_stateクリア
+                st.session_state.pop("wm_food_items", None)
+                st.session_state.pop("wm_food_total", None)
+                st.session_state.pop("wm_uploaded_foods", None)
+                st.session_state.pop("wm_upload_meal_time", None)
+                st.session_state.pop("wm_exif_info", None)
+                st.success(f"✅ {meal_time.strftime('%H:%M')} の食事（{new_total} kcal）を記録しました。")
+                st.rerun()
+        with btn_col2:
+            if st.button("🗑️ 取消", key="wm_meal_cancel"):
+                st.session_state.pop("wm_food_items", None)
+                st.session_state.pop("wm_food_total", None)
+                st.session_state.pop("wm_uploaded_foods", None)
+                st.session_state.pop("wm_upload_meal_time", None)
+                st.session_state.pop("wm_exif_info", None)
+                st.rerun()
 
     st.markdown("---")
 
