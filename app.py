@@ -6883,6 +6883,11 @@ def page_weight_management():
                             "calories": int(st.session_state.get(f"wm_add_cal_{date_key}", 0)),
                         })
 
+                    # DEBUG2: final_items の確認
+                    st.toast(f"SAVE: {[f'{it[\"name\"]}={it[\"calories\"]}kcal' for it in final_items]}", icon="💾")
+                    import logging
+                    logging.warning(f"SAVE_FINAL: {final_items}")
+
                     # 複数画像保存 → 共通の image_id を各品目に付与
                     saved_image_ids = []
                     if all_food_bytes:
