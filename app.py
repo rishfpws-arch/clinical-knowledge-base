@@ -6865,20 +6865,22 @@ def page_weight_management():
             btn_col1, btn_col2 = st.columns([3, 1])
             with btn_col1:
                 if st.button("➕ 追加する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
-                    # DEBUG: 保存時の各データソースの値を表示
-                    _dbg_src = st.session_state.get("wm_food_items", [])
-                    _dbg_lines = [f"wm_food_items: {[it.get('calories') for it in _dbg_src]}"]
-                    for _di in range(len(_dbg_src)):
-                        _dk = f"wm_item_cal_{date_key}_{_di}"
-                        _dbg_lines.append(f"widget[{_di}]={st.session_state.get(_dk, 'N/A')}")
-                    _dbg_lines.append(f"edited: {[it.get('calories') for it in edited_items]}")
-                    import logging
-                    logging.warning("SAVE_DEBUG: " + " | ".join(_dbg_lines))
-                    st.toast("DEBUG: " + " | ".join(_dbg_lines), icon="🔍")
-                    # END DEBUG
-
-                    # edited_itemsを直接使う（ウィジェットの返り値 = 最新の表示値）
-                    final_items = list(edited_items)
+                    # 再計算済みデータがあればそちらを優先、なければedited_items（ウィジェット返り値）を使う
+                    recalced_data = st.session_state.get("wm_recalced_items")
+                    if recalced_data:
+                        # 再計算後、ユーザーがさらに手動編集した可能性を考慮
+                        # ウィジェットの現在値を読み取り、再計算データとマージ
+                        final_items = []
+                        for i, rc_item in enumerate(recalced_data):
+                            # ウィジェットキーから最新値を取得（ユーザーが再計算後に手動変更した場合に対応）
+                            w_name = st.session_state.get(f"wm_item_name_{date_key}_{i}", rc_item.get("name", ""))
+                            w_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", rc_item.get("quantity", "1人前"))
+                            w_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", rc_item.get("calories", 0))
+                            w_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
+                            if not w_del and str(w_name).strip():
+                                final_items.append({"name": str(w_name).strip(), "quantity": w_qty, "calories": int(w_cal)})
+                    else:
+                        final_items = list(edited_items)
                     # 手動追加行
                     add_n = st.session_state.get(f"wm_add_name_{date_key}", "")
                     if str(add_n).strip():
@@ -6888,11 +6890,14 @@ def page_weight_management():
                             "calories": int(st.session_state.get(f"wm_add_cal_{date_key}", 0)),
                         })
 
-                    # DEBUG2: final_items の確認
-                    _save_dbg = [f"{it['name']}={it['calories']}kcal" for it in final_items]
-                    st.toast(f"SAVE: {_save_dbg}", icon="💾")
+                    # DEBUG: 保存データの確認
                     import logging
-                    logging.warning(f"SAVE_FINAL: {final_items}")
+                    _dbg_src = st.session_state.get("wm_food_items", [])
+                    _dbg_recalced = st.session_state.get("wm_recalced_items")
+                    _save_dbg = [f"{it['name']}={it['calories']}kcal" for it in final_items]
+                    _dbg_msg = f"recalced={'YES' if _dbg_recalced else 'NO'} | edited={[it.get('calories') for it in edited_items]} | final={_save_dbg}"
+                    logging.warning(f"SAVE_DEBUG: {_dbg_msg}")
+                    st.toast(_dbg_msg, icon="🔍")
 
                     # 複数画像保存 → 共通の image_id を各品目に付与
                     saved_image_ids = []
