@@ -1309,32 +1309,42 @@ def _get_day_items(day_data: dict) -> list[dict]:
 
     新形式: day_data["items"] — フラットな品目リスト
     旧形式: day_data["meals"] — 食事単位のリスト → 展開してフラット化
+    quantityがないデータには "1人前" を補完する。
     """
     if "items" in day_data:
-        return day_data["items"]
-    # 旧形式: meals[] から展開
-    items = []
-    for meal in day_data.get("meals", []):
-        # 画像情報を取得（複数画像対応 + 旧形式互換）
-        meal_images = meal.get("images", [])
-        if not meal_images:
-            old_id = meal.get("image_id")
-            if old_id:
-                meal_images = [{"id": old_id, "ext": meal.get("image_ext", "png")}]
-        img = meal_images[0] if meal_images else {}
-        for it in meal.get("items", []):
-            item = {"name": it["name"], "calories": it["calories"]}
-            if img:
-                item["image_id"] = img.get("id", "")
-                item["image_ext"] = img.get("ext", "png")
-            items.append(item)
+        items = day_data["items"]
+    else:
+        # 旧形式: meals[] から展開
+        items = []
+        for meal in day_data.get("meals", []):
+            # 画像情報を取得（複数画像対応 + 旧形式互換）
+            meal_images = meal.get("images", [])
+            if not meal_images:
+                old_id = meal.get("image_id")
+                if old_id:
+                    meal_images = [{"id": old_id, "ext": meal.get("image_ext", "png")}]
+            img = meal_images[0] if meal_images else {}
+            for it in meal.get("items", []):
+                item = {"name": it["name"], "calories": it["calories"]}
+                if img:
+                    item["image_id"] = img.get("id", "")
+                    item["image_ext"] = img.get("ext", "png")
+                items.append(item)
+    # quantity 補完（旧データ互換）
+    for it in items:
+        if "quantity" not in it:
+            it["quantity"] = "1人前"
     return items
 
 
-def _recalc_calories(item_names: list[str], api_key: str) -> list[int] | None:
-    """品目名リストからGeminiでカロリーを再推定する。"""
+def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[int] | None:
+    """品目名+量リストからGeminiでカロリーを再推定する。
+
+    items_for_recalc: [{"name": "品目名", "quantity": "1人前"}, ...]
+    """
     try:
-        prompt = CALORIE_RECALC_PROMPT.replace("{item_names_json}", json.dumps(item_names, ensure_ascii=False))
+        items_json = json.dumps(items_for_recalc, ensure_ascii=False)
+        prompt = CALORIE_RECALC_PROMPT.replace("{items_json}", items_json)
         parts = [{"text": prompt}]
         response_text = _gemini_generate(api_key, parts)
         result = _parse_gemini_json(response_text)
