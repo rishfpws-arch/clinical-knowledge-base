@@ -6431,8 +6431,8 @@ def page_settings_all():
                 wd = _read_json_from_sheet(sh_status, "weight_data")
                 if wd and "records" in wd:
                     rec_count = len(wd["records"])
-                    meal_count = sum(len(wd["records"][d].get("meals", [])) for d in wd["records"])
-                    st.caption(f"📡 体重データ: {rec_count}日分 / {meal_count}食 (Sheets上)")
+                    item_count = sum(len(_get_day_items(wd["records"][d])) for d in wd["records"])
+                    st.caption(f"📡 体重データ: {rec_count}日分 / {item_count}品目 (Sheets上)")
                 else:
                     st.caption("📡 体重データ: Sheets上にデータなし")
             except Exception:
@@ -6520,8 +6520,8 @@ def _render_weight_history(records: dict, goals: dict):
     # --- 期間サマリー ---
     total_days = len(sorted_dates)
     total_cal_all = sum(records[dk].get("total_calories", 0) for dk in sorted_dates)
-    days_with_meals = sum(1 for dk in sorted_dates if records[dk].get("meals"))
-    avg_cal = int(total_cal_all / days_with_meals) if days_with_meals else 0
+    days_with_items = sum(1 for dk in sorted_dates if _get_day_items(records[dk]))
+    avg_cal = int(total_cal_all / days_with_items) if days_with_items else 0
 
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
@@ -6543,8 +6543,8 @@ def _render_weight_history(records: dict, goals: dict):
         day = records[dk]
         w = day.get("weight")
         cal = day.get("total_calories", 0)
-        meals = day.get("meals", [])
-        meal_count = len(meals)
+        day_items = _get_day_items(day)
+        item_count = len(day_items)
 
         # 曜日
         dt = datetime.strptime(dk, "%Y-%m-%d")
@@ -6552,35 +6552,16 @@ def _render_weight_history(records: dict, goals: dict):
 
         # ヘッダー行
         w_str = f"⚖️ {w} kg" if w else "⚖️ --"
-        header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {meal_count}食"
+        header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {item_count}品"
 
         with st.expander(header, expanded=False):
-            if not meals:
+            if not day_items:
                 st.caption("食事記録なし")
             else:
-                sorted_meals = sorted(meals, key=lambda m: m.get("time", "00:00"))
-                for meal in sorted_meals:
-                    mtime = meal.get("time", "")
-                    mitems = meal.get("items", [])
-                    mcal = meal.get("total_calories", 0)
-                    names = "、".join(it["name"] for it in mitems) if mitems else "（品目なし）"
-
-                    # サムネイル（あれば）
-                    meal_images = meal.get("images", [])
-                    if not meal_images:
-                        old_id = meal.get("image_id")
-                        if old_id:
-                            meal_images = [{"id": old_id, "ext": meal.get("image_ext", "png")}]
-                    if meal_images:
-                        img_cols = st.columns(min(len(meal_images), 4))
-                        for idx, img_info in enumerate(meal_images):
-                            img_path = WEIGHT_UPLOADS_DIR / f"{img_info['id']}.{img_info['ext']}"
-                            if img_path.exists():
-                                with img_cols[idx % len(img_cols)]:
-                                    st.image(img_path.read_bytes(), width=80)
-
-                    st.markdown(f"**{mtime}** — {names}　**{mcal} kcal**")
-                    st.markdown("---")
+                for it in day_items:
+                    it_name = it.get("name", "")
+                    it_cal = it.get("calories", 0)
+                    st.markdown(f"- {it_name}　**{it_cal} kcal**")
 
 
 def page_weight_management():
