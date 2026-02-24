@@ -90,6 +90,54 @@ QUOTES = [
     ("学びて思わざれば則ち罔し、思いて学ばざれば則ち殆し。", "孔子"),
 ]
 
+
+# ---------------------------------------------------------------------------
+# 認証
+# ---------------------------------------------------------------------------
+def _check_auth() -> bool:
+    """ログイン認証。認証済みならTrue、未認証ならログイン画面を表示してFalse。"""
+    if st.session_state.get("authenticated"):
+        return True
+
+    # secrets.toml に [auth.users] がなければ認証スキップ（開発用）
+    try:
+        auth_users = dict(st.secrets["auth"]["users"])
+    except (KeyError, FileNotFoundError):
+        return True  # 認証設定なし → フリーアクセス
+
+    # ログイン画面
+    st.markdown(
+        "<h1 style='text-align:center; margin-top:60px;'>🧸 Clinical Knowledge Base</h1>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p style='text-align:center; color:#888;'>アクセスするにはログインが必要です</p>",
+        unsafe_allow_html=True,
+    )
+
+    # 中央寄せ用カラム
+    _, col_form, _ = st.columns([1, 2, 1])
+    with col_form:
+        with st.form("login_form"):
+            username = st.text_input("ユーザー名", placeholder="ユーザー名を入力")
+            password = st.text_input("パスワード", type="password", placeholder="パスワードを入力")
+            submitted = st.form_submit_button("🔐 ログイン", type="primary", use_container_width=True)
+
+        if submitted:
+            if not username or not password:
+                st.error("ユーザー名とパスワードを入力してください。")
+            else:
+                pw_hash = hashlib.sha256(password.encode()).hexdigest()
+                if username in auth_users and auth_users[username] == pw_hash:
+                    st.session_state["authenticated"] = True
+                    st.session_state["auth_user"] = username
+                    st.rerun()
+                else:
+                    st.error("ユーザー名またはパスワードが正しくありません。")
+
+    return False
+
+
 # 画像解析プロンプト
 ANALYSIS_PROMPT = """あなたは臨床経験豊富な専門医レベルの医療アシスタントです。
 この画像を解析し、医師が臨床現場ですぐに活用できる形で、以下のJSON形式で出力してください。
