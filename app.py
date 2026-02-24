@@ -6519,14 +6519,21 @@ def page_weight_management():
 
     weight_data = load_weight_data()
     api_key = get_gemini_api_key()
-
-    # --- 日付選択 ---
-    selected_date = st.date_input("📅 日付", value=date.today(), key="wm_date")
-    date_key = selected_date.strftime("%Y-%m-%d")
-
     records = weight_data.setdefault("records", {})
-    day_data = records.setdefault(date_key, {"meals": [], "total_calories": 0})
     goals = weight_data.get("goals", {})
+
+    tab_record, tab_history = st.tabs(["📝 記録", "📊 履歴"])
+
+    with tab_history:
+        _render_weight_history(records, goals)
+
+    with tab_record:
+
+        # --- 日付選択 ---
+        selected_date = st.date_input("📅 日付", value=date.today(), key="wm_date")
+        date_key = selected_date.strftime("%Y-%m-%d")
+
+        day_data = records.setdefault(date_key, {"meals": [], "total_calories": 0})
 
     # --- 今日のサマリー ---
     st.markdown("### 📊 サマリー")
