@@ -1220,6 +1220,23 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
     return "  \n".join(comments)
 
 
+def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
+    """画像のEXIFから撮影日時を取得する。"""
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        exif = img._getexif()
+        if exif is None:
+            return None
+        # 36867 = DateTimeOriginal, 36868 = DateTimeDigitized
+        for tag_id in (36867, 36868):
+            dt_str = exif.get(tag_id)
+            if dt_str:
+                return datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S")
+    except Exception:
+        pass
+    return None
+
+
 def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str = "") -> list[str] | None:
     """Gemini で画像からキーワード（タグ）のみを生成する。
 
