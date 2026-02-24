@@ -6400,6 +6400,119 @@ def page_settings_all():
 # ===========================================================================
 # 体重管理ページ
 # ===========================================================================
+def _render_weight_history(records: dict, goals: dict):
+    """体重管理の履歴一覧（家計簿スタイル）。"""
+
+    if not records:
+        st.info("まだ記録がありません。「📝 記録」タブからデータを入力してください。")
+        return
+
+    # --- 期間フィルター ---
+    period = st.selectbox("表示期間", ["直近7日", "直近30日", "全期間"], key="wm_hist_period")
+    today = date.today()
+    if period == "直近7日":
+        cutoff = today - timedelta(days=7)
+    elif period == "直近30日":
+        cutoff = today - timedelta(days=30)
+    else:
+        cutoff = None
+
+    # 日付降順でフィルタ
+    sorted_dates = sorted(records.keys(), reverse=True)
+    if cutoff:
+        sorted_dates = [d for d in sorted_dates if d >= cutoff.strftime("%Y-%m-%d")]
+
+    if not sorted_dates:
+        st.caption("この期間のデータはありません。")
+        return
+
+    # --- 体重推移チャート ---
+    weight_dates = []
+    weight_vals = []
+    for dk in sorted(sorted_dates):  # チャートは昇順
+        w = records[dk].get("weight")
+        if w:
+            weight_dates.append(dk)
+            weight_vals.append(w)
+
+    if weight_vals:
+        st.markdown("### 📈 体重推移")
+        import pandas as pd
+        chart_df = pd.DataFrame({"日付": weight_dates, "体重(kg)": weight_vals})
+        chart_df["日付"] = pd.to_datetime(chart_df["日付"])
+        chart_df = chart_df.set_index("日付")
+        st.line_chart(chart_df)
+
+        target_wt = goals.get("target_weight_kg")
+        if target_wt:
+            st.caption(f"🎯 目標体重: {target_wt} kg")
+
+    # --- 期間サマリー ---
+    total_days = len(sorted_dates)
+    total_cal_all = sum(records[dk].get("total_calories", 0) for dk in sorted_dates)
+    days_with_meals = sum(1 for dk in sorted_dates if records[dk].get("meals"))
+    avg_cal = int(total_cal_all / days_with_meals) if days_with_meals else 0
+
+    sc1, sc2, sc3 = st.columns(3)
+    with sc1:
+        st.metric("記録日数", f"{total_days} 日")
+    with sc2:
+        st.metric("平均カロリー", f"{avg_cal} kcal")
+    with sc3:
+        if len(weight_vals) >= 2:
+            wt_change = round(weight_vals[-1] - weight_vals[0], 1)
+            sign = "+" if wt_change > 0 else ""
+            st.metric("体重変化", f"{sign}{wt_change} kg")
+        else:
+            st.metric("体重変化", "---")
+
+    # --- 日別サマリー（家計簿スタイル） ---
+    st.markdown("### 📋 日別記録")
+
+    for dk in sorted_dates:
+        day = records[dk]
+        w = day.get("weight")
+        cal = day.get("total_calories", 0)
+        meals = day.get("meals", [])
+        meal_count = len(meals)
+
+        # 曜日
+        dt = datetime.strptime(dk, "%Y-%m-%d")
+        weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
+
+        # ヘッダー行
+        w_str = f"⚖️ {w} kg" if w else "⚖️ --"
+        header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {meal_count}食"
+
+        with st.expander(header, expanded=False):
+            if not meals:
+                st.caption("食事記録なし")
+            else:
+                sorted_meals = sorted(meals, key=lambda m: m.get("time", "00:00"))
+                for meal in sorted_meals:
+                    mtime = meal.get("time", "")
+                    mitems = meal.get("items", [])
+                    mcal = meal.get("total_calories", 0)
+                    names = "、".join(it["name"] for it in mitems) if mitems else "（品目なし）"
+
+                    # サムネイル（あれば）
+                    meal_images = meal.get("images", [])
+                    if not meal_images:
+                        old_id = meal.get("image_id")
+                        if old_id:
+                            meal_images = [{"id": old_id, "ext": meal.get("image_ext", "png")}]
+                    if meal_images:
+                        img_cols = st.columns(min(len(meal_images), 4))
+                        for idx, img_info in enumerate(meal_images):
+                            img_path = WEIGHT_UPLOADS_DIR / f"{img_info['id']}.{img_info['ext']}"
+                            if img_path.exists():
+                                with img_cols[idx % len(img_cols)]:
+                                    st.image(img_path.read_bytes(), width=80)
+
+                    st.markdown(f"**{mtime}** — {names}　**{mcal} kcal**")
+                    st.markdown("---")
+
+
 def page_weight_management():
     """体重管理ページ — 食事記録・体重記録・目標管理。"""
     st.markdown("## ⚖️ 体重管理")
