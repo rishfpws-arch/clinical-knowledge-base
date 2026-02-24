@@ -163,6 +163,47 @@ JSON以外のテキストは一切含めないでください。
 - 鑑別疾患（例: 化膿性関節炎、関節リウマチ）
 - 関連する臨床情報（例: ステロイド内服歴、緊急手術適応）"""
 
+# ---------------------------------------------------------------------------
+# 体重管理用 Gemini プロンプト
+# ---------------------------------------------------------------------------
+FOOD_ANALYSIS_PROMPT = """あなたは管理栄養士です。この食事の画像を解析してください。
+
+写っている料理の品目名と、それぞれの推定カロリー（kcal）を日本語で出力してください。
+JSON以外のテキストは一切含めないでください。
+
+出力形式:
+{
+    "items": [
+        {"name": "品目名", "calories": 推定カロリー数値},
+        {"name": "品目名", "calories": 推定カロリー数値}
+    ],
+    "total_calories": 合計カロリー数値
+}
+
+【ルール】
+- 品目名は日本語で記載
+- カロリーは整数値（kcalの数値のみ、単位は不要）
+- 見える範囲の全ての品目を列挙
+- 量が判断できない場合は一般的な1人前の量で推定
+- total_caloriesはitemsのcaloriesの合計と一致させること
+- 飲み物が見える場合はそれも含めること"""
+
+WEIGHT_SCALE_PROMPT = """この画像は体重計の表示画面です。
+表示されている体重の数値を読み取ってください。
+JSON以外のテキストは一切含めないでください。
+
+出力形式:
+{
+    "weight_kg": 数値（kg単位、小数第1位まで）,
+    "confidence": "high" または "low"
+}
+
+【ルール】
+- 数値が明瞭に読み取れる場合は confidence: "high"
+- ぼやけていたり読み取りにくい場合は confidence: "low"
+- 数値が全く読み取れない場合は weight_kg: null, confidence: "none"
+- kg単位で出力（lbの場合はkgに変換）"""
+
 # チャット用システムプロンプト（知識ベース検索）
 CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 質問者は初期研修医〜後期研修医レベルの若手医師です。
@@ -216,7 +257,7 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 # Google Sheets 永続化
 # ---------------------------------------------------------------------------
 _SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
-_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash"]
+_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data"]
 _CACHE_TTL = 30  # 秒
 
 
@@ -316,7 +357,7 @@ def _set_cache(cache_key: str, data):
 
 def _invalidate_all_caches():
     """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
-    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions"]:
+    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions", "_cache_weight_data"]:
         st.session_state.pop(ck, None)
         st.session_state.pop(f"{ck}_ts", None)
 
