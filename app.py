@@ -4310,42 +4310,42 @@ def page_chat():
         )
         send_clicked = st.form_submit_button("🔍 検索する", type="primary")
 
-    # --- 📷 画像貼り付け → AI解析して取り込み ---
-    with st.expander("📷 画像を貼り付けて取り込む", expanded=False):
-        # streamlit-paste-button はCloud環境で動かない場合があるため安全にimport
-        paste_result = None
-        try:
-            from streamlit_paste_button import paste_image_button as pib
-            st.markdown("**方法①** スクショをコピーして以下のボタンで貼り付け:")
-            paste_result = pib(
-                label="📋 クリップボードから画像を貼り付け",
-                text_color="#5b8def",
-                background_color="transparent",
-                hover_background_color="rgba(91,139,239,0.1)",
-            )
-        except Exception:
-            st.caption("📋 クリップボード貼り付けはPC版でのみ利用可能です")
+    # --- 📷 画像取り込み ---
+    with st.expander("📷 画像を取り込む", expanded=False):
+        # pib() と file_uploader をタブで分離（モバイル互換性のため）
+        upload_tab1, upload_tab2 = st.tabs(["📁 ファイル選択", "📋 クリップボード（PC）"])
 
-        st.markdown("**方法②** ファイルを選択 / ドラッグ＆ドロップ:")
-        uploaded_file = st.file_uploader(
-            "画像ファイルを選択",
-            type=["png", "jpg", "jpeg"],
-            key="chat_image_upload",
-            label_visibility="collapsed",
-        )
-
-        # 画像データの決定（貼り付け or ファイル選択）
         img_bytes = None
-        img_name = "clipboard_image.png"
-        if paste_result and paste_result.image_data is not None:
-            # クリップボードから貼り付けた画像
-            buf = io.BytesIO()
-            paste_result.image_data.save(buf, format="PNG")
-            img_bytes = buf.getvalue()
-            img_name = f"paste_{datetime.now().strftime('%H%M%S')}.png"
-        elif uploaded_file is not None:
-            img_bytes = uploaded_file.getvalue()
-            img_name = uploaded_file.name
+        img_name = "image.png"
+
+        with upload_tab1:
+            uploaded_file = st.file_uploader(
+                "画像ファイルを選択",
+                type=["png", "jpg", "jpeg"],
+                key="chat_image_upload",
+                label_visibility="collapsed",
+            )
+            if uploaded_file is not None:
+                img_bytes = uploaded_file.getvalue()
+                img_name = uploaded_file.name
+
+        with upload_tab2:
+            try:
+                from streamlit_paste_button import paste_image_button as pib
+                st.caption("スクショをコピーしてボタンで貼り付け:")
+                paste_result = pib(
+                    label="📋 クリップボードから画像を貼り付け",
+                    text_color="#5b8def",
+                    background_color="transparent",
+                    hover_background_color="rgba(91,139,239,0.1)",
+                )
+                if paste_result and paste_result.image_data is not None:
+                    buf = io.BytesIO()
+                    paste_result.image_data.save(buf, format="PNG")
+                    img_bytes = buf.getvalue()
+                    img_name = f"paste_{datetime.now().strftime('%H%M%S')}.png"
+            except Exception:
+                st.caption("📋 クリップボード貼り付けはPC版でのみ利用可能です")
 
         if img_bytes:
             # 既に取り込み済みの画像がある場合は詳細表示
