@@ -6828,10 +6828,11 @@ def page_weight_management():
                                     recalced.append({"name": it["name"], "quantity": it["quantity"], "calories": nc})
                                 st.session_state["wm_food_items"] = recalced
                                 st.session_state["wm_food_total"] = sum(nc for nc in new_cals)
+                                # 再計算済みフラグ（保存時に確実に最新データを使うため）
+                                st.session_state["wm_recalced_items"] = list(recalced)
                                 # DEBUG: 再計算結果を表示
                                 import logging
                                 logging.warning(f"RECALC: old={[it.get('calories') for it in edited_items]} new={new_cals}")
-                                st.toast(f"再計算: {new_cals}", icon="🔄")
                                 # ウィジェットキーを削除して新しい value= を反映させる
                                 for idx in range(len(recalced)):
                                     st.session_state.pop(f"wm_item_name_{date_key}_{idx}", None)
