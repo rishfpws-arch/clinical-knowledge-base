@@ -6864,6 +6864,16 @@ def page_weight_management():
             btn_col1, btn_col2 = st.columns([3, 1])
             with btn_col1:
                 if st.button("➕ 追加する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
+                    # DEBUG: 保存時のデータソースを確認するログ
+                    _dbg_src = st.session_state.get("wm_food_items", [])
+                    _dbg_lines = [f"wm_food_items cals: {[it.get('calories') for it in _dbg_src]}"]
+                    for _di in range(len(_dbg_src)):
+                        _dk = f"wm_item_cal_{date_key}_{_di}"
+                        _dbg_lines.append(f"  widget key {_dk}: {st.session_state.get(_dk, 'NOT FOUND')}")
+                    _dbg_lines.append(f"edited_items cals: {[it.get('calories') for it in edited_items]}")
+                    logging.warning("WM_SAVE_DEBUG: " + " | ".join(_dbg_lines))
+                    st.toast("DEBUG: " + " | ".join(_dbg_lines), icon="🔍")
+
                     # session_stateのウィジェットキーから直接最新値を取得（再計算後の値を確実に拾う）
                     final_items = []
                     source_items = st.session_state.get("wm_food_items", [])
