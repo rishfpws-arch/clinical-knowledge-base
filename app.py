@@ -6888,7 +6888,8 @@ def page_weight_management():
                         })
 
                     # DEBUG2: final_items の確認
-                    st.toast(f"SAVE: {[f'{it[\"name\"]}={it[\"calories\"]}kcal' for it in final_items]}", icon="💾")
+                    _save_dbg = [f"{it['name']}={it['calories']}kcal" for it in final_items]
+                    st.toast(f"SAVE: {_save_dbg}", icon="💾")
                     import logging
                     logging.warning(f"SAVE_FINAL: {final_items}")
 
