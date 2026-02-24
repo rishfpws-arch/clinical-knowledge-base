@@ -11,6 +11,7 @@ AI解析/チャット: Gemini 2.0 Flash (REST API)
 """
 
 import base64
+import hashlib
 import io
 import json
 import logging
