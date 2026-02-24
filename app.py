@@ -6860,16 +6860,20 @@ def page_weight_management():
             btn_col1, btn_col2 = st.columns([3, 1])
             with btn_col1:
                 if st.button("➕ 追加する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
-                    # session_stateのウィジェットキーから直接最新値を取得（再計算後の値を確実に拾う）
-                    final_items = []
-                    source_items = st.session_state.get("wm_food_items", [])
-                    for i in range(len(source_items)):
-                        s_name = st.session_state.get(f"wm_item_name_{date_key}_{i}", source_items[i].get("name", ""))
-                        s_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", source_items[i].get("quantity", "1人前"))
-                        s_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", source_items[i].get("calories", 0))
-                        s_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
-                        if not s_del and str(s_name).strip():
-                            final_items.append({"name": str(s_name).strip(), "quantity": s_qty, "calories": int(s_cal)})
+                    # DEBUG: 保存時の各データソースの値を表示
+                    _dbg_src = st.session_state.get("wm_food_items", [])
+                    _dbg_lines = [f"wm_food_items: {[it.get('calories') for it in _dbg_src]}"]
+                    for _di in range(len(_dbg_src)):
+                        _dk = f"wm_item_cal_{date_key}_{_di}"
+                        _dbg_lines.append(f"widget[{_di}]={st.session_state.get(_dk, 'N/A')}")
+                    _dbg_lines.append(f"edited: {[it.get('calories') for it in edited_items]}")
+                    import logging
+                    logging.warning("SAVE_DEBUG: " + " | ".join(_dbg_lines))
+                    st.toast("DEBUG: " + " | ".join(_dbg_lines), icon="🔍")
+                    # END DEBUG
+
+                    # edited_itemsを直接使う（ウィジェットの返り値 = 最新の表示値）
+                    final_items = list(edited_items)
                     # 手動追加行
                     add_n = st.session_state.get(f"wm_add_name_{date_key}", "")
                     if str(add_n).strip():
