@@ -12,6 +12,7 @@ AI解析/チャット: Gemini 2.0 Flash (REST API)
 
 import base64
 import hashlib
+import hmac
 import io
 import json
 import logging
@@ -22,7 +23,7 @@ import subprocess
 import threading
 import time
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 import requests
@@ -6527,7 +6528,7 @@ def page_weight_management():
             if dt is not None:
                 exif_times.append(dt)
         if exif_times:
-            exif_dt = min(exif_times)
+            exif_dt = max(exif_times)
             st.session_state["wm_upload_meal_time"] = exif_dt.strftime("%H:%M")
             st.session_state["wm_exif_info"] = exif_dt.strftime("%Y-%m-%d %H:%M")
         else:
