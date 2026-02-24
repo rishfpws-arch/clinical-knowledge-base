@@ -751,6 +751,68 @@ def save_chat_sessions(sessions: dict) -> None:
         pass
 
 
+# ---------------------------------------------------------------------------
+# 体重管理データ管理
+# ---------------------------------------------------------------------------
+def load_weight_data() -> dict:
+    """体重管理データを読み込む。session_state → Sheets → ローカルの順。"""
+    ck = "_cache_weight_data"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+
+    default = {"goals": {}, "records": {}}
+    sh = get_sheets_client()
+    if sh is not None:
+        try:
+            data = _read_json_from_sheet(sh, "weight_data")
+            if data is not None:
+                _set_cache(ck, data)
+                try:
+                    with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
+                        json.dump(data, f, ensure_ascii=False, indent=2)
+                except IOError:
+                    pass
+                return data
+        except Exception:
+            pass
+
+    if WEIGHT_DATA_PATH.exists():
+        try:
+            with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            _set_cache(ck, data)
+            return data
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    _set_cache(ck, default)
+    return default
+
+
+def save_weight_data(weight_data: dict) -> bool:
+    """体重管理データを保存する。session_state + Sheets + ローカルJSON。"""
+    _set_cache("_cache_weight_data", weight_data)
+    sheets_ok = False
+    sh = get_sheets_client()
+    if sh is not None:
+        try:
+            sheets_ok = _write_json_to_sheet(sh, "weight_data", weight_data)
+        except Exception:
+            try:
+                st.session_state.pop("_sheets_conn", None)
+                sh2 = _new_sheets_connection()
+                if sh2 is not None:
+                    sheets_ok = _write_json_to_sheet(sh2, "weight_data", weight_data)
+            except Exception:
+                pass
+    try:
+        with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
+            json.dump(weight_data, f, ensure_ascii=False, indent=2)
+    except IOError:
+        pass
+    return sheets_ok
+
+
 def format_relative_time(iso_str: str) -> str:
     """ISO形式の日時文字列を相対時間（例: '5分前'）に変換する。"""
     try:
