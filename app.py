@@ -6370,8 +6370,19 @@ def page_settings_all():
         sh_status = get_sheets_client()
         if sh_status is not None:
             st.success("☁️ Google Sheets: 接続済み")
+            # 体重データの同期ステータス
+            try:
+                wd = _read_json_from_sheet(sh_status, "weight_data")
+                if wd and "records" in wd:
+                    rec_count = len(wd["records"])
+                    meal_count = sum(len(wd["records"][d].get("meals", [])) for d in wd["records"])
+                    st.caption(f"📡 体重データ: {rec_count}日分 / {meal_count}食 (Sheets上)")
+                else:
+                    st.caption("📡 体重データ: Sheets上にデータなし")
+            except Exception:
+                st.caption("📡 体重データ: 読み取り確認スキップ")
         else:
-            st.warning("☁️ Google Sheets: 未接続")
+            st.warning("☁️ Google Sheets: 未接続（ローカルJSONにフォールバック中）")
 
         col_sys1, col_sys2 = st.columns(2)
         with col_sys1:
@@ -6392,6 +6403,9 @@ def page_settings_all():
             if st.button("🚪 ログアウト", key="sys_logout", use_container_width=True):
                 st.session_state["authenticated"] = False
                 st.session_state.pop("auth_user", None)
+                # URLからトークンも削除
+                if "token" in st.query_params:
+                    del st.query_params["token"]
                 st.rerun()
         else:
             st.caption("認証が設定されていないか、フリーアクセスモードです。")
