@@ -6575,8 +6575,9 @@ def _render_weight_history(records: dict, goals: dict):
             else:
                 for it in day_items:
                     it_name = it.get("name", "")
+                    it_qty = it.get("quantity", "1人前")
                     it_cal = it.get("calories", 0)
-                    st.markdown(f"- {it_name}　**{it_cal} kcal**")
+                    st.markdown(f"- {it_name}（{it_qty}）　**{it_cal} kcal**")
 
 
 def page_weight_management():
@@ -6760,45 +6761,52 @@ def page_weight_management():
                 st.markdown("**🤖 AI解析結果（編集できます）:**")
                 edited_items = []
                 for i, item in enumerate(items):
-                    c1, c2, c3 = st.columns([3, 2, 1])
+                    c1, c2, c3, c4 = st.columns([3, 1.5, 1.5, 1])
                     with c1:
                         name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
                     with c2:
-                        cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
+                        qty_val = item.get("quantity", "1人前")
+                        qty_idx = QUANTITY_OPTIONS.index(qty_val) if qty_val in QUANTITY_OPTIONS else 3
+                        qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_item_qty_{date_key}_{i}")
                     with c3:
+                        cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
+                    with c4:
                         st.markdown("<br>", unsafe_allow_html=True)
                         remove = st.checkbox("削除", key=f"wm_item_del_{date_key}_{i}")
                     if not remove and name.strip():
-                        edited_items.append({"name": name.strip(), "calories": cal})
+                        edited_items.append({"name": name.strip(), "quantity": qty, "calories": cal})
                 # 手動追加行
                 st.markdown("---")
-                ac1, ac2 = st.columns([3, 2])
+                ac1, ac2, ac3 = st.columns([3, 1.5, 1.5])
                 with ac1:
                     add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
                 with ac2:
+                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=3, key=f"wm_add_qty_{date_key}")
+                with ac3:
                     add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
                 if add_name.strip():
-                    edited_items.append({"name": add_name.strip(), "calories": add_cal})
+                    edited_items.append({"name": add_name.strip(), "quantity": add_qty, "calories": add_cal})
 
                 new_total = sum(it["calories"] for it in edited_items)
                 st.markdown(f"**合計: {new_total} kcal**")
 
                 # カロリー再計算ボタン
-                if st.button("🔄 カロリー再計算", key="wm_recalc_cal", help="品目名を修正した後、カロリーだけ再推定します"):
+                if st.button("🔄 カロリー再計算", key="wm_recalc_cal", help="品目名・量を修正した後、カロリーを再推定します"):
                     if api_key:
-                        names_list = [it["name"] for it in edited_items]
-                        if names_list:
+                        items_for_recalc = [{"name": it["name"], "quantity": it["quantity"]} for it in edited_items]
+                        if items_for_recalc:
                             with st.spinner("カロリーを再計算中..."):
-                                new_cals = _recalc_calories(names_list, api_key)
+                                new_cals = _recalc_calories(items_for_recalc, api_key)
                             if new_cals and len(new_cals) == len(edited_items):
                                 recalced = []
                                 for it, nc in zip(edited_items, new_cals):
-                                    recalced.append({"name": it["name"], "calories": nc})
+                                    recalced.append({"name": it["name"], "quantity": it["quantity"], "calories": nc})
                                 st.session_state["wm_food_items"] = recalced
                                 st.session_state["wm_food_total"] = sum(nc for nc in new_cals)
                                 # ウィジェットキーを削除して新しい value= を反映させる
                                 for idx in range(len(recalced)):
                                     st.session_state.pop(f"wm_item_name_{date_key}_{idx}", None)
+                                    st.session_state.pop(f"wm_item_qty_{date_key}_{idx}", None)
                                     st.session_state.pop(f"wm_item_cal_{date_key}_{idx}", None)
                                     st.session_state.pop(f"wm_item_del_{date_key}_{idx}", None)
                                 st.rerun()
@@ -6812,13 +6820,15 @@ def page_weight_management():
                 edited_items = []
                 st.caption("上の「🤖 AIでカロリー解析」を押すか、下から手動で品目を入力してください。")
                 # 手動入力（AI未使用時）
-                ac1, ac2 = st.columns([3, 2])
-                with ac1:
+                mc1, mc2, mc3 = st.columns([3, 1.5, 1.5])
+                with mc1:
                     add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
-                with ac2:
+                with mc2:
+                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=3, key=f"wm_manual_qty_{date_key}")
+                with mc3:
                     add_cal = st.number_input("カロリー(kcal)", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
                 if add_name.strip():
-                    edited_items.append({"name": add_name.strip(), "calories": add_cal})
+                    edited_items.append({"name": add_name.strip(), "quantity": add_qty, "calories": add_cal})
                 new_total = sum(it["calories"] for it in edited_items)
 
             # 追加ボタンとキャンセルボタン
@@ -6841,6 +6851,7 @@ def page_weight_management():
                         item_entry = {
                             "id": f"item_{uuid.uuid4().hex[:12]}",
                             "name": it["name"],
+                            "quantity": it.get("quantity", "1人前"),
                             "calories": it["calories"],
                         }
                         # 1枚目の画像IDを全品目に紐付け（複数画像の場合は最初の画像）
@@ -6895,7 +6906,8 @@ def page_weight_management():
                     item_id = it.get("id", "")
                     col_name, col_cal, col_del = st.columns([4, 2, 1])
                     with col_name:
-                        st.markdown(f"　{it['name']}")
+                        qty_label = it.get("quantity", "1人前")
+                        st.markdown(f"　{it['name']}（{qty_label}）")
                     with col_cal:
                         st.markdown(f"**{it.get('calories', 0)} kcal**")
                     with col_del:
