@@ -6781,6 +6781,11 @@ def page_weight_management():
                                     recalced.append({"name": it["name"], "calories": nc})
                                 st.session_state["wm_food_items"] = recalced
                                 st.session_state["wm_food_total"] = sum(nc for nc in new_cals)
+                                # ウィジェットキーを削除して新しい value= を反映させる
+                                for idx in range(len(recalced)):
+                                    st.session_state.pop(f"wm_item_name_{date_key}_{idx}", None)
+                                    st.session_state.pop(f"wm_item_cal_{date_key}_{idx}", None)
+                                    st.session_state.pop(f"wm_item_del_{date_key}_{idx}", None)
                                 st.rerun()
                             else:
                                 st.error("カロリー再計算に失敗しました。")
