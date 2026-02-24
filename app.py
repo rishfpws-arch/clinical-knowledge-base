@@ -6101,6 +6101,19 @@ def page_settings_all():
                 st.toast("☁️ Google Sheets から最新データを再読み込みしました")
                 st.rerun()
 
+        # --- ログイン情報 & ログアウト ---
+        st.markdown("---")
+        st.markdown("#### 👤 ログイン情報")
+        auth_user = st.session_state.get("auth_user")
+        if auth_user:
+            st.write(f"ログイン中: **{auth_user}**")
+            if st.button("🚪 ログアウト", key="sys_logout", use_container_width=True):
+                st.session_state["authenticated"] = False
+                st.session_state.pop("auth_user", None)
+                st.rerun()
+        else:
+            st.caption("認証が設定されていないか、フリーアクセスモードです。")
+
 
 # ===========================================================================
 # メインエントリポイント
@@ -6111,6 +6124,10 @@ def main():
         page_icon="🧸",
         layout="wide",
     )
+
+    # ★ 認証チェック（未認証ならログイン画面のみ表示）
+    if not _check_auth():
+        return
 
     # Git自動push開始（バックグラウンド、60秒間隔）
     start_auto_push()
