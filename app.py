@@ -98,6 +98,11 @@ QUOTES = [
 # ---------------------------------------------------------------------------
 # 認証
 # ---------------------------------------------------------------------------
+def _make_auth_token(username: str, pw_hash: str) -> str:
+    """ユーザー名とパスワードハッシュからログイントークンを生成する。"""
+    return hmac.new(pw_hash.encode(), username.encode(), "sha256").hexdigest()[:16]
+
+
 def _check_auth() -> bool:
     """ログイン認証。認証済みならTrue、未認証ならログイン画面を表示してFalse。"""
     if st.session_state.get("authenticated"):
@@ -108,6 +113,16 @@ def _check_auth() -> bool:
         auth_users = dict(st.secrets["auth"]["users"])
     except (KeyError, FileNotFoundError):
         return True  # 認証設定なし → フリーアクセス
+
+    # URLのquery paramにtokenがあれば自動ログイン
+    token = st.query_params.get("token")
+    if token:
+        for uname, stored_hash in auth_users.items():
+            expected_token = _make_auth_token(uname, stored_hash)
+            if token == expected_token:
+                st.session_state["authenticated"] = True
+                st.session_state["auth_user"] = uname
+                return True
 
     # ログイン画面
     st.markdown(
@@ -135,6 +150,9 @@ def _check_auth() -> bool:
                 if username in auth_users and auth_users[username] == pw_hash:
                     st.session_state["authenticated"] = True
                     st.session_state["auth_user"] = username
+                    # URLにトークンを付与（ブックマーク/履歴でログイン維持）
+                    auth_token = _make_auth_token(username, pw_hash)
+                    st.query_params["token"] = auth_token
                     st.rerun()
                 else:
                     st.error("ユーザー名またはパスワードが正しくありません。")
