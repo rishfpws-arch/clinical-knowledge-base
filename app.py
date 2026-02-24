@@ -1299,6 +1299,47 @@ def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
     return None
 
 
+def _get_day_items(day_data: dict) -> list[dict]:
+    """新旧どちらのデータ形式でも品目リストを返す。
+
+    新形式: day_data["items"] — フラットな品目リスト
+    旧形式: day_data["meals"] — 食事単位のリスト → 展開してフラット化
+    """
+    if "items" in day_data:
+        return day_data["items"]
+    # 旧形式: meals[] から展開
+    items = []
+    for meal in day_data.get("meals", []):
+        # 画像情報を取得（複数画像対応 + 旧形式互換）
+        meal_images = meal.get("images", [])
+        if not meal_images:
+            old_id = meal.get("image_id")
+            if old_id:
+                meal_images = [{"id": old_id, "ext": meal.get("image_ext", "png")}]
+        img = meal_images[0] if meal_images else {}
+        for it in meal.get("items", []):
+            item = {"name": it["name"], "calories": it["calories"]}
+            if img:
+                item["image_id"] = img.get("id", "")
+                item["image_ext"] = img.get("ext", "png")
+            items.append(item)
+    return items
+
+
+def _recalc_calories(item_names: list[str], api_key: str) -> list[int] | None:
+    """品目名リストからGeminiでカロリーを再推定する。"""
+    try:
+        prompt = CALORIE_RECALC_PROMPT.replace("{item_names_json}", json.dumps(item_names, ensure_ascii=False))
+        parts = [{"text": prompt}]
+        response_text = _gemini_generate(api_key, parts)
+        result = _parse_gemini_json(response_text)
+        if result and "items" in result:
+            return [it.get("calories", 0) for it in result["items"]]
+    except Exception:
+        pass
+    return None
+
+
 def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str = "") -> list[str] | None:
     """Gemini で画像からキーワード（タグ）のみを生成する。
 
@@ -6562,7 +6603,7 @@ def page_weight_management():
         selected_date = st.date_input("📅 日付", value=date.today(), key="wm_date")
         date_key = selected_date.strftime("%Y-%m-%d")
 
-        day_data = records.setdefault(date_key, {"meals": [], "total_calories": 0})
+        day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
 
         # --- 今日のサマリー ---
         st.markdown("### 📊 サマリー")
