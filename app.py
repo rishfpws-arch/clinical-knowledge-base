@@ -122,7 +122,28 @@ def _check_auth() -> bool:
             if token == expected_token:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
+                # localStorageにもトークンを保存（Streamlitアプリ経由対策）
+                components.html(f"""<script>
+                try {{ localStorage.setItem('ckb_auth_token', '{token}'); }} catch(e) {{}}
+                </script>""", height=0)
                 return True
+
+    # URLにtokenがない場合: localStorageからトークンを復元してリダイレクト
+    if not token:
+        components.html("""<script>
+        (function() {
+            try {
+                var t = localStorage.getItem('ckb_auth_token');
+                if (t) {
+                    var url = new URL(window.parent.location.href);
+                    if (!url.searchParams.get('token')) {
+                        url.searchParams.set('token', t);
+                        window.parent.location.href = url.toString();
+                    }
+                }
+            } catch(e) {}
+        })();
+        </script>""", height=0)
 
     # ログイン画面
     st.markdown(
@@ -153,6 +174,10 @@ def _check_auth() -> bool:
                     # URLにトークンを付与（ブックマーク/履歴でログイン維持）
                     auth_token = _make_auth_token(username, pw_hash)
                     st.query_params["token"] = auth_token
+                    # localStorageにもトークンを保存（Streamlitアプリ経由対策）
+                    components.html(f"""<script>
+                    try {{ localStorage.setItem('ckb_auth_token', '{auth_token}'); }} catch(e) {{}}
+                    </script>""", height=0)
                     st.rerun()
                 else:
                     st.error("ユーザー名またはパスワードが正しくありません。")
