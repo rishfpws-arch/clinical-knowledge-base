@@ -122,13 +122,11 @@ def _check_auth() -> bool:
             if token == expected_token:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
-                # localStorageにもトークンを保存（Streamlitアプリ経由対策）
-                components.html(f"""<script>
-                try {{ localStorage.setItem('ckb_auth_token', '{token}'); }} catch(e) {{}}
-                </script>""", height=0)
+                # localStorageへの保存はメインページ描画後に実行するようフラグだけ立てる
+                st.session_state["_save_auth_token"] = token
                 return True
 
-    # URLにtokenがない場合: localStorageからトークンを復元してリダイレクト
+    # URLにtokenがない場合: localStorageからトークンを復元するJSを注入
     if not token:
         components.html("""<script>
         (function() {
@@ -174,10 +172,8 @@ def _check_auth() -> bool:
                     # URLにトークンを付与（ブックマーク/履歴でログイン維持）
                     auth_token = _make_auth_token(username, pw_hash)
                     st.query_params["token"] = auth_token
-                    # localStorageにもトークンを保存（Streamlitアプリ経由対策）
-                    components.html(f"""<script>
-                    try {{ localStorage.setItem('ckb_auth_token', '{auth_token}'); }} catch(e) {{}}
-                    </script>""", height=0)
+                    # localStorageへの保存はメインページ描画後に実行するようフラグだけ立てる
+                    st.session_state["_save_auth_token"] = auth_token
                     st.rerun()
                 else:
                     st.error("ユーザー名またはパスワードが正しくありません。")
@@ -7219,6 +7215,13 @@ def main():
         page_weight_management()
     elif active == TAB_NAMES[4]:
         page_settings_all()
+
+    # --- ページ描画完了後: 認証トークンをlocalStorageに保存 ---
+    _pending_token = st.session_state.pop("_save_auth_token", None)
+    if _pending_token:
+        components.html(f"""<script>
+        try {{ localStorage.setItem('ckb_auth_token', '{_pending_token}'); }} catch(e) {{}}
+        </script>""", height=0)
 
 
 if __name__ == "__main__":
