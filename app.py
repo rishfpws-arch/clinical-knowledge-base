@@ -6774,6 +6774,7 @@ def page_weight_management():
                     if result and "items" in result:
                         st.session_state["wm_food_items"] = result["items"]
                         st.session_state["wm_food_total"] = result.get("total_calories", 0)
+                        st.session_state.pop("wm_recalced_items", None)
                         st.rerun()
                     else:
                         st.error("食事画像の解析に失敗しました。")
@@ -6933,6 +6934,7 @@ def page_weight_management():
                     st.session_state.pop("wm_food_items", None)
                     st.session_state.pop("wm_food_total", None)
                     st.session_state.pop("wm_uploaded_foods", None)
+                    st.session_state.pop("wm_recalced_items", None)
                     final_total = sum(it["calories"] for it in final_items)
                     st.success(f"✅ {len(new_items)} 品目（{final_total} kcal）を追加しました。")
                     st.rerun()
@@ -6941,6 +6943,7 @@ def page_weight_management():
                     st.session_state.pop("wm_food_items", None)
                     st.session_state.pop("wm_food_total", None)
                     st.session_state.pop("wm_uploaded_foods", None)
+                    st.session_state.pop("wm_recalced_items", None)
                     st.rerun()
 
         st.markdown("---")
