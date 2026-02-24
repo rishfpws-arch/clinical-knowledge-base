@@ -6864,6 +6864,25 @@ def page_weight_management():
             btn_col1, btn_col2 = st.columns([3, 1])
             with btn_col1:
                 if st.button("➕ 追加する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
+                    # session_stateのウィジェットキーから直接最新値を取得（再計算後の値を確実に拾う）
+                    final_items = []
+                    source_items = st.session_state.get("wm_food_items", [])
+                    for i in range(len(source_items)):
+                        s_name = st.session_state.get(f"wm_item_name_{date_key}_{i}", source_items[i].get("name", ""))
+                        s_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", source_items[i].get("quantity", "1人前"))
+                        s_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", source_items[i].get("calories", 0))
+                        s_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
+                        if not s_del and str(s_name).strip():
+                            final_items.append({"name": str(s_name).strip(), "quantity": s_qty, "calories": int(s_cal)})
+                    # 手動追加行
+                    add_n = st.session_state.get(f"wm_add_name_{date_key}", "")
+                    if str(add_n).strip():
+                        final_items.append({
+                            "name": str(add_n).strip(),
+                            "quantity": st.session_state.get(f"wm_add_qty_{date_key}", "1人前"),
+                            "calories": int(st.session_state.get(f"wm_add_cal_{date_key}", 0)),
+                        })
+
                     # 複数画像保存 → 共通の image_id を各品目に付与
                     saved_image_ids = []
                     if all_food_bytes:
@@ -6876,7 +6895,7 @@ def page_weight_management():
 
                     # 品目リストに追加
                     new_items = []
-                    for it in edited_items:
+                    for it in final_items:
                         item_entry = {
                             "id": f"item_{uuid.uuid4().hex[:12]}",
                             "name": it["name"],
@@ -6898,7 +6917,8 @@ def page_weight_management():
                     st.session_state.pop("wm_food_items", None)
                     st.session_state.pop("wm_food_total", None)
                     st.session_state.pop("wm_uploaded_foods", None)
-                    st.success(f"✅ {len(new_items)} 品目（{new_total} kcal）を追加しました。")
+                    final_total = sum(it["calories"] for it in final_items)
+                    st.success(f"✅ {len(new_items)} 品目（{final_total} kcal）を追加しました。")
                     st.rerun()
             with btn_col2:
                 if st.button("🗑️ 取消", key="wm_meal_cancel"):
