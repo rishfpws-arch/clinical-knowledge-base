@@ -947,6 +947,37 @@ def get_patient_folder_id() -> str | None:
         return None
 
 
+def get_food_folder_id() -> str | None:
+    """secrets.toml から食事画像フォルダIDを取得する。未設定なら None。"""
+    try:
+        fid = st.secrets.get("food_images_folder_id", "")
+        if not fid:
+            return None
+        return fid
+    except Exception:
+        return None
+
+
+def load_food_processed() -> dict:
+    """処理済み食事画像IDの辞書を読み込む。{file_id: {"date": "YYYY-MM-DD", "processed_at": "..."}}"""
+    try:
+        if FOOD_IMAGES_PROCESSED_PATH.exists():
+            with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def save_food_processed(data: dict) -> None:
+    """処理済み食事画像IDの辞書を保存する。"""
+    try:
+        with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
 def get_gemini_api_key() -> str | None:
     """secrets.toml から Gemini APIキーを取得する。未設定なら None。"""
     try:
