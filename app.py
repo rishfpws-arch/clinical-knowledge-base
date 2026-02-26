@@ -3823,16 +3823,13 @@ def page_batch_analyze():
             )
 
         del_col1, del_col2, del_col3 = st.columns([1, 1, 3])
+        _apply_batch_checkbox("_del_sel_flag", [f"del_sel_{img['id']}" for img in analyzed_images])
         with del_col1:
             if st.button("☑️ 全選択", key="del_select_all"):
-                for img in analyzed_images:
-                    st.session_state[f"del_sel_{img['id']}"] = True
-                st.rerun()
+                _set_batch_checkbox("_del_sel_flag", True)
         with del_col2:
             if st.button("☐ 全解除", key="del_deselect_all"):
-                for img in analyzed_images:
-                    st.session_state[f"del_sel_{img['id']}"] = False
-                st.rerun()
+                _set_batch_checkbox("_del_sel_flag", False)
 
         # ページネーション
         del_page_items, del_cur, del_total_pages = _paginate(analyzed_images, "batch_delete_page")
@@ -3999,17 +3996,14 @@ def page_trash():
         return
 
     # --- 全選択 / 全解除 ---
+    _apply_batch_checkbox("_trash_sel_flag", [f"trash_sel_{i}" for i in range(len(trash))])
     act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
     with act_col1:
         if st.button("☑️ 全選択", key="trash_sel_all"):
-            for i in range(len(trash)):
-                st.session_state[f"trash_sel_{i}"] = True
-            st.rerun()
+            _set_batch_checkbox("_trash_sel_flag", True)
     with act_col2:
         if st.button("☐ 全解除", key="trash_sel_none"):
-            for i in range(len(trash)):
-                st.session_state.pop(f"trash_sel_{i}", None)
-            st.rerun()
+            _set_batch_checkbox("_trash_sel_flag", False)
 
     # --- アイテム一覧 ---
     selected_indices = []
@@ -4364,17 +4358,14 @@ def page_folder_manual():
     _render_pagination_controls("manual_folder_page", mf_cur, mf_total_pages, len(display_images))
 
     # 全選択/全解除
+    _apply_batch_checkbox("_mf_sel_flag", [f"mf_sel_{img['id']}" for img in display_images])
     mc1, mc2, mc3 = st.columns([1, 1, 4])
     with mc1:
         if st.button("☑️ 全選択", key="mf_sel_all"):
-            for img in display_images:
-                st.session_state[f"mf_sel_{img['id']}"] = True
-            st.rerun()
+            _set_batch_checkbox("_mf_sel_flag", True)
     with mc2:
         if st.button("☐ 全解除", key="mf_sel_none"):
-            for img in display_images:
-                st.session_state.pop(f"mf_sel_{img['id']}", None)
-            st.rerun()
+            _set_batch_checkbox("_mf_sel_flag", False)
 
     # グリッド表示
     move_ids = []
@@ -5592,18 +5583,14 @@ def page_image_library():
 
     # 全選択/全解除（削除・移動モード時）
     if st.session_state["lib_mode"] in ("delete", "move"):
+        _apply_batch_checkbox("_lib_sel_flag", [f"lib_sel_{img['id']}" for img in filtered_images if img["id"] in metadata])
         sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
         with sel_c1:
             if st.button("☑️ 全選択", key="lib_sel_all"):
-                for img in filtered_images:
-                    if img["id"] in metadata:
-                        st.session_state[f"lib_sel_{img['id']}"] = True
-                st.rerun()
+                _set_batch_checkbox("_lib_sel_flag", True)
         with sel_c2:
             if st.button("☐ 全解除", key="lib_sel_none"):
-                for img in filtered_images:
-                    st.session_state.pop(f"lib_sel_{img['id']}", None)
-                st.rerun()
+                _set_batch_checkbox("_lib_sel_flag", False)
 
     # ページネーション
     page_items, cur_page, total_pages = _paginate(filtered_images, "lib_grid_page")
@@ -5840,17 +5827,14 @@ def page_import_analyze():
         else:
             st.info(f"**{len(unanalyzed)} 件**の未解析画像があります。")
 
+            _apply_batch_checkbox("_imp_sel_flag", [f"imp_sel_{img['id']}" for img in unanalyzed])
             sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
             with sel_col1:
                 if st.button("☑️ 全選択", key="imp_sel_all"):
-                    for img in unanalyzed:
-                        st.session_state[f"imp_sel_{img['id']}"] = True
-                    st.rerun()
+                    _set_batch_checkbox("_imp_sel_flag", True)
             with sel_col2:
                 if st.button("☐ 全解除", key="imp_desel_all"):
-                    for img in unanalyzed:
-                        st.session_state[f"imp_sel_{img['id']}"] = False
-                    st.rerun()
+                    _set_batch_checkbox("_imp_sel_flag", False)
 
             batch_page_items, batch_cur, batch_total_pages = _paginate(unanalyzed, "imp_new_page")
             _render_pagination_controls("imp_new_page", batch_cur, batch_total_pages, len(unanalyzed))
