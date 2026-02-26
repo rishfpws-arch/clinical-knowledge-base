@@ -7091,7 +7091,25 @@ def _render_weight_history(records: dict, goals: dict):
         else:
             st.metric("体重変化", "---")
 
-    # --- 日別サマリー（家計簿スタイル） ---
+    # --- カテゴリ別カロリー内訳 ---
+    meal_cal_totals = {mt: 0 for mt in MEAL_TYPE_ORDER}
+    for dk in sorted_dates:
+        day_items = _get_day_items(records[dk])
+        for it in day_items:
+            mt = it.get("meal_type")
+            if mt in meal_cal_totals:
+                meal_cal_totals[mt] += it.get("calories", 0)
+
+    if any(v > 0 for v in meal_cal_totals.values()):
+        st.markdown("### 🥧 食事カテゴリ別カロリー")
+        import pandas as pd
+        labels = [MEAL_TYPE_LABELS.get(mt, mt) for mt in MEAL_TYPE_ORDER]
+        vals = [meal_cal_totals[mt] for mt in MEAL_TYPE_ORDER]
+        pie_df = pd.DataFrame({"カテゴリ": labels, "カロリー(kcal)": vals})
+        pie_df = pie_df.set_index("カテゴリ")
+        st.bar_chart(pie_df)
+
+    # --- 日別サマリー（MoneyForward風） ---
     st.markdown("### 📋 日別記録")
 
     for dk in sorted_dates:
@@ -7101,11 +7119,9 @@ def _render_weight_history(records: dict, goals: dict):
         day_items = _get_day_items(day)
         item_count = len(day_items)
 
-        # 曜日
         dt = datetime.strptime(dk, "%Y-%m-%d")
         weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
 
-        # ヘッダー行
         w_str = f"⚖️ {w} kg" if w else "⚖️ --"
         header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {item_count}品"
 
@@ -7113,12 +7129,19 @@ def _render_weight_history(records: dict, goals: dict):
             if not day_items:
                 st.caption("食事記録なし")
             else:
-                for it in day_items:
-                    it_name = it.get("name", "")
-                    it_qty = it.get("quantity", "ふつう")
-                    it_cal = it.get("calories", 0)
-                    prov_mark = "🔔 " if it.get("provisional") else ""
-                    st.markdown(f"- {prov_mark}{it_name}（{it_qty}）　**{it_cal} kcal**")
+                groups = _group_items_by_meal(day_items)
+                for meal_key, items in groups.items():
+                    if not items:
+                        continue
+                    label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
+                    sub = sum(it.get("calories", 0) for it in items)
+                    st.markdown(f"**{label}** — {sub} kcal")
+                    for it in items:
+                        prov_mark = "🔔 " if it.get("provisional") else ""
+                        st.markdown(
+                            f"　{prov_mark}{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
+                            f"　**{it.get('calories', 0)} kcal**"
+                        )
 
 
 def page_weight_management():
