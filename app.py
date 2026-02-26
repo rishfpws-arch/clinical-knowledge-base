@@ -2042,7 +2042,6 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
                         "meal_type": _guess_meal_type_from_dt(photo_dt),
                         "image_id": img_id,
                         "image_ext": ext,
-                        "provisional": True,
                         "drive_file_id": file_id,
                     }
                     day_data["items"].append(item_entry)
