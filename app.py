@@ -7096,7 +7096,7 @@ def page_weight_management():
                 with mc1:
                     add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
                 with mc2:
-                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=3, key=f"wm_manual_qty_{date_key}")
+                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1, key=f"wm_manual_qty_{date_key}")
                 with mc3:
                     add_cal = st.number_input("カロリー(kcal)", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
                 if add_name.strip():
