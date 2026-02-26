@@ -3206,16 +3206,13 @@ def page_batch_analyze():
         st.info(f"**{len(target_list)} 件**の画像が対象です。除外したい画像のチェックを外してください。")
 
         rc1, rc2, rc3 = st.columns([1, 1, 3])
+        _apply_batch_checkbox("_reanalyze_sel_flag", [f"reanalyze_sel_{img['id']}" for img in target_list])
         with rc1:
             if st.button("☑️ 全選択", key="reanalyze_sel_all"):
-                for img in target_list:
-                    st.session_state[f"reanalyze_sel_{img['id']}"] = True
-                st.rerun()
+                _set_batch_checkbox("_reanalyze_sel_flag", True)
         with rc2:
             if st.button("☐ 全解除", key="reanalyze_sel_none"):
-                for img in target_list:
-                    st.session_state[f"reanalyze_sel_{img['id']}"] = False
-                st.rerun()
+                _set_batch_checkbox("_reanalyze_sel_flag", False)
 
         # ページネーション
         ra_page_items, ra_cur, ra_total_pages = _paginate(target_list, "batch_reanalyze_page")
