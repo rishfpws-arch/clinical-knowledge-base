@@ -229,10 +229,10 @@ JSON以外のテキストは一切含めないでください。
 
 【ルール】
 - 品目名は日本語で記載
-- quantityは「少量」「半人前」「0.7人前」「1人前」「1.5人前」「2人前」「大盛り」のいずれかで推定
-- 量が判断できない場合は「1人前」とする
+- quantityは「少なめ」「ふつう」「多め」のいずれかで推定
+- 量が判断できない場合は「ふつう」とする
 - caloriesはquantityを考慮した整数値（kcalの数値のみ、単位は不要）
-- 例: 半人前なら1人前の約半分のカロリー
+- 「少なめ」は標準の約0.6倍、「多め」は標準の約1.5倍のカロリー
 - 見える範囲の全ての品目を列挙
 - total_caloriesはitemsのcaloriesの合計と一致させること
 - 飲み物が見える場合はそれも含めること
@@ -266,7 +266,7 @@ JSON以外のテキストは一切含めないでください。
 
 【ルール】
 - カロリーは整数値（kcalの数値のみ）
-- caloriesはquantityを考慮した値にすること（例: 半人前なら1人前の約半分）
+- caloriesはquantityを考慮した値にすること（少なめ=標準の約0.6倍、多め=標準の約1.5倍）
 - 入力の品目名と量をそのまま返すこと（変更しない）
 - 入力の順番を維持すること"""
 
@@ -1408,7 +1408,7 @@ def _get_day_items(day_data: dict) -> list[dict]:
 
     新形式: day_data["items"] — フラットな品目リスト
     旧形式: day_data["meals"] — 食事単位のリスト → 展開してフラット化
-    quantityがないデータには "1人前" を補完する。
+    quantityがないデータには "ふつう" を補完する。
     """
     if "items" in day_data:
         items = day_data["items"]
@@ -1432,14 +1432,14 @@ def _get_day_items(day_data: dict) -> list[dict]:
     # quantity 補完（旧データ互換）
     for it in items:
         if "quantity" not in it:
-            it["quantity"] = "1人前"
+            it["quantity"] = "ふつう"
     return items
 
 
 def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[int] | None:
     """品目名+量リストからGeminiでカロリーを再推定する。
 
-    items_for_recalc: [{"name": "品目名", "quantity": "1人前"}, ...]
+    items_for_recalc: [{"name": "品目名", "quantity": "ふつう"}, ...]
     """
     try:
         items_json = json.dumps(items_for_recalc, ensure_ascii=False)
@@ -1961,7 +1961,7 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
                     item_entry = {
                         "id": f"item_{uuid.uuid4().hex[:12]}",
                         "name": it.get("name", "不明"),
-                        "quantity": it.get("quantity", "1人前"),
+                        "quantity": it.get("quantity", "ふつう"),
                         "calories": it.get("calories", 0),
                         "image_id": img_id,
                         "image_ext": ext,
@@ -6828,7 +6828,7 @@ def _render_weight_history(records: dict, goals: dict):
             else:
                 for it in day_items:
                     it_name = it.get("name", "")
-                    it_qty = it.get("quantity", "1人前")
+                    it_qty = it.get("quantity", "ふつう")
                     it_cal = it.get("calories", 0)
                     prov_mark = "🔔 " if it.get("provisional") else ""
                     st.markdown(f"- {prov_mark}{it_name}（{it_qty}）　**{it_cal} kcal**")
@@ -7032,7 +7032,7 @@ def page_weight_management():
                     with c1:
                         name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
                     with c2:
-                        qty_val = item.get("quantity", "1人前")
+                        qty_val = item.get("quantity", "ふつう")
                         qty_idx = QUANTITY_OPTIONS.index(qty_val) if qty_val in QUANTITY_OPTIONS else 3
                         qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_item_qty_{date_key}_{i}")
                     with c3:
@@ -7048,7 +7048,7 @@ def page_weight_management():
                 with ac1:
                     add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
                 with ac2:
-                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=3, key=f"wm_add_qty_{date_key}")
+                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1, key=f"wm_add_qty_{date_key}")
                 with ac3:
                     add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
                 if add_name.strip():
@@ -7116,7 +7116,7 @@ def page_weight_management():
                         for i, rc_item in enumerate(recalced_data):
                             # ウィジェットキーから最新値を取得（ユーザーが再計算後に手動変更した場合に対応）
                             w_name = st.session_state.get(f"wm_item_name_{date_key}_{i}", rc_item.get("name", ""))
-                            w_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", rc_item.get("quantity", "1人前"))
+                            w_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", rc_item.get("quantity", "ふつう"))
                             w_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", rc_item.get("calories", 0))
                             w_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
                             if not w_del and str(w_name).strip():
@@ -7128,7 +7128,7 @@ def page_weight_management():
                     if str(add_n).strip():
                         final_items.append({
                             "name": str(add_n).strip(),
-                            "quantity": st.session_state.get(f"wm_add_qty_{date_key}", "1人前"),
+                            "quantity": st.session_state.get(f"wm_add_qty_{date_key}", "ふつう"),
                             "calories": int(st.session_state.get(f"wm_add_cal_{date_key}", 0)),
                         })
 
@@ -7157,7 +7157,7 @@ def page_weight_management():
                         item_entry = {
                             "id": f"item_{uuid.uuid4().hex[:12]}",
                             "name": it["name"],
-                            "quantity": it.get("quantity", "1人前"),
+                            "quantity": it.get("quantity", "ふつう"),
                             "calories": it["calories"],
                         }
                         # 1枚目の画像IDを全品目に紐付け（複数画像の場合は最初の画像）
@@ -7229,7 +7229,7 @@ def page_weight_management():
                     item_id = it.get("id", "")
                     col_name, col_cal, col_ok, col_del = st.columns([3, 1.5, 1, 1])
                     with col_name:
-                        qty_label = it.get("quantity", "1人前")
+                        qty_label = it.get("quantity", "ふつう")
                         st.markdown(f"🔸 {it['name']}（{qty_label}）")
                     with col_cal:
                         st.markdown(f"**{it.get('calories', 0)} kcal**")
@@ -7253,7 +7253,7 @@ def page_weight_management():
                 item_id = it.get("id", "")
                 col_name, col_cal, col_ok, col_del = st.columns([3, 1.5, 1, 1])
                 with col_name:
-                    qty_label = it.get("quantity", "1人前")
+                    qty_label = it.get("quantity", "ふつう")
                     st.markdown(f"🔸 {it['name']}（{qty_label}）")
                 with col_cal:
                     st.markdown(f"**{it.get('calories', 0)} kcal**")
@@ -7300,7 +7300,7 @@ def page_weight_management():
                     item_id = it.get("id", "")
                     col_name, col_cal, col_del = st.columns([4, 2, 1])
                     with col_name:
-                        qty_label = it.get("quantity", "1人前")
+                        qty_label = it.get("quantity", "ふつう")
                         st.markdown(f"　{it['name']}（{qty_label}）")
                     with col_cal:
                         st.markdown(f"**{it.get('calories', 0)} kcal**")
