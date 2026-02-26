@@ -6919,10 +6919,6 @@ def _inject_wm_css():
         font-size: 14px;
     }
     .mf-item-row:last-child { border-bottom: none; }
-    .mf-prov-badge {
-        background: #FFF3E0; color: #E65100; padding: 1px 6px;
-        border-radius: 10px; font-size: 11px; margin-right: 4px;
-    }
     .mf-date-display {
         text-align: center; font-size: 18px; font-weight: bold;
         padding: 8px 0; line-height: 2.2;
