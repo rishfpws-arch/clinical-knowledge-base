@@ -2107,6 +2107,32 @@ def render_keyword_tags(keywords: list[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# UI部品: チェックボックス一括選択ヘルパー
+# ---------------------------------------------------------------------------
+def _apply_batch_checkbox(batch_key: str, items_keys: list[str]) -> None:
+    """ボタンで設定されたバッチ選択フラグを、チェックボックス描画前に適用する。
+
+    batch_key: session_state に保存されたフラグのキー
+    items_keys: 対象チェックボックスのキー一覧
+    """
+    batch_val = st.session_state.pop(batch_key, None)
+    if batch_val is None:
+        return
+    if isinstance(batch_val, dict):
+        for k in items_keys:
+            st.session_state[k] = batch_val.get(k, False)
+    else:
+        for k in items_keys:
+            st.session_state[k] = bool(batch_val)
+
+
+def _set_batch_checkbox(batch_key: str, value) -> None:
+    """バッチ選択フラグをセットして rerun する。"""
+    st.session_state[batch_key] = value
+    st.rerun()
+
+
+# ---------------------------------------------------------------------------
 # UI部品: ページネーション
 # ---------------------------------------------------------------------------
 def _paginate(items: list, page_key: str, per_page: int = IMAGES_PER_PAGE) -> tuple[list, int, int]:
