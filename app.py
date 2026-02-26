@@ -7078,13 +7078,17 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
 
 
 def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
-    """MoneyForward風の1品目行。"""
+    """MoneyForward風の1品目行（タップで編集展開）。"""
     item_id = item.get("id", "")
     name = item.get("name", "")
     qty = item.get("quantity", "ふつう")
     cal = item.get("calories", 0)
+    meal_type = item.get("meal_type", "")
 
-    c1, c2, c3 = st.columns([5, 2, 0.7])
+    edit_key = f"wm_edit_{item_id}"
+    is_editing = st.session_state.get(edit_key, False)
+
+    c1, c2, c3, c4 = st.columns([4.5, 1.8, 0.5, 0.5])
 
     with c1:
         st.markdown(
@@ -7094,12 +7098,48 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
     with c2:
         st.markdown(f"**{cal:,} kcal**")
     with c3:
+        if item_id and st.button("✏️", key=f"wm_edt_{item_id}", help="編集"):
+            st.session_state[edit_key] = not is_editing
+            st.rerun()
+    with c4:
         if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
             if "items" in day_data:
                 day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
                 day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
             save_weight_data(weight_data)
             st.rerun()
+
+    # --- インライン編集フォーム ---
+    if is_editing and item_id:
+        with st.container():
+            ec1, ec2 = st.columns(2)
+            with ec1:
+                new_name = st.text_input("品目名", value=name, key=f"wm_en_{item_id}")
+            with ec2:
+                new_qty = st.text_input("量", value=qty, key=f"wm_eq_{item_id}")
+            ec3, ec4 = st.columns(2)
+            with ec3:
+                new_cal = st.number_input("カロリー (kcal)", value=cal, min_value=0, step=10, key=f"wm_ec_{item_id}")
+            with ec4:
+                meal_options = list(MEAL_TYPE_LABELS.keys())
+                meal_labels = [MEAL_TYPE_LABELS[k] for k in meal_options]
+                current_idx = meal_options.index(meal_type) if meal_type in meal_options else 0
+                new_meal_label = st.selectbox("食事タイプ", meal_labels, index=current_idx, key=f"wm_em_{item_id}")
+                new_meal_type = meal_options[meal_labels.index(new_meal_label)]
+            if st.button("💾 保存", key=f"wm_esave_{item_id}", use_container_width=True):
+                for x in day_data.get("items", []):
+                    if x.get("id") == item_id:
+                        x["name"] = new_name.strip() or name
+                        x["quantity"] = new_qty.strip() or qty
+                        x["calories"] = new_cal
+                        x["meal_type"] = new_meal_type
+                        break
+                day_data["total_calories"] = sum(
+                    x.get("calories", 0) for x in _get_day_items(day_data)
+                )
+                save_weight_data(weight_data)
+                st.session_state[edit_key] = False
+                st.rerun()
 
 
 def _render_weight_history(records: dict, goals: dict):
