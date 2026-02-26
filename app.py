@@ -7055,16 +7055,6 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
 
     groups = _group_items_by_meal(current_items)
 
-    # 一括確定ボタン（仮登録がある場合）
-    prov_items = [it for it in current_items if it.get("provisional")]
-    if prov_items:
-        if st.button("✅ すべて確定", key="wm_confirm_all_prov", type="primary", use_container_width=True):
-            for it in day_data.get("items", []):
-                it.pop("provisional", None)
-            save_weight_data(weight_data)
-            st.toast(f"✅ {len(prov_items)} 品目を確定しました")
-            st.rerun()
-
     for meal_key, meal_items in groups.items():
         label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
         color = MEAL_TYPE_COLORS.get(meal_key, "#757575")
@@ -7085,10 +7075,8 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
 
     # 合計
     total = sum(it.get("calories", 0) for it in current_items)
-    prov_total = sum(it.get("calories", 0) for it in prov_items)
-    prov_note = f"（うち仮登録: {prov_total:,} kcal）" if prov_total > 0 else ""
     st.markdown(
-        f'<div class="mf-grand-total">合計: {total:,} kcal {prov_note}</div>',
+        f'<div class="mf-grand-total">合計: {total:,} kcal</div>',
         unsafe_allow_html=True,
     )
 
@@ -7096,46 +7084,23 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
 def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
     """MoneyForward風の1品目行。"""
     item_id = item.get("id", "")
-    is_prov = item.get("provisional", False)
     name = item.get("name", "")
     qty = item.get("quantity", "ふつう")
     cal = item.get("calories", 0)
 
-    if is_prov:
-        c1, c2, c3, c4 = st.columns([4, 1.5, 0.7, 0.7])
-    else:
-        c1, c2, c3 = st.columns([5, 2, 0.7])
+    c1, c2, c3 = st.columns([5, 2, 0.7])
 
     with c1:
-        prov_html = '<span class="mf-prov-badge">仮</span>' if is_prov else ""
         st.markdown(
-            f'{prov_html}**{name}** <span style="color:#999; font-size:13px;">({qty})</span>',
+            f'**{name}** <span style="color:#999; font-size:13px;">({qty})</span>',
             unsafe_allow_html=True,
         )
     with c2:
         st.markdown(f"**{cal:,} kcal**")
-
-    if is_prov:
-        with c3:
-            if item_id and st.button("✅", key=f"wm_ok_{item_id}", help="確定"):
-                for x in day_data.get("items", []):
-                    if x.get("id") == item_id:
-                        x.pop("provisional", None)
-                        break
-                save_weight_data(weight_data)
-                st.rerun()
-        with c4:
-            if item_id and st.button("🗑️", key=f"wm_del_p_{item_id}", help="削除"):
-                if "items" in day_data:
-                    day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
-                    day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
-                save_weight_data(weight_data)
-                st.rerun()
-    else:
-        with c3:
-            if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
-                if "items" in day_data:
-                    day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
+    with c3:
+        if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
+            if "items" in day_data:
+                day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
                     day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
                 save_weight_data(weight_data)
                 st.rerun()
@@ -7253,9 +7218,8 @@ def _render_weight_history(records: dict, goals: dict):
                     sub = sum(it.get("calories", 0) for it in items)
                     st.markdown(f"**{label}** — {sub} kcal")
                     for it in items:
-                        prov_mark = "🔔 " if it.get("provisional") else ""
                         st.markdown(
-                            f"　{prov_mark}{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
+                            f"　{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
                             f"　**{it.get('calories', 0)} kcal**"
                         )
 
