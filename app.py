@@ -190,6 +190,21 @@ JSON以外のテキストは一切含めないでください。
 # ---------------------------------------------------------------------------
 QUANTITY_OPTIONS = ["少なめ", "ふつう", "多め"]
 
+# 食事タイプ（MoneyForward風カテゴリ分類）
+MEAL_TYPE_ORDER = ["breakfast", "lunch", "dinner", "snack"]
+MEAL_TYPE_LABELS = {
+    "breakfast": "🌅 朝食",
+    "lunch": "🌞 昼食",
+    "dinner": "🌙 夕食",
+    "snack": "🍪 間食",
+}
+MEAL_TYPE_COLORS = {
+    "breakfast": "#FF9800",
+    "lunch": "#2196F3",
+    "dinner": "#673AB7",
+    "snack": "#4CAF50",
+}
+
 FOOD_ANALYSIS_PROMPT = """あなたは管理栄養士です。この食事の画像（1枚または複数枚）を解析してください。
 
 写っている料理の品目名、推定量、それぞれの推定カロリー（kcal）を日本語で出力してください。
@@ -6704,10 +6719,6 @@ def page_settings_all():
                 # URLからトークンも削除
                 if "token" in st.query_params:
                     del st.query_params["token"]
-                # localStorageからもトークンを削除
-                components.html("""<script>
-                try { localStorage.removeItem('ckb_auth_token'); } catch(e) {}
-                </script>""", height=0)
                 st.rerun()
         else:
             st.caption("認証が設定されていないか、フリーアクセスモードです。")
@@ -7562,12 +7573,6 @@ def main():
     elif active == TAB_NAMES[4]:
         page_settings_all()
 
-    # --- ページ描画完了後: 認証トークンをlocalStorageに保存 ---
-    _pending_token = st.session_state.pop("_save_auth_token", None)
-    if _pending_token:
-        components.html(f"""<script>
-        try {{ localStorage.setItem('ckb_auth_token', '{_pending_token}'); }} catch(e) {{}}
-        </script>""", height=0)
 
 
 if __name__ == "__main__":
