@@ -416,7 +416,7 @@ def _set_cache(cache_key: str, data):
 
 def _invalidate_all_caches():
     """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
-    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions", "_cache_weight_data"]:
+    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions", "_cache_weight_data", "_cache_food_processed"]:
         st.session_state.pop(ck, None)
         st.session_state.pop(f"{ck}_ts", None)
 
@@ -996,18 +996,53 @@ def get_food_folder_id() -> str | None:
 
 
 def load_food_processed() -> dict:
-    """処理済み食事画像IDの辞書を読み込む。{file_id: {"date": "YYYY-MM-DD", "processed_at": "..."}}"""
+    """処理済み食事画像IDの辞書を読み込む。Sheets → ローカルの順。"""
+    ck = "_cache_food_processed"
+    if _is_cache_valid(ck):
+        return st.session_state[ck]
+
+    sh = get_sheets_client()
+    if sh is not None:
+        try:
+            data = _read_json_from_sheet(sh, "food_processed")
+            if data is not None:
+                _set_cache(ck, data)
+                try:
+                    with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
+                        json.dump(data, f, ensure_ascii=False, indent=2)
+                except IOError:
+                    pass
+                return data
+        except Exception:
+            pass
+
     try:
         if FOOD_IMAGES_PROCESSED_PATH.exists():
             with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                _set_cache(ck, data)
+                return data
     except Exception:
         pass
+    _set_cache(ck, {})
     return {}
 
 
 def save_food_processed(data: dict) -> None:
-    """処理済み食事画像IDの辞書を保存する。"""
+    """処理済み食事画像IDの辞書を保存する。Sheets + ローカル。"""
+    _set_cache("_cache_food_processed", data)
+    sh = get_sheets_client()
+    if sh is not None:
+        try:
+            _write_json_to_sheet(sh, "food_processed", data)
+        except Exception:
+            try:
+                st.session_state.pop("_sheets_conn", None)
+                sh2 = _new_sheets_connection()
+                if sh2 is not None:
+                    _write_json_to_sheet(sh2, "food_processed", data)
+            except Exception:
+                pass
     try:
         with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
