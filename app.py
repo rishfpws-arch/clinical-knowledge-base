@@ -7097,9 +7097,9 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
         if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
             if "items" in day_data:
                 day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
-                    day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
-                save_weight_data(weight_data)
-                st.rerun()
+                day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
+            save_weight_data(weight_data)
+            st.rerun()
 
 
 def _render_weight_history(records: dict, goals: dict):
