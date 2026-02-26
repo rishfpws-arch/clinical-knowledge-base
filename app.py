@@ -5877,8 +5877,9 @@ def page_import_analyze():
     # サブタブ2: 🏥 患者データ
     # =======================================================================
     with sub_tab2:
-        st.subheader("🏥 患者データの一括編集")
+        st.subheader(f"🏥 患者データ管理（{len(patient_data_images)} 件）")
 
+        # --- 成功メッセージ表示 ---
         if st.session_state.get("_pd_save_success"):
             st.success(st.session_state["_pd_save_success"])
             del st.session_state["_pd_save_success"]
@@ -5886,168 +5887,218 @@ def page_import_analyze():
         if not patient_data_images:
             st.info("🏥 患者データはまだ取り込まれていません。")
         else:
-            st.info(f"🏥 **{len(patient_data_images)} 件**の患者データがあります。")
+            # --- 選択ヘルパーボタン ---
+            sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
+            with sel_c1:
+                if st.button("☑️ 全選択", key="pd_sel_all"):
+                    for img in patient_data_images:
+                        st.session_state[f"pd_sel_{img['id']}"] = True
+                    st.rerun()
+            with sel_c2:
+                if st.button("☐ 全解除", key="pd_desel_all"):
+                    for img in patient_data_images:
+                        st.session_state[f"pd_sel_{img['id']}"] = False
+                    st.rerun()
+            with sel_c3:
+                no_kw_imgs = [
+                    img for img in patient_data_images
+                    if not metadata.get(img["id"], {}).get("keywords")
+                ]
+                if st.button(f"🏷️ タグなし({len(no_kw_imgs)})", key="pd_sel_no_kw"):
+                    for img in patient_data_images:
+                        has_kw = bool(metadata.get(img["id"], {}).get("keywords"))
+                        st.session_state[f"pd_sel_{img['id']}"] = not has_kw
+                    st.rerun()
 
-            # 一括操作パネル
-            with st.expander("⚡ 一括操作", expanded=True):
-                bulk_tab1, bulk_tab2 = st.tabs(["📌 一括タイトル入力", "🤖 一括AIキーワード生成"])
+            # --- サムネイルグリッド（4列 × 2行 = 8件/ページ） ---
+            pd_page_items, pd_cur, pd_total_pages = _paginate(
+                patient_data_images, "pd_grid_page", per_page=8
+            )
+            _render_pagination_controls(
+                "pd_grid_page", pd_cur, pd_total_pages, len(patient_data_images)
+            )
 
-                with bulk_tab1:
-                    st.caption(
-                        "各行に「画像番号（1始まり）: タイトル」を入力してください。\n"
-                        "例:\n```\n1: 右膝関節MRI\n2: 腰椎X線\n3: 頸椎CT\n```"
-                    )
-                    default_lines = []
-                    for i, img in enumerate(patient_data_images):
-                        m = metadata.get(img["id"], {})
-                        current_title = m.get("title", img.get("name", ""))
-                        default_lines.append(f"{i + 1}: {current_title}")
-                    bulk_titles_text = st.text_area(
-                        "タイトル一覧",
-                        value="\n".join(default_lines),
-                        height=min(300, 30 + 25 * len(patient_data_images)),
-                        key="imp_pd_bulk_titles",
-                    )
-                    if st.button("💾 タイトルを一括保存", key="imp_pd_bulk_title_save",
-                                 type="primary", use_container_width=True):
-                        saved_count = 0
-                        for line in bulk_titles_text.strip().split("\n"):
-                            line = line.strip()
-                            if not line or ":" not in line and "：" not in line:
-                                continue
-                            sep = "：" if "：" in line else ":"
-                            parts = line.split(sep, 1)
-                            try:
-                                idx_str = parts[0].strip()
-                                idx_num = int("".join(c for c in idx_str if c.isdigit()))
-                                title_val = parts[1].strip()
-                            except (ValueError, IndexError):
-                                continue
-                            if 1 <= idx_num <= len(patient_data_images):
-                                target_fid = patient_data_images[idx_num - 1]["id"]
-                                if target_fid in metadata:
-                                    metadata[target_fid]["title"] = title_val
-                                    saved_count += 1
-                        if saved_count > 0:
-                            save_metadata(metadata)
-                            _invalidate_all_caches()
-                            st.session_state["_pd_save_success"] = (
-                                f"✅ {saved_count} 件のタイトルを一括保存しました"
+            cols_per_row = 4
+            for row_start in range(0, len(pd_page_items), cols_per_row):
+                cols = st.columns(cols_per_row)
+                for col_idx in range(cols_per_row):
+                    img_idx = row_start + col_idx
+                    if img_idx >= len(pd_page_items):
+                        break
+                    img = pd_page_items[img_idx]
+                    fid = img["id"]
+                    m = metadata.get(fid, {})
+                    fname = img.get("name", fid)
+                    current_title = m.get("title", fname)
+                    kws = m.get("keywords", [])
+
+                    with cols[col_idx]:
+                        # サムネイル
+                        try:
+                            thumb = download_image(service, fid)
+                            st.image(thumb, use_container_width=True)
+                        except Exception:
+                            st.markdown(
+                                '<div style="background:#333;border-radius:8px;'
+                                'height:80px;display:flex;align-items:center;'
+                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                unsafe_allow_html=True,
                             )
-                            st.rerun()
+                        # AI解析チェックボックス
+                        st.checkbox(
+                            "AI解析",
+                            value=st.session_state.get(f"pd_sel_{fid}", False),
+                            key=f"pd_sel_{fid}",
+                        )
+                        # タイトル入力
+                        st.text_input(
+                            "タイトル",
+                            value=current_title if f"pd_title_{fid}" not in st.session_state else st.session_state[f"pd_title_{fid}"],
+                            key=f"pd_title_{fid}",
+                            label_visibility="collapsed",
+                            placeholder="タイトルを入力",
+                        )
+                        # キーワード表示
+                        if kws:
+                            st.caption(f"🏷️ {', '.join(kws[:4])}")
                         else:
-                            st.warning("保存するタイトルがありませんでした。")
-
-                with bulk_tab2:
-                    no_kw_count = sum(
-                        1 for img in patient_data_images
-                        if not metadata.get(img["id"], {}).get("keywords")
-                    )
-                    all_count = len(patient_data_images)
-                    st.caption(f"全 {all_count} 件中、キーワード未設定: **{no_kw_count} 件**")
-                    ai_target = st.radio(
-                        "対象",
-                        ["キーワード未設定のみ", "すべて（上書き）"],
-                        horizontal=True,
-                        key="imp_pd_ai_target",
-                    )
-                    if st.button(
-                        f"🤖 一括AIキーワード生成（{no_kw_count if ai_target == 'キーワード未設定のみ' else all_count} 件）",
-                        key="imp_pd_bulk_ai_kw", type="primary", use_container_width=True,
-                    ):
-                        if not api_key:
-                            st.warning("Gemini API キーが必要です。")
-                        else:
-                            target_imgs = []
-                            for img in patient_data_images:
-                                m = metadata.get(img["id"], {})
-                                if ai_target == "キーワード未設定のみ" and m.get("keywords"):
-                                    continue
-                                target_imgs.append(img)
-                            if not target_imgs:
-                                st.info("対象の画像がありません。")
-                            else:
-                                progress_bar = st.progress(0, text="AIキーワード生成中...")
-                                generated = 0
-                                for i, img in enumerate(target_imgs):
-                                    fid = img["id"]
-                                    m = metadata.get(fid, {})
-                                    progress_bar.progress(
-                                        (i + 1) / len(target_imgs),
-                                        text=f"🤖 {i + 1}/{len(target_imgs)}: {m.get('title', img.get('name', '')[:20])}...",
-                                    )
-                                    try:
-                                        ib = download_image(service, fid)
-                                        kws = generate_keywords_with_gemini(
-                                            ib, api_key, title=m.get("title", ""),
-                                        )
-                                        if kws:
-                                            metadata[fid]["keywords"] = kws
-                                            generated += 1
-                                    except Exception:
-                                        pass
-                                progress_bar.empty()
-                                if generated > 0:
-                                    save_metadata(metadata)
-                                    _invalidate_all_caches()
-                                    st.session_state["_pd_save_success"] = (
-                                        f"🤖 {generated} 件のAIキーワードを生成しました"
-                                    )
-                                    st.rerun()
-                                else:
-                                    st.warning("キーワードを生成できませんでした。")
+                            st.caption("🏷️ ---")
 
             st.markdown("---")
 
-            # 個別編集
-            st.subheader("📝 個別編集")
-            page_items, current_page, total_pages = _paginate(
-                patient_data_images, "imp_patient_page"
+            # --- アクションボタン ---
+            selected_count = sum(
+                1 for img in patient_data_images
+                if st.session_state.get(f"pd_sel_{img['id']}", False)
             )
-            _render_pagination_controls(
-                "imp_patient_page", current_page, total_pages, len(patient_data_images)
-            )
+            btn_c1, btn_c2 = st.columns(2)
+            with btn_c1:
+                if st.button("💾 タイトルを一括保存", key="pd_save_titles",
+                             type="secondary", use_container_width=True):
+                    saved = _save_all_patient_titles(patient_data_images, metadata)
+                    if saved > 0:
+                        save_metadata(metadata)
+                        _invalidate_all_caches()
+                        # session_state のタイトルキーをクリア（再読み込みのため）
+                        for img in patient_data_images:
+                            st.session_state.pop(f"pd_title_{img['id']}", None)
+                        st.session_state["_pd_save_success"] = (
+                            f"✅ {saved} 件のタイトルを保存しました"
+                        )
+                        st.rerun()
+                    else:
+                        st.info("変更されたタイトルはありません。")
 
-            for idx, img in enumerate(page_items):
-                fid = img["id"]
-                meta = metadata.get(fid, {})
-                fname = img.get("name", fid)
-                global_idx = (current_page - 1) * IMAGES_PER_PAGE + idx + 1
-                status_icon = "✅" if meta.get("status") == STATUS_REVIEWED else "✏️"
-                kw_preview = ", ".join(meta.get("keywords", [])[:3])
-                if kw_preview:
-                    kw_preview = f" 🏷️{kw_preview}"
-
-                with st.expander(
-                    f"{global_idx}. {meta.get('title', fname)} {status_icon}{kw_preview}",
-                    expanded=False,
+            with btn_c2:
+                if st.button(
+                    f"💾 保存 & 🤖 AI一括タグ付け（{selected_count} 件）",
+                    key="pd_save_and_ai", type="primary",
+                    use_container_width=True,
+                    disabled=(selected_count == 0),
                 ):
-                    col_img, col_form = st.columns([1, 2])
-                    with col_img:
+                    # まずタイトルを保存
+                    title_saved = _save_all_patient_titles(patient_data_images, metadata)
+
+                    # 選択された画像のAIキーワード生成
+                    target_imgs = [
+                        img for img in patient_data_images
+                        if st.session_state.get(f"pd_sel_{img['id']}", False)
+                    ]
+                    if not api_key:
+                        st.warning("Gemini API キーが必要です。")
+                    elif not target_imgs:
+                        st.info("AI解析する画像が選択されていません。")
+                    else:
+                        progress_bar = st.progress(0, text="🤖 AIタグ付け中...")
+                        generated = 0
+                        for i, img in enumerate(target_imgs):
+                            fid = img["id"]
+                            m = metadata.get(fid, {})
+                            progress_bar.progress(
+                                (i + 1) / len(target_imgs),
+                                text=f"🤖 {i + 1}/{len(target_imgs)}: {m.get('title', img.get('name', '')[:20])}...",
+                            )
+                            try:
+                                ib = download_image(service, fid)
+                                kws = generate_keywords_with_gemini(
+                                    ib, api_key, title=m.get("title", ""),
+                                )
+                                if kws:
+                                    if fid not in metadata:
+                                        metadata[fid] = {}
+                                    metadata[fid]["keywords"] = kws
+                                    generated += 1
+                            except Exception:
+                                pass
+                        progress_bar.empty()
+
+                        if title_saved > 0 or generated > 0:
+                            save_metadata(metadata)
+                            _invalidate_all_caches()
+                            # session_state クリーンアップ
+                            for img in patient_data_images:
+                                st.session_state.pop(f"pd_title_{img['id']}", None)
+                                st.session_state.pop(f"pd_sel_{img['id']}", None)
+                            parts = []
+                            if title_saved > 0:
+                                parts.append(f"タイトル {title_saved} 件保存")
+                            if generated > 0:
+                                parts.append(f"AIタグ {generated} 件生成")
+                            st.session_state["_pd_save_success"] = f"✅ {' / '.join(parts)}"
+                            st.rerun()
+                        else:
+                            st.warning("変更やキーワード生成がありませんでした。")
+
+            # --- 個別の検査所見を編集 ---
+            with st.expander("📝 個別の検査所見を編集", expanded=False):
+                if not patient_data_images:
+                    st.info("患者データがありません。")
+                else:
+                    # ドロップダウンで画像を選択
+                    pd_options = []
+                    for i, img in enumerate(patient_data_images):
+                        m = metadata.get(img["id"], {})
+                        title = m.get("title", img.get("name", img["id"]))
+                        kw_tag = " 🏷️" if m.get("keywords") else ""
+                        pd_options.append(f"{i + 1}. {title}{kw_tag}")
+
+                    selected_idx = st.selectbox(
+                        "画像を選択",
+                        range(len(pd_options)),
+                        format_func=lambda i: pd_options[i],
+                        key="pd_detail_select",
+                    )
+                    sel_img = patient_data_images[selected_idx]
+                    sel_fid = sel_img["id"]
+                    sel_meta = metadata.get(sel_fid, {})
+                    sel_fname = sel_img.get("name", sel_fid)
+
+                    detail_col_img, detail_col_form = st.columns([1, 2])
+                    with detail_col_img:
                         try:
-                            img_bytes = download_image(service, fid)
-                            st.image(img_bytes, use_container_width=True)
+                            detail_bytes = download_image(service, sel_fid)
+                            st.image(detail_bytes, use_container_width=True)
                         except Exception:
                             st.caption("（画像を読み込めません）")
 
-                    with col_form:
-                        with st.form(key=f"imp_pd_edit_{fid}_{current_page}"):
+                    with detail_col_form:
+                        with st.form(key=f"pd_detail_edit_{sel_fid}"):
                             new_title = st.text_input(
                                 "📌 タイトル",
-                                value=meta.get("title", fname),
-                                key=f"imp_pd_title_{fid}_{current_page}",
+                                value=sel_meta.get("title", sel_fname),
+                                key=f"pd_det_title_{sel_fid}",
                             )
                             new_summary = st.text_area(
                                 "📝 検査所見（任意）",
-                                value=meta.get("summary", ""),
+                                value=sel_meta.get("summary", ""),
                                 height=80,
                                 placeholder="所見があれば入力（空欄でもOK）",
-                                key=f"imp_pd_summary_{fid}_{current_page}",
+                                key=f"pd_det_summary_{sel_fid}",
                             )
                             new_keywords = st.text_input(
                                 "🏷️ キーワード（カンマ区切り）",
-                                value=", ".join(meta.get("keywords", [])),
-                                key=f"imp_pd_kw_{fid}_{current_page}",
+                                value=", ".join(sel_meta.get("keywords", [])),
+                                key=f"pd_det_kw_{sel_fid}",
                             )
                             submitted = st.form_submit_button(
                                 "💾 保存", type="primary", use_container_width=True,
@@ -6058,10 +6109,12 @@ def page_import_analyze():
                                     for k in new_keywords.replace("、", ",").split(",")
                                     if k.strip()
                                 ]
-                                metadata[fid]["title"] = new_title
-                                metadata[fid]["summary"] = new_summary
-                                metadata[fid]["keywords"] = kw_list
-                                metadata[fid]["status"] = STATUS_REVIEWED
+                                if sel_fid not in metadata:
+                                    metadata[sel_fid] = {}
+                                metadata[sel_fid]["title"] = new_title
+                                metadata[sel_fid]["summary"] = new_summary
+                                metadata[sel_fid]["keywords"] = kw_list
+                                metadata[sel_fid]["status"] = STATUS_REVIEWED
                                 save_metadata(metadata)
                                 _invalidate_all_caches()
                                 st.session_state["_pd_save_success"] = (
