@@ -6904,6 +6904,30 @@ def page_weight_management():
         # --- 食事を記録 ---
         st.markdown("### 🍽️ 食事を記録")
 
+        # Google Drive 食事画像フォルダからの取り込み
+        food_fid = get_food_folder_id()
+        if food_fid:
+            gdrive_col1, gdrive_col2 = st.columns([3, 1])
+            with gdrive_col1:
+                st.caption("📂 Google Driveフォルダに写真を入れると自動で取り込みます")
+            with gdrive_col2:
+                if st.button("🔄 取り込み", key="wm_food_drive_scan", help="Google Driveから手動取り込み"):
+                    try:
+                        service = get_drive_service()
+                        api_key = get_gemini_api_key()
+                        if api_key:
+                            with st.spinner("Google Driveから食事画像を取り込み中..."):
+                                n = scan_food_images(service, food_fid, api_key, manual=True)
+                            if n > 0:
+                                st.toast(f"🔔 {n} 枚の食事画像を取り込みました", icon="📷")
+                                st.rerun()
+                            else:
+                                st.toast("新しい画像はありません", icon="ℹ️")
+                        else:
+                            st.warning("Gemini APIキーが設定されていません。")
+                    except Exception as e:
+                        st.error(f"取り込みエラー: {e}")
+
         # st.form でラップ（スマホでアップロードが完了しない問題の対策）
         with st.form("wm_food_form", clear_on_submit=True):
             food_files = st.file_uploader(
@@ -7487,6 +7511,20 @@ def main():
             auto_scan_new_images(_scan_service, _scan_folder_id, _scan_api_key)
         except Exception:
             pass
+
+    # --- 食事画像自動取り込み（Google Driveフォルダ） ---
+    try:
+        _food_fid = get_food_folder_id()
+        if _food_fid:
+            _food_service = get_drive_service()
+            _food_api_key = get_gemini_api_key()
+            if _food_api_key:
+                _food_count = scan_food_images(_food_service, _food_fid, _food_api_key)
+                if _food_count > 0:
+                    st.toast(f"🔔 {_food_count} 枚の食事画像を自動取り込みしました", icon="📷")
+                    st.rerun()
+    except Exception:
+        pass
 
     # ─── ページ表示 ───
     active = st.session_state["active_tab"]
