@@ -7122,14 +7122,99 @@ def page_weight_management():
 
         # --- 今日の品目リスト（フラット表示） ---
         current_items = _get_day_items(day_data)
-        if current_items:
+
+        # 仮登録と確定済みを分離
+        provisional_items = [it for it in current_items if it.get("provisional")]
+        confirmed_items = [it for it in current_items if not it.get("provisional")]
+
+        # --- 仮登録アイテム（Google Drive自動取り込み） ---
+        if provisional_items:
+            st.markdown("### 🔔 仮登録（自動取り込み）")
+            st.caption("Google Driveから自動取り込みされた食事です。確認して確定してください。")
+
+            # 一括確定ボタン
+            if st.button("✅ すべて確定", key="wm_confirm_all_prov", type="primary"):
+                for it in day_data.get("items", []):
+                    it.pop("provisional", None)
+                save_weight_data(weight_data)
+                st.toast(f"✅ {len(provisional_items)} 品目を確定しました")
+                st.rerun()
+
+            # image_id でグループ化
+            from collections import OrderedDict
+            prov_grouped = OrderedDict()
+            prov_no_image = []
+            for it in provisional_items:
+                img_id = it.get("image_id")
+                if img_id:
+                    prov_grouped.setdefault(img_id, {"ext": it.get("image_ext", "png"), "items": []})
+                    prov_grouped[img_id]["items"].append(it)
+                else:
+                    prov_no_image.append(it)
+
+            for img_id, group in prov_grouped.items():
+                img_path = WEIGHT_UPLOADS_DIR / f"{img_id}.{group['ext']}"
+                if img_path.exists():
+                    st.image(img_path.read_bytes(), width=120)
+                for it in group["items"]:
+                    item_id = it.get("id", "")
+                    col_name, col_cal, col_ok, col_del = st.columns([3, 1.5, 1, 1])
+                    with col_name:
+                        qty_label = it.get("quantity", "1人前")
+                        st.markdown(f"🔸 {it['name']}（{qty_label}）")
+                    with col_cal:
+                        st.markdown(f"**{it.get('calories', 0)} kcal**")
+                    with col_ok:
+                        if item_id and st.button("✅", key=f"wm_ok_{item_id}", help="確定"):
+                            for x in day_data.get("items", []):
+                                if x.get("id") == item_id:
+                                    x.pop("provisional", None)
+                                    break
+                            save_weight_data(weight_data)
+                            st.rerun()
+                    with col_del:
+                        if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
+                            if "items" in day_data:
+                                day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
+                                day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
+                            save_weight_data(weight_data)
+                            st.rerun()
+
+            for it in prov_no_image:
+                item_id = it.get("id", "")
+                col_name, col_cal, col_ok, col_del = st.columns([3, 1.5, 1, 1])
+                with col_name:
+                    qty_label = it.get("quantity", "1人前")
+                    st.markdown(f"🔸 {it['name']}（{qty_label}）")
+                with col_cal:
+                    st.markdown(f"**{it.get('calories', 0)} kcal**")
+                with col_ok:
+                    if item_id and st.button("✅", key=f"wm_ok_{item_id}", help="確定"):
+                        for x in day_data.get("items", []):
+                            if x.get("id") == item_id:
+                                x.pop("provisional", None)
+                                break
+                        save_weight_data(weight_data)
+                        st.rerun()
+                with col_del:
+                    if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
+                        if "items" in day_data:
+                            day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
+                            day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
+                        save_weight_data(weight_data)
+                        st.rerun()
+
+            st.markdown("---")
+
+        # --- 確定済み品目リスト ---
+        if confirmed_items:
             st.markdown("### 📋 今日の食事")
 
             # image_id でグループ化して表示
             from collections import OrderedDict
             grouped = OrderedDict()
             no_image_items = []
-            for it in current_items:
+            for it in confirmed_items:
                 img_id = it.get("image_id")
                 if img_id:
                     grouped.setdefault(img_id, {"ext": it.get("image_ext", "png"), "items": []})
@@ -7174,9 +7259,14 @@ def page_weight_management():
                         save_weight_data(weight_data)
                         st.rerun()
 
+        if current_items:
             st.markdown("---")
             total_cal = sum(it.get("calories", 0) for it in current_items)
-            st.markdown(f"**合計: {total_cal:,} kcal**")
+            prov_cal = sum(it.get("calories", 0) for it in provisional_items)
+            if prov_cal > 0 and confirmed_items:
+                st.markdown(f"**合計: {total_cal:,} kcal** （うち仮登録: {prov_cal:,} kcal）")
+            else:
+                st.markdown(f"**合計: {total_cal:,} kcal**")
         else:
             st.caption("📋 この日の食事記録はまだありません。")
 
