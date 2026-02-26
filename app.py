@@ -962,20 +962,26 @@ def get_food_folder_id() -> str | None:
     if cached:
         return cached
 
-    # 3. フォルダを自動作成
+    # 3. clinical-kb フォルダ内に自動作成
     try:
         service = get_drive_service()
-        # 既存の「食事画像」フォルダを検索
-        query = "name='食事画像' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        parent_id = get_folder_id()  # clinical-kb フォルダ
+
+        # clinical-kb 内の既存「食事画像」フォルダを検索
+        query = (
+            f"'{parent_id}' in parents and name='食事画像' "
+            f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        )
         results = service.files().list(q=query, fields="files(id, name)", pageSize=5).execute()
         existing = results.get("files", [])
         if existing:
             new_fid = existing[0]["id"]
         else:
-            # 新規作成
+            # clinical-kb 内に新規作成
             file_metadata = {
                 "name": "食事画像",
                 "mimeType": "application/vnd.google-apps.folder",
+                "parents": [parent_id],
             }
             folder = service.files().create(body=file_metadata, fields="id").execute()
             new_fid = folder["id"]
