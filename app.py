@@ -7565,10 +7565,10 @@ def page_weight_management():
                     default_target_date = max(parsed_td, date.today())
                 except (ValueError, TypeError):
                     pass
+            # session_state に過去日付が残っている場合はクリア
             if "wm_goal_date" in st.session_state:
                 try:
                     _cached_gd = st.session_state["wm_goal_date"]
-                    # datetime/date どちらでも date に変換して比較
                     if hasattr(_cached_gd, "date"):
                         _cached_gd = _cached_gd.date()
                     if not isinstance(_cached_gd, date) or _cached_gd < date.today():
@@ -7577,8 +7577,11 @@ def page_weight_management():
                     st.session_state.pop("wm_goal_date", None)
             new_target_date = st.date_input(
                 "いつまでに達成？", value=default_target_date,
-                min_value=date.today(), key="wm_goal_date",
+                key="wm_goal_date",
             )
+            if new_target_date < date.today():
+                st.caption("⚠️ 過去の日付です。今日以降を選択してください。")
+                new_target_date = date.today()
 
             auto_cal = 0
             current_weight = weight
