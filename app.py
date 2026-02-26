@@ -6169,17 +6169,14 @@ def page_import_analyze():
                     st.info("該当する画像がありません。")
                 else:
                     st.info(f"**{len(target_list)} 件**が対象です。")
+                    _apply_batch_checkbox("_imp_ra_sel_flag", [f"imp_ra_sel_{img['id']}" for img in target_list])
                     rc1, rc2, rc3 = st.columns([1, 1, 3])
                     with rc1:
                         if st.button("☑️ 全選択", key="imp_ra_sel_all"):
-                            for img in target_list:
-                                st.session_state[f"imp_ra_sel_{img['id']}"] = True
-                            st.rerun()
+                            _set_batch_checkbox("_imp_ra_sel_flag", True)
                     with rc2:
                         if st.button("☐ 全解除", key="imp_ra_sel_none"):
-                            for img in target_list:
-                                st.session_state[f"imp_ra_sel_{img['id']}"] = False
-                            st.rerun()
+                            _set_batch_checkbox("_imp_ra_sel_flag", False)
 
                     ra_page_items, ra_cur, ra_total_pages = _paginate(target_list, "imp_reanalyze_page")
                     _render_pagination_controls("imp_reanalyze_page", ra_cur, ra_total_pages, len(target_list))
