@@ -1751,12 +1751,15 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
                         if assigned_folder != DEFAULT_FOLDER:
                             classified_count += 1
                         metadata[fid] = result
-                        save_metadata(metadata)
                         success_count += 1
                 except Exception:
                     continue
 
             if success_count > 0:
+                save_metadata(metadata)
+                _invalidate_all_caches()
+                list_images.clear()
+                list_patient_images.clear()
                 msg = f"✅ 新着 {success_count} 件を自動登録しました！"
                 if classified_count > 0:
                     msg += f"\n（{classified_count} 件をフォルダに自動分類）"
@@ -1891,7 +1894,6 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                     assigned_folder = _auto_classify_folder(result, api_key, folders)
                     result["folder"] = assigned_folder
                     metadata[fid] = result
-                    save_metadata(metadata)
                     success_count += 1
                     folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
                     with results_container:
@@ -1913,8 +1915,13 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         progress_bar.progress(1.0, text="完了！")
 
         if success_count > 0:
+            sheets_ok = save_metadata(metadata)
+            _invalidate_all_caches()
+            list_images.clear()
+            list_patient_images.clear()
+            sync_msg = "（Google Sheets に同期済み）" if sheets_ok else "（⚠️ Sheets同期失敗 — ローカル保存のみ）"
             status_text.success(
-                f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
+                f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました{sync_msg}"
                 + (f"（{fail_count} 件失敗）" if fail_count else "")
             )
             st.balloons()
