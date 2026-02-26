@@ -51,7 +51,7 @@ _log = logging.getLogger("ckb")
 # ---------------------------------------------------------------------------
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png"]
 SCOPES = [
-    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
 ]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
@@ -948,13 +948,51 @@ def get_patient_folder_id() -> str | None:
 
 
 def get_food_folder_id() -> str | None:
-    """secrets.toml から食事画像フォルダIDを取得する。未設定なら None。"""
+    """食事画像フォルダIDを取得する。未設定なら自動作成して返す。"""
+    # 1. secrets.toml から取得を試みる
     try:
         fid = st.secrets.get("food_images_folder_id", "")
-        if not fid:
-            return None
-        return fid
+        if fid:
+            return fid
     except Exception:
+        pass
+
+    # 2. session_state にキャッシュがあればそれを使う（secrets書き込み後の再起動前対策）
+    cached = st.session_state.get("_food_folder_id_cache")
+    if cached:
+        return cached
+
+    # 3. フォルダを自動作成
+    try:
+        service = get_drive_service()
+        # 既存の「食事画像」フォルダを検索
+        query = "name='食事画像' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        results = service.files().list(q=query, fields="files(id, name)", pageSize=5).execute()
+        existing = results.get("files", [])
+        if existing:
+            new_fid = existing[0]["id"]
+        else:
+            # 新規作成
+            file_metadata = {
+                "name": "食事画像",
+                "mimeType": "application/vnd.google-apps.folder",
+            }
+            folder = service.files().create(body=file_metadata, fields="id").execute()
+            new_fid = folder["id"]
+
+        # secrets.toml に追記
+        secrets_path = Path(__file__).parent / ".streamlit" / "secrets.toml"
+        if secrets_path.exists():
+            content = secrets_path.read_text(encoding="utf-8")
+            if "food_images_folder_id" not in content:
+                with open(secrets_path, "a", encoding="utf-8") as f:
+                    f.write(f'\n# 食事画像フォルダID（自動作成）\nfood_images_folder_id = "{new_fid}"\n')
+
+        st.session_state["_food_folder_id_cache"] = new_fid
+        return new_fid
+    except Exception as e:
+        import logging
+        logging.warning(f"食事画像フォルダの自動作成に失敗: {e}")
         return None
 
 
