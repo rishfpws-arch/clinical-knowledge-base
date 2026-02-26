@@ -1173,7 +1173,7 @@ def list_all_images(_service, folder_id: str, metadata: dict,
     return images
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False, max_entries=50)
 def download_image(_service, file_id: str) -> bytes:
     """画像をバイト列で返す。ローカルアップロード画像を優先し、なければGoogle Driveから取得。"""
     # ローカルアップロード画像を確認
