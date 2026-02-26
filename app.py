@@ -62,6 +62,9 @@ FOLDERS_PATH = Path(__file__).parent / "folders.json"
 UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
+FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
+FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
+MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
 TRASH_RETENTION_DAYS = 30  # ゴミ箱の保持日数
 DEFAULT_FOLDER = "未分類"
 PATIENT_DATA_FOLDER = "患者データ"
@@ -6720,18 +6723,6 @@ def page_weight_management():
         # --- 食事を記録 ---
         st.markdown("### 🍽️ 食事を記録")
 
-        # スマホでBrowse filesがフォトギャラリーを開くよう accept属性を書き換え
-        components.html("""
-        <script>
-        (function() {
-            const inputs = window.parent.document.querySelectorAll('input[type="file"]');
-            inputs.forEach(function(input) {
-                input.setAttribute('accept', 'image/*');
-            });
-        })();
-        </script>
-        """, height=0)
-
         # st.form でラップ（スマホでアップロードが完了しない問題の対策）
         with st.form("wm_food_form", clear_on_submit=True):
             food_files = st.file_uploader(
@@ -7028,9 +7019,19 @@ def page_weight_management():
             default_target_date = date.today()
             if cur_target_date:
                 try:
-                    default_target_date = datetime.strptime(cur_target_date, "%Y-%m-%d").date()
+                    parsed_td = datetime.strptime(cur_target_date, "%Y-%m-%d").date()
+                    # 過去日付の場合は今日にクランプ（min_value違反を防止）
+                    default_target_date = max(parsed_td, date.today())
                 except (ValueError, TypeError):
                     pass
+            # session_stateにキャッシュされた過去日付を除去
+            if "wm_goal_date" in st.session_state:
+                try:
+                    _cached_gd = st.session_state["wm_goal_date"]
+                    if hasattr(_cached_gd, "year") and _cached_gd < date.today():
+                        del st.session_state["wm_goal_date"]
+                except Exception:
+                    st.session_state.pop("wm_goal_date", None)
             new_target_date = st.date_input(
                 "いつまでに達成？",
                 value=default_target_date,
