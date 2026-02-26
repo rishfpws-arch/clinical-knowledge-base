@@ -316,7 +316,7 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 # Google Sheets 永続化
 # ---------------------------------------------------------------------------
 _SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
-_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data"]
+_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data", "food_processed"]
 _CACHE_TTL = 30  # 秒
 
 
@@ -378,7 +378,11 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
     """JSONデータをチャンク分割してワークシートに書き込む。"""
     try:
-        ws = sh.worksheet(worksheet_name)
+        try:
+            ws = sh.worksheet(worksheet_name)
+        except gspread.exceptions.WorksheetNotFound:
+            ws = sh.add_worksheet(title=worksheet_name, rows=100, cols=1)
+            _log.info(f"[Sheets] ワークシート '{worksheet_name}' を自動作成しました")
         json_str = json.dumps(data, ensure_ascii=False)
         chunks = []
         for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
