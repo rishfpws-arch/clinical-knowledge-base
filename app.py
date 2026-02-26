@@ -5888,16 +5888,24 @@ def page_import_analyze():
             st.info("🏥 患者データはまだ取り込まれていません。")
         else:
             # --- 選択ヘルパーボタン ---
+            # 前回のリランで設定されたバッチ選択フラグを適用
+            _pd_batch = st.session_state.pop("_pd_batch_sel", None)
+            if _pd_batch is not None:
+                for img in patient_data_images:
+                    fid = img["id"]
+                    if isinstance(_pd_batch, dict):
+                        st.session_state[f"pd_sel_{fid}"] = _pd_batch.get(fid, False)
+                    else:
+                        st.session_state[f"pd_sel_{fid}"] = bool(_pd_batch)
+
             sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
             with sel_c1:
                 if st.button("☑️ 全選択", key="pd_sel_all"):
-                    for img in patient_data_images:
-                        st.session_state[f"pd_sel_{img['id']}"] = True
+                    st.session_state["_pd_batch_sel"] = True
                     st.rerun()
             with sel_c2:
                 if st.button("☐ 全解除", key="pd_desel_all"):
-                    for img in patient_data_images:
-                        st.session_state[f"pd_sel_{img['id']}"] = False
+                    st.session_state["_pd_batch_sel"] = False
                     st.rerun()
             with sel_c3:
                 no_kw_imgs = [
@@ -5905,9 +5913,11 @@ def page_import_analyze():
                     if not metadata.get(img["id"], {}).get("keywords")
                 ]
                 if st.button(f"🏷️ タグなし({len(no_kw_imgs)})", key="pd_sel_no_kw"):
+                    batch_map = {}
                     for img in patient_data_images:
                         has_kw = bool(metadata.get(img["id"], {}).get("keywords"))
-                        st.session_state[f"pd_sel_{img['id']}"] = not has_kw
+                        batch_map[img["id"]] = not has_kw
+                    st.session_state["_pd_batch_sel"] = batch_map
                     st.rerun()
 
             # --- サムネイルグリッド（4列 × 2行 = 8件/ページ） ---
