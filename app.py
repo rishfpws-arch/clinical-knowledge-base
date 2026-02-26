@@ -1429,6 +1429,43 @@ def _get_day_items(day_data: dict) -> list[dict]:
     return items
 
 
+def _guess_meal_type(hour: int | None = None) -> str:
+    """時刻から食事タイプを推定する。hourが省略された場合は現在時刻を使用。"""
+    if hour is None:
+        hour = datetime.now().hour
+    if 4 <= hour < 10:
+        return "breakfast"
+    elif 10 <= hour < 15:
+        return "lunch"
+    elif 15 <= hour < 21:
+        return "dinner"
+    else:
+        return "snack"
+
+
+def _guess_meal_type_from_dt(dt: datetime) -> str:
+    """datetime から食事タイプを推定する。"""
+    return _guess_meal_type(dt.hour)
+
+
+def _group_items_by_meal(items: list[dict]) -> dict:
+    """品目リストを meal_type でグループ化。OrderedDict で MEAL_TYPE_ORDER 順に返す。"""
+    from collections import OrderedDict
+    groups = OrderedDict()
+    for mt in MEAL_TYPE_ORDER:
+        groups[mt] = []
+    unset = []
+    for it in items:
+        mt = it.get("meal_type")
+        if mt in groups:
+            groups[mt].append(it)
+        else:
+            unset.append(it)
+    if unset:
+        groups["unset"] = unset
+    return groups
+
+
 def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[int] | None:
     """品目名+量リストからGeminiでカロリーを再推定する。
 
