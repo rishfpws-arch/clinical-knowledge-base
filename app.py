@@ -28,7 +28,6 @@ from pathlib import Path
 
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 from PIL import Image
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
