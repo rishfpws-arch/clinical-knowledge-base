@@ -155,8 +155,6 @@ def _check_auth() -> bool:
                     # URLにトークンを付与（ブックマーク/履歴でログイン維持）
                     auth_token = _make_auth_token(username, pw_hash)
                     st.query_params["token"] = auth_token
-                    # localStorageへの保存はメインページ描画後に実行するようフラグだけ立てる
-                    st.session_state["_save_auth_token"] = auth_token
                     st.rerun()
                 else:
                     st.error("ユーザー名またはパスワードが正しくありません。")
