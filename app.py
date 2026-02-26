@@ -7736,9 +7736,16 @@ def main():
             _scan_api_key = get_gemini_api_key()
             if _scan_api_key:
                 _run_manual_scan(_scan_service, _scan_folder_id, _scan_api_key)
+                # 食事画像も同時にスキャン
+                _food_fid = get_food_folder_id()
+                if _food_fid:
+                    _fc = scan_food_images(_scan_service, _food_fid, _scan_api_key, manual=True)
+                    if _fc > 0:
+                        st.sidebar.success(f"🍽️ 食事画像 {_fc} 枚を取り込みました")
         except Exception:
             st.warning("⚠️ スキャン中にエラーが発生しました。")
         st.session_state["auto_scan_last"] = time.time()
+        st.session_state["food_scan_last"] = time.time()
 
     # --- 自動スキャン（バックグラウンド） ---
     elif st.session_state.get("auto_scan_enabled", True):
