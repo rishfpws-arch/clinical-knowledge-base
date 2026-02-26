@@ -3126,16 +3126,13 @@ def page_batch_analyze():
         st.info(f"**{len(unanalyzed)} 件**の未解析画像があります。解析する画像を選択してください。")
 
         sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
+        _apply_batch_checkbox("_batch_sel_flag", [f"batch_sel_{img['id']}" for img in unanalyzed])
         with sel_col1:
             if st.button("☑️ 全選択", key="batch_select_all"):
-                for img in unanalyzed:
-                    st.session_state[f"batch_sel_{img['id']}"] = True
-                st.rerun()
+                _set_batch_checkbox("_batch_sel_flag", True)
         with sel_col2:
             if st.button("☐ 全解除", key="batch_deselect_all"):
-                for img in unanalyzed:
-                    st.session_state[f"batch_sel_{img['id']}"] = False
-                st.rerun()
+                _set_batch_checkbox("_batch_sel_flag", False)
 
         # ページネーション
         batch_page_items, batch_cur, batch_total_pages = _paginate(unanalyzed, "batch_new_page")
