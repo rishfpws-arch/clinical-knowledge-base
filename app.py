@@ -5936,7 +5936,7 @@ def page_import_analyze():
                         # サムネイル
                         try:
                             thumb = download_image(service, fid)
-                            st.image(thumb, use_container_width=True)
+                            st.image(thumb, width="stretch")
                         except Exception:
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
@@ -5973,7 +5973,7 @@ def page_import_analyze():
             btn_c1, btn_c2 = st.columns(2)
             with btn_c1:
                 if st.button("💾 タイトルを一括保存", key="pd_save_titles",
-                             type="secondary", use_container_width=True):
+                             use_container_width=True):
                     saved = _save_all_patient_titles(patient_data_images, metadata)
                     if saved > 0:
                         save_metadata(metadata)
@@ -6076,7 +6076,7 @@ def page_import_analyze():
                     with detail_col_img:
                         try:
                             detail_bytes = download_image(service, sel_fid)
-                            st.image(detail_bytes, use_container_width=True)
+                            st.image(detail_bytes, width="stretch")
                         except Exception:
                             st.caption("（画像を読み込めません）")
 
