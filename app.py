@@ -3294,16 +3294,13 @@ def page_batch_analyze():
         st.info(f"**{len(hint_target_list)} 件**の画像が対象です。修正したい画像を選択してください。")
 
         hc1, hc2, hc3 = st.columns([1, 1, 3])
+        _apply_batch_checkbox("_hint_sel_flag", [f"hint_sel_{img['id']}" for img in hint_target_list])
         with hc1:
             if st.button("☑️ 全選択", key="hint_sel_all"):
-                for img in hint_target_list:
-                    st.session_state[f"hint_sel_{img['id']}"] = True
-                st.rerun()
+                _set_batch_checkbox("_hint_sel_flag", True)
         with hc2:
             if st.button("☐ 全解除", key="hint_sel_none"):
-                for img in hint_target_list:
-                    st.session_state[f"hint_sel_{img['id']}"] = False
-                st.rerun()
+                _set_batch_checkbox("_hint_sel_flag", False)
 
         # ページネーション
         hint_page_items, hint_cur, hint_total_pages = _paginate(hint_target_list, "batch_hint_page")
