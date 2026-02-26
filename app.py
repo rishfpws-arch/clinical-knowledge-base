@@ -7033,7 +7033,7 @@ def page_weight_management():
                         name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
                     with c2:
                         qty_val = item.get("quantity", "ふつう")
-                        qty_idx = QUANTITY_OPTIONS.index(qty_val) if qty_val in QUANTITY_OPTIONS else 3
+                        qty_idx = QUANTITY_OPTIONS.index(qty_val) if qty_val in QUANTITY_OPTIONS else 1
                         qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_item_qty_{date_key}_{i}")
                     with c3:
                         cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
