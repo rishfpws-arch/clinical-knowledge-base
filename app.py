@@ -5944,16 +5944,15 @@ def page_import_analyze():
                                 'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
                                 unsafe_allow_html=True,
                             )
-                        # AI解析チェックボックス
-                        st.checkbox(
-                            "AI解析",
-                            value=st.session_state.get(f"pd_sel_{fid}", False),
-                            key=f"pd_sel_{fid}",
-                        )
-                        # タイトル入力
+                        # AI解析チェックボックス — session_state にデフォルト設定
+                        if f"pd_sel_{fid}" not in st.session_state:
+                            st.session_state[f"pd_sel_{fid}"] = False
+                        st.checkbox("AI解析", key=f"pd_sel_{fid}")
+                        # タイトル入力 — session_state にデフォルト設定
+                        if f"pd_title_{fid}" not in st.session_state:
+                            st.session_state[f"pd_title_{fid}"] = current_title
                         st.text_input(
                             "タイトル",
-                            value=current_title if f"pd_title_{fid}" not in st.session_state else st.session_state[f"pd_title_{fid}"],
                             key=f"pd_title_{fid}",
                             label_visibility="collapsed",
                             placeholder="タイトルを入力",
