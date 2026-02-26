@@ -5705,6 +5705,30 @@ def page_image_library():
             st.rerun()
 
 
+# ---------------------------------------------------------------------------
+# ヘルパー: 患者データのタイトル一括保存
+# ---------------------------------------------------------------------------
+def _save_all_patient_titles(patient_data_images: list, metadata: dict) -> int:
+    """session_state の pd_title_{fid} からタイトルを読み取り metadata に保存。
+
+    変更があった件数を返す。
+    """
+    changed = 0
+    for img in patient_data_images:
+        fid = img["id"]
+        key = f"pd_title_{fid}"
+        if key in st.session_state:
+            new_title = st.session_state[key].strip()
+            m = metadata.get(fid, {})
+            old_title = m.get("title", img.get("name", ""))
+            if new_title and new_title != old_title:
+                if fid not in metadata:
+                    metadata[fid] = {}
+                metadata[fid]["title"] = new_title
+                changed += 1
+    return changed
+
+
 # ===========================================================================
 # 統合ページ: ⚡ 取り込み・解析（一括解析 + AI整理の分類 + 患者データ 統合）
 # ===========================================================================
