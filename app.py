@@ -5889,25 +5889,16 @@ def page_import_analyze():
             st.info("🏥 患者データはまだ取り込まれていません。")
         else:
             # --- 選択ヘルパーボタン ---
-            # 前回のリランで設定されたバッチ選択フラグを適用
-            _pd_batch = st.session_state.pop("_pd_batch_sel", None)
-            if _pd_batch is not None:
-                for img in patient_data_images:
-                    fid = img["id"]
-                    if isinstance(_pd_batch, dict):
-                        st.session_state[f"pd_sel_{fid}"] = _pd_batch.get(fid, False)
-                    else:
-                        st.session_state[f"pd_sel_{fid}"] = bool(_pd_batch)
+            _pd_sel_keys = [f"pd_sel_{img['id']}" for img in patient_data_images]
+            _apply_batch_checkbox("_pd_sel_flag", _pd_sel_keys)
 
             sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
             with sel_c1:
                 if st.button("☑️ 全選択", key="pd_sel_all"):
-                    st.session_state["_pd_batch_sel"] = True
-                    st.rerun()
+                    _set_batch_checkbox("_pd_sel_flag", True)
             with sel_c2:
                 if st.button("☐ 全解除", key="pd_desel_all"):
-                    st.session_state["_pd_batch_sel"] = False
-                    st.rerun()
+                    _set_batch_checkbox("_pd_sel_flag", False)
             with sel_c3:
                 no_kw_imgs = [
                     img for img in patient_data_images
@@ -5917,9 +5908,8 @@ def page_import_analyze():
                     batch_map = {}
                     for img in patient_data_images:
                         has_kw = bool(metadata.get(img["id"], {}).get("keywords"))
-                        batch_map[img["id"]] = not has_kw
-                    st.session_state["_pd_batch_sel"] = batch_map
-                    st.rerun()
+                        batch_map[f"pd_sel_{img['id']}"] = not has_kw
+                    _set_batch_checkbox("_pd_sel_flag", batch_map)
 
             # --- サムネイルグリッド（4列 × 2行 = 8件/ページ） ---
             pd_page_items, pd_cur, pd_total_pages = _paginate(
@@ -6243,17 +6233,14 @@ def page_import_analyze():
                     st.info("該当する画像がありません。")
                 else:
                     st.info(f"**{len(hint_target_list)} 件**が対象です。")
+                    _apply_batch_checkbox("_imp_hint_sel_flag", [f"imp_hint_sel_{img['id']}" for img in hint_target_list])
                     hc1, hc2, hc3 = st.columns([1, 1, 3])
                     with hc1:
                         if st.button("☑️ 全選択", key="imp_hint_sel_all"):
-                            for img in hint_target_list:
-                                st.session_state[f"imp_hint_sel_{img['id']}"] = True
-                            st.rerun()
+                            _set_batch_checkbox("_imp_hint_sel_flag", True)
                     with hc2:
                         if st.button("☐ 全解除", key="imp_hint_sel_none"):
-                            for img in hint_target_list:
-                                st.session_state[f"imp_hint_sel_{img['id']}"] = False
-                            st.rerun()
+                            _set_batch_checkbox("_imp_hint_sel_flag", False)
 
                     hint_page_items, hint_cur, hint_total_pages = _paginate(hint_target_list, "imp_hint_page")
                     _render_pagination_controls("imp_hint_page", hint_cur, hint_total_pages, len(hint_target_list))
