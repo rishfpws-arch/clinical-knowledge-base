@@ -1810,6 +1810,156 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Google Drive 食事画像自動取り込み
+# ---------------------------------------------------------------------------
+
+
+def scan_food_images(service, food_folder_id: str, api_key: str,
+                     manual: bool = False) -> int:
+    """Google Driveの食事画像フォルダをスキャンし、未処理画像をAI解析して仮登録する。
+
+    Args:
+        service: Google Drive API クライアント
+        food_folder_id: 食事画像フォルダID
+        api_key: Gemini API キー
+        manual: True=手動スキャン（件数制限なし）, False=自動スキャン
+
+    Returns:
+        処理した画像数
+    """
+    if not manual:
+        # 自動スキャン: クールダウンチェック
+        now = time.time()
+        last_scan = st.session_state.get("food_scan_last", 0)
+        if now - last_scan < FOOD_SCAN_INTERVAL:
+            return 0
+        st.session_state["food_scan_last"] = now
+
+    # 処理済みリスト読み込み
+    processed = load_food_processed()
+
+    # Google Driveから画像一覧を取得
+    try:
+        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+        query = f"'{food_folder_id}' in parents and ({mime_query}) and trashed=false"
+        results = (
+            service.files()
+            .list(
+                q=query,
+                fields="files(id, name, mimeType, createdTime, modifiedTime)",
+                orderBy="modifiedTime desc",
+                pageSize=100,
+            )
+            .execute()
+        )
+        all_files = results.get("files", [])
+    except Exception as e:
+        if manual:
+            st.error(f"Google Driveの読み取りに失敗しました: {e}")
+        return 0
+
+    # 未処理画像を抽出
+    new_files = [f for f in all_files if f["id"] not in processed]
+    if not new_files:
+        return 0
+
+    # 件数制限（自動スキャン時のみ）
+    if not manual:
+        new_files = new_files[:MAX_FOOD_SCAN_IMAGES]
+
+    # weight_data を読み込み
+    weight_data = load_weight_data()
+    records = weight_data.setdefault("records", {})
+
+    count = 0
+    for file_info in new_files:
+        file_id = file_info["id"]
+        file_name = file_info.get("name", file_id)
+
+        try:
+            # 画像をダウンロード
+            img_bytes = download_image(service, file_id)
+            if not img_bytes:
+                continue
+
+            # EXIF日時を取得 → フォールバック: Driveの modifiedTime → 今日
+            photo_dt = _extract_exif_datetime(img_bytes)
+            if photo_dt is None:
+                # Drive の modifiedTime を使用
+                mod_time_str = file_info.get("modifiedTime", "")
+                if mod_time_str:
+                    try:
+                        # ISO 8601 format: 2026-02-26T09:12:43.000Z
+                        photo_dt = datetime.fromisoformat(
+                            mod_time_str.replace("Z", "+00:00")
+                        )
+                    except (ValueError, TypeError):
+                        pass
+            if photo_dt is None:
+                photo_dt = datetime.now()
+
+            date_key = photo_dt.strftime("%Y-%m-%d")
+
+            # 画像をローカル保存
+            WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
+            img_id = f"wm_{uuid.uuid4().hex[:12]}"
+            ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "png"
+            if ext not in ("jpg", "jpeg", "png"):
+                ext = "png"
+            (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(img_bytes)
+
+            # AI解析
+            result = analyze_food_images([img_bytes], api_key)
+            if result and "items" in result and result["items"]:
+                # 仮登録として追加
+                day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
+                for it in result["items"]:
+                    item_entry = {
+                        "id": f"item_{uuid.uuid4().hex[:12]}",
+                        "name": it.get("name", "不明"),
+                        "quantity": it.get("quantity", "1人前"),
+                        "calories": it.get("calories", 0),
+                        "image_id": img_id,
+                        "image_ext": ext,
+                        "provisional": True,
+                        "drive_file_id": file_id,
+                    }
+                    day_data["items"].append(item_entry)
+
+                # 合計カロリー再計算
+                all_items = _get_day_items(day_data)
+                day_data["total_calories"] = sum(
+                    it.get("calories", 0) for it in all_items
+                )
+
+            # 処理済みとして記録（解析失敗でも再処理しない）
+            processed[file_id] = {
+                "date": date_key,
+                "file_name": file_name,
+                "processed_at": datetime.now().isoformat(),
+            }
+            count += 1
+
+        except Exception as e:
+            if manual:
+                st.warning(f"⚠️ {file_name} の処理に失敗: {e}")
+            # 失敗しても処理済みマーク（無限リトライ防止）
+            processed[file_id] = {
+                "date": "",
+                "file_name": file_name,
+                "processed_at": datetime.now().isoformat(),
+                "error": str(e),
+            }
+
+    # 保存
+    if count > 0:
+        save_weight_data(weight_data)
+    save_food_processed(processed)
+
+    return count
+
+
+# ---------------------------------------------------------------------------
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
 def filter_images_by_keyword(
