@@ -124,26 +124,7 @@ def _check_auth() -> bool:
             if token == expected_token:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
-                # localStorageへの保存はメインページ描画後に実行するようフラグだけ立てる
-                st.session_state["_save_auth_token"] = token
                 return True
-
-    # URLにtokenがない場合: localStorageからトークンを復元するJSを注入
-    if not token:
-        components.html("""<script>
-        (function() {
-            try {
-                var t = localStorage.getItem('ckb_auth_token');
-                if (t) {
-                    var url = new URL(window.parent.location.href);
-                    if (!url.searchParams.get('token')) {
-                        url.searchParams.set('token', t);
-                        window.parent.location.href = url.toString();
-                    }
-                }
-            } catch(e) {}
-        })();
-        </script>""", height=0)
 
     # ログイン画面
     st.markdown(
