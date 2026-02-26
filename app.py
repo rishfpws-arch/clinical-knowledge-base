@@ -6786,7 +6786,8 @@ def _render_weight_history(records: dict, goals: dict):
                     it_name = it.get("name", "")
                     it_qty = it.get("quantity", "1人前")
                     it_cal = it.get("calories", 0)
-                    st.markdown(f"- {it_name}（{it_qty}）　**{it_cal} kcal**")
+                    prov_mark = "🔔 " if it.get("provisional") else ""
+                    st.markdown(f"- {prov_mark}{it_name}（{it_qty}）　**{it_cal} kcal**")
 
 
 def page_weight_management():
