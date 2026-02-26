@@ -6765,8 +6765,268 @@ def page_settings_all():
 # ===========================================================================
 # 体重管理ページ
 # ===========================================================================
+def _inject_wm_css():
+    """MoneyForward風CSSスタイル注入。"""
+    st.markdown("""
+    <style>
+    .mf-weight-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px; padding: 20px; color: white; text-align: center;
+        margin-bottom: 8px;
+    }
+    .mf-weight-card .mf-label { font-size: 13px; opacity: 0.8; }
+    .mf-weight-card .mf-value { font-size: 32px; font-weight: bold; margin: 4px 0; }
+    .mf-weight-card .mf-sub { font-size: 12px; opacity: 0.7; }
+    .mf-cal-card {
+        background: white; border: 1px solid #e0e0e0; border-radius: 16px;
+        padding: 20px; text-align: center; margin-bottom: 8px;
+    }
+    .mf-cal-card .mf-label { font-size: 13px; color: #666; }
+    .mf-cal-card .mf-value { font-size: 36px; font-weight: bold; margin: 4px 0; }
+    .mf-cal-card .mf-target { font-size: 14px; color: #999; }
+    .mf-cal-card .mf-remaining { font-size: 13px; color: #666; margin-top: 8px; }
+    .mf-progress-bg {
+        background: #e0e0e0; border-radius: 10px; height: 12px; margin: 10px 0;
+        overflow: hidden;
+    }
+    .mf-progress-bar {
+        height: 12px; border-radius: 10px; transition: width 0.3s;
+    }
+    .mf-meal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; background: #f8f9fa; border-radius: 8px;
+        margin: 12px 0 4px 0; font-weight: bold; font-size: 15px;
+    }
+    .mf-item-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 6px 14px 6px 24px; border-bottom: 1px solid #f5f5f5;
+        font-size: 14px;
+    }
+    .mf-item-row:last-child { border-bottom: none; }
+    .mf-prov-badge {
+        background: #FFF3E0; color: #E65100; padding: 1px 6px;
+        border-radius: 10px; font-size: 11px; margin-right: 4px;
+    }
+    .mf-date-display {
+        text-align: center; font-size: 18px; font-weight: bold;
+        padding: 8px 0; line-height: 2.2;
+    }
+    .mf-grand-total {
+        text-align: right; font-size: 16px; font-weight: bold;
+        padding: 12px 14px; border-top: 2px solid #333; margin-top: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+def _get_weight_trend(records: dict) -> str:
+    """直近2つの体重記録を比較して傾向を返す。 'down' / 'up' / 'flat' / 'none'"""
+    weight_entries = []
+    for dk in sorted(records.keys(), reverse=True):
+        w = records[dk].get("weight")
+        if w:
+            weight_entries.append(w)
+        if len(weight_entries) >= 2:
+            break
+    if len(weight_entries) < 2:
+        return "none"
+    if weight_entries[0] < weight_entries[1]:
+        return "down"
+    elif weight_entries[0] > weight_entries[1]:
+        return "up"
+    return "flat"
+
+
+def _render_date_navigation():
+    """MoneyForward風の日付ナビゲーション。◀ 前日 | 日付 | 翌日 ▶ | 今日"""
+    if "wm_selected_date" not in st.session_state:
+        st.session_state["wm_selected_date"] = date.today()
+
+    sel = st.session_state["wm_selected_date"]
+    weekday_ja = ["月", "火", "水", "木", "金", "土", "日"][sel.weekday()]
+
+    col_prev, col_date, col_next, col_today = st.columns([1, 4, 1, 1.5])
+    with col_prev:
+        if st.button("◀", key="wm_prev_day", use_container_width=True):
+            st.session_state["wm_selected_date"] = sel - timedelta(days=1)
+            st.rerun()
+    with col_date:
+        st.markdown(
+            f"<div class='mf-date-display'>{sel.month}月{sel.day}日（{weekday_ja}）</div>",
+            unsafe_allow_html=True,
+        )
+    with col_next:
+        if st.button("▶", key="wm_next_day", use_container_width=True):
+            st.session_state["wm_selected_date"] = sel + timedelta(days=1)
+            st.rerun()
+    with col_today:
+        if sel != date.today():
+            if st.button("今日", key="wm_today_btn", use_container_width=True):
+                st.session_state["wm_selected_date"] = date.today()
+                st.rerun()
+
+
+def _render_dashboard_card(day_data: dict, goals: dict, records: dict):
+    """MoneyForward風のダッシュボードカード: 体重 + カロリー。"""
+    total_cal = day_data.get("total_calories", 0)
+    weight = day_data.get("weight")
+    target_cal = goals.get("daily_calorie_target", 0)
+    target_wt = goals.get("target_weight_kg")
+    remaining = max(0, target_cal - total_cal) if target_cal else 0
+
+    # カロリー色分け
+    if target_cal > 0:
+        ratio = total_cal / target_cal
+        if ratio <= 0.8:
+            cal_color = "#4CAF50"
+        elif ratio <= 1.0:
+            cal_color = "#FF9800"
+        else:
+            cal_color = "#F44336"
+        progress_pct = min(100, int(ratio * 100))
+    else:
+        cal_color = "#888"
+        progress_pct = 0
+
+    # 体重トレンド
+    trend = _get_weight_trend(records)
+    trend_arrow = {"down": "↓", "up": "↑", "flat": "→"}.get(trend, "")
+
+    col_wt, col_cal = st.columns([1, 1.5])
+
+    with col_wt:
+        w_display = f"{weight}" if weight else "--"
+        wt_sub = ""
+        if weight and target_wt:
+            diff = round(weight - target_wt, 1)
+            wt_sub = f"目標まで {abs(diff)} kg" if diff > 0 else "目標達成!"
+        elif target_wt:
+            wt_sub = f"目標: {target_wt} kg"
+
+        st.markdown(f"""
+        <div class="mf-weight-card">
+            <div class="mf-label">⚖️ 体重</div>
+            <div class="mf-value">{w_display} <span style="font-size:16px;">kg</span> {trend_arrow}</div>
+            <div class="mf-sub">{wt_sub}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_cal:
+        target_str = f"/ {target_cal:,}" if target_cal else ""
+        remaining_str = f"残り <b>{remaining:,}</b> kcal" if target_cal else "目標未設定"
+        pct_str = f"{progress_pct}%" if target_cal else ""
+
+        st.markdown(f"""
+        <div class="mf-cal-card">
+            <div class="mf-label">🔥 カロリー</div>
+            <div class="mf-value" style="color: {cal_color};">{total_cal:,}</div>
+            <div class="mf-target">{target_str} kcal {pct_str}</div>
+            <div class="mf-progress-bg">
+                <div class="mf-progress-bar" style="background: {cal_color}; width: {progress_pct}%;"></div>
+            </div>
+            <div class="mf-remaining">{remaining_str}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def _render_meal_groups(day_data: dict, weight_data: dict):
+    """食事タイプ別にグループ化して表示（MoneyForwardカテゴリ風）。"""
+    current_items = _get_day_items(day_data)
+
+    if not current_items:
+        st.caption("📋 この日の食事記録はまだありません。")
+        return
+
+    groups = _group_items_by_meal(current_items)
+
+    # 一括確定ボタン（仮登録がある場合）
+    prov_items = [it for it in current_items if it.get("provisional")]
+    if prov_items:
+        if st.button("✅ すべて確定", key="wm_confirm_all_prov", type="primary", use_container_width=True):
+            for it in day_data.get("items", []):
+                it.pop("provisional", None)
+            save_weight_data(weight_data)
+            st.toast(f"✅ {len(prov_items)} 品目を確定しました")
+            st.rerun()
+
+    for meal_key, meal_items in groups.items():
+        label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
+        color = MEAL_TYPE_COLORS.get(meal_key, "#757575")
+        subtotal = sum(it.get("calories", 0) for it in meal_items)
+
+        # カテゴリヘッダー
+        st.markdown(
+            f'<div class="mf-meal-header" style="border-left: 4px solid {color};">'
+            f'<span>{label}</span><span>{subtotal:,} kcal</span></div>',
+            unsafe_allow_html=True,
+        )
+
+        if not meal_items:
+            st.caption("　（記録なし）")
+        else:
+            for it in meal_items:
+                _render_food_item_row(it, day_data, weight_data)
+
+    # 合計
+    total = sum(it.get("calories", 0) for it in current_items)
+    prov_total = sum(it.get("calories", 0) for it in prov_items)
+    prov_note = f"（うち仮登録: {prov_total:,} kcal）" if prov_total > 0 else ""
+    st.markdown(
+        f'<div class="mf-grand-total">合計: {total:,} kcal {prov_note}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
+    """MoneyForward風の1品目行。"""
+    item_id = item.get("id", "")
+    is_prov = item.get("provisional", False)
+    name = item.get("name", "")
+    qty = item.get("quantity", "ふつう")
+    cal = item.get("calories", 0)
+
+    if is_prov:
+        c1, c2, c3, c4 = st.columns([4, 1.5, 0.7, 0.7])
+    else:
+        c1, c2, c3 = st.columns([5, 2, 0.7])
+
+    with c1:
+        prov_html = '<span class="mf-prov-badge">仮</span>' if is_prov else ""
+        st.markdown(
+            f'{prov_html}**{name}** <span style="color:#999; font-size:13px;">({qty})</span>',
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(f"**{cal:,} kcal**")
+
+    if is_prov:
+        with c3:
+            if item_id and st.button("✅", key=f"wm_ok_{item_id}", help="確定"):
+                for x in day_data.get("items", []):
+                    if x.get("id") == item_id:
+                        x.pop("provisional", None)
+                        break
+                save_weight_data(weight_data)
+                st.rerun()
+        with c4:
+            if item_id and st.button("🗑️", key=f"wm_del_p_{item_id}", help="削除"):
+                if "items" in day_data:
+                    day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
+                    day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
+                save_weight_data(weight_data)
+                st.rerun()
+    else:
+        with c3:
+            if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
+                if "items" in day_data:
+                    day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
+                    day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
+                save_weight_data(weight_data)
+                st.rerun()
+
+
 def _render_weight_history(records: dict, goals: dict):
-    """体重管理の履歴一覧（家計簿スタイル）。"""
+    """体重管理の履歴一覧（MoneyForward風）。"""
 
     if not records:
         st.info("まだ記録がありません。「📝 記録」タブからデータを入力してください。")
