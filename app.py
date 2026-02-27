@@ -3743,7 +3743,7 @@ def page_batch_analyze():
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_AUTO
             ]
-            action_label = "登録済みにする"
+            action_label = "確認済みにする"
             action_key_prefix = "bulkrev"
         else:
             target_list = [
@@ -6618,7 +6618,7 @@ def page_import_analyze():
                     img for img in images
                     if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_AUTO
                 ]
-                action_label = "登録済みにする"
+                action_label = "確認済みにする"
                 action_key_prefix = "imp_bulkrev"
             else:
                 target_list = [
