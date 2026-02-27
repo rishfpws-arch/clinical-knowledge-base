@@ -7333,12 +7333,13 @@ def page_weight_management():
                         st.warning("APIキー未設定")
 
             default_wt = st.session_state.get("wm_ai_weight", day_data.get("weight") or 0.0)
-            input_weight = st.number_input(
-                "体重 (kg)", min_value=0.0, max_value=300.0,
-                value=float(default_wt), step=0.1, format="%.1f",
-                key=f"wm_weight_input_{date_key}",
-            )
-            if st.button("💾 体重を記録", key="wm_weight_save", type="primary"):
+            with st.form(key=f"wm_weight_form_{date_key}"):
+                input_weight = st.number_input(
+                    "体重 (kg)", min_value=0.0, max_value=300.0,
+                    value=float(default_wt), step=0.1, format="%.1f",
+                )
+                weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
+            if weight_submitted:
                 if input_weight > 0:
                     day_data["weight"] = round(input_weight, 1)
                     day_data["weight_recorded_at"] = datetime.now().isoformat()
