@@ -2103,7 +2103,11 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             _invalidate_all_caches()
             list_images.clear()
             list_patient_images.clear()
-            sync_msg = "（Google Sheets に同期済み）" if sheets_ok else "（⚠️ Sheets同期失敗 — ローカル保存のみ）"
+            if sheets_ok:
+                sync_msg = "（Google Sheets に同期済み）"
+            else:
+                detail = st.session_state.pop("_save_error_detail", "不明")
+                sync_msg = f"（⚠️ Sheets同期失敗: {detail}）"
             status_text.success(
                 f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました{sync_msg}"
                 + (f"（{fail_count} 件失敗）" if fail_count else "")
