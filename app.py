@@ -497,6 +497,11 @@ def save_metadata(metadata: dict) -> bool:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    if not sheets_ok:
+        try:
+            st.toast("⚠️ クラウドへの保存に失敗しました。ローカルに保存済みです。", icon="⚠️")
+        except Exception:
+            pass
     return sheets_ok
 
 
