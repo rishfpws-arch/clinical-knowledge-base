@@ -3725,7 +3725,7 @@ def page_batch_analyze():
     # =======================================================================
     elif mode == "一括レビュー済みに変更":
         st.subheader("✅ 一括ステータス変更")
-        st.caption("未登録の画像をまとめて登録済みに変更、または登録済みを未登録に戻せます。")
+        st.caption("未確認の画像をまとめて確認済みに変更、または確認済みを未確認に戻せます。")
 
         metadata = load_metadata()
 
@@ -6606,7 +6606,7 @@ def page_import_analyze():
 
         # --- 一括レビュー済みに変更 ---
         elif adv_mode == "一括レビュー済みに変更":
-            st.caption("未登録の画像をまとめて登録済みに変更、または登録済みを未登録に戻せます。")
+            st.caption("未確認の画像をまとめて確認済みに変更、または確認済みを未確認に戻せます。")
             metadata = load_metadata()
             review_filter = st.radio(
                 "対象",
