@@ -10,6 +10,10 @@ Google Driveの指定フォルダ内にある医療関連スクリーンショ�
 AI解析/チャット: Gemini 2.0 Flash (REST API)
 """
 
+# --- glibc malloc arena 制限（pyarrow malloc corruption 対策） ---
+import os as _os
+_os.environ.setdefault("MALLOC_ARENA_MAX", "2")
+
 import base64
 import hashlib
 import hmac
