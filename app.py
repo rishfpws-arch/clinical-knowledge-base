@@ -2100,9 +2100,11 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                 with results_container:
                     st.markdown(f"⚠️ {fname} — エラー: {e}")
 
-        progress_bar.progress(1.0, text="完了！")
+        progress_bar.progress(1.0, text="完了！ Sheets に保存中...")
 
         if success_count > 0:
+            # API Rate Limit 回避のため少し待機
+            time.sleep(2)
             sheets_ok = save_metadata(metadata)
             _invalidate_all_caches()
             list_images.clear()
