@@ -8049,6 +8049,9 @@ def main():
     )
     st.sidebar.caption(f"📊 確認済み {reviewed_sidebar} / 全 {total_count} 件")
 
+    # ─── 前回失敗した Sheets 書き込みを再試行 ───
+    _retry_pending_saves()
+
     # ─── サイドバー: 自動取り込み ON/OFF ───
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
