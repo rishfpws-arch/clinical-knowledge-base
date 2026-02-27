@@ -2341,7 +2341,7 @@ def build_knowledge_context(metadata: dict) -> str:
         summary = meta.get("summary", "") or "未入力"
         keywords = ", ".join(meta.get("keywords", []))
         s = get_status(meta)
-        status = "登録済み" if s == STATUS_REVIEWED else "未登録"
+        status = "確認済み" if s == STATUS_REVIEWED else "未確認"
         source_note = "（患者データ）" if is_patient_data(meta) else ""
 
         entry = (
