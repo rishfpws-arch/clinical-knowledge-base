@@ -8014,8 +8014,8 @@ def main():
             _scan_folder_id = get_folder_id()
             _scan_api_key = get_gemini_api_key()
             auto_scan_new_images(_scan_service, _scan_folder_id, _scan_api_key)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.error(f"[自動スキャン] エラー: {type(e).__name__}: {e}")
 
     # --- 食事画像自動取り込み（Google Driveフォルダ） ---
     try:
