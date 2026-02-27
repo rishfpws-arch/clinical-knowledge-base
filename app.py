@@ -2045,7 +2045,6 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
             # AI解析
             result = analyze_food_images([img_bytes], api_key)
             if result and "items" in result and result["items"]:
-                # 仮登録として追加
                 day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
                 for it in result["items"]:
                     item_entry = {
@@ -2066,22 +2065,32 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
                     it.get("calories", 0) for it in all_items
                 )
 
-            # 処理済みとして記録（解析失敗でも再処理しない）
-            processed[file_id] = {
-                "date": date_key,
-                "file_name": file_name,
-                "processed_at": datetime.now().isoformat(),
-            }
-            count += 1
+                processed[file_id] = {
+                    "date": date_key,
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "ok",
+                }
+                count += 1
+            else:
+                # AI解析で品目が検出できなかった（食事以外の画像など）
+                processed[file_id] = {
+                    "date": date_key,
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "no_items",
+                }
+                if manual:
+                    st.warning(f"⚠️ {file_name}: 食事の品目を検出できませんでした")
 
         except Exception as e:
             if manual:
                 st.warning(f"⚠️ {file_name} の処理に失敗: {e}")
-            # 失敗しても処理済みマーク（無限リトライ防止）
             processed[file_id] = {
                 "date": "",
                 "file_name": file_name,
                 "processed_at": datetime.now().isoformat(),
+                "status": "error",
                 "error": str(e),
             }
 
