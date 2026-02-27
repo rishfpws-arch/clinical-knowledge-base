@@ -3139,7 +3139,7 @@ def page_batch_analyze():
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
-    st.sidebar.write(f"🆕 未登録: **{len(unreviewed)}** 件")
+    st.sidebar.write(f"📝 未確認: **{len(unreviewed)}** 件")
     st.sidebar.write(f"✅ 登録済み: **{len(reviewed)}** 件")
     if patient_data_images:
         st.sidebar.write(f"🏥 患者データ: **{len(patient_data_images)}** 件")
@@ -5841,7 +5841,7 @@ def page_import_analyze():
     # --- サイドバー: 統計 ---
     st.sidebar.header("📊 処理状況")
     st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
-    st.sidebar.write(f"🆕 未登録: **{len(unreviewed)}** 件")
+    st.sidebar.write(f"📝 未確認: **{len(unreviewed)}** 件")
     st.sidebar.write(f"✅ 登録済み: **{len(reviewed)}** 件")
     if patient_data_images:
         st.sidebar.write(f"🏥 患者データ: **{len(patient_data_images)}** 件")
