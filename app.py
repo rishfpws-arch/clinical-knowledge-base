@@ -7001,6 +7001,8 @@ def page_settings_all():
         if auth_user:
             st.write(f"ログイン中: **{auth_user}**")
             if st.button("🚪 ログアウト", key="sys_logout", use_container_width=True):
+                # localStorage のトークンをクリア
+                _clear_auth_storage()
                 st.session_state["authenticated"] = False
                 st.session_state.pop("auth_user", None)
                 # URLからトークンも削除
