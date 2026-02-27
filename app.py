@@ -124,7 +124,13 @@ def _check_auth() -> bool:
             if token == expected_token:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
+                # localStorageにトークンを保存（ブラウザ再起動後も有効）
+                _save_token_to_storage(uname, expected_token)
                 return True
+
+    # localStorageからトークンを復元（tokenパラメータがない場合）
+    if not token:
+        _inject_auto_login_script()
 
     # ログイン画面
     st.markdown(
@@ -152,14 +158,61 @@ def _check_auth() -> bool:
                 if username in auth_users and auth_users[username] == pw_hash:
                     st.session_state["authenticated"] = True
                     st.session_state["auth_user"] = username
-                    # URLにトークンを付与（ブックマーク/履歴でログイン維持）
                     auth_token = _make_auth_token(username, pw_hash)
                     st.query_params["token"] = auth_token
+                    # localStorageにトークンを保存
+                    _save_token_to_storage(username, auth_token)
                     st.rerun()
                 else:
                     st.error("ユーザー名またはパスワードが正しくありません。")
 
     return False
+
+
+def _save_token_to_storage(username: str, token: str) -> None:
+    """ブラウザの localStorage にログイントークンを保存する。"""
+    import streamlit.components.v1 as components
+    components.html(
+        f"""<script>
+        try {{
+            localStorage.setItem('ckb_auth_token', '{token}');
+            localStorage.setItem('ckb_auth_user', '{username}');
+        }} catch(e) {{}}
+        </script>""",
+        height=0,
+    )
+
+
+def _inject_auto_login_script() -> None:
+    """localStorage にトークンがあればURLパラメータに付与して自動リダイレクト。"""
+    import streamlit.components.v1 as components
+    components.html(
+        """<script>
+        try {
+            var token = localStorage.getItem('ckb_auth_token');
+            if (token && !window.location.search.includes('token=')) {
+                var url = new URL(window.parent.location.href);
+                url.searchParams.set('token', token);
+                window.parent.location.href = url.toString();
+            }
+        } catch(e) {}
+        </script>""",
+        height=0,
+    )
+
+
+def _clear_auth_storage() -> None:
+    """ログアウト時に localStorage のトークンをクリアする。"""
+    import streamlit.components.v1 as components
+    components.html(
+        """<script>
+        try {
+            localStorage.removeItem('ckb_auth_token');
+            localStorage.removeItem('ckb_auth_user');
+        } catch(e) {}
+        </script>""",
+        height=0,
+    )
 
 
 # 画像解析プロンプト
