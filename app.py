@@ -3240,13 +3240,13 @@ def page_batch_analyze():
         # フィルタ
         filter_choice = st.radio(
             "対象を絞る",
-            ["すべて", "未確認のみ（📝）", "登録済みのみ（✅）"],
+            ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
             horizontal=True,
             key="reanalyze_filter",
         )
         if filter_choice == "未確認のみ（📝）":
             target_list = unreviewed
-        elif filter_choice == "登録済みのみ（✅）":
+        elif filter_choice == "確認済みのみ（✅）":
             target_list = reviewed
         else:
             target_list = analyzed_all
@@ -3328,13 +3328,13 @@ def page_batch_analyze():
         # フィルタ
         hint_filter = st.radio(
             "対象を絞る",
-            ["すべて", "未確認のみ（📝）", "登録済みのみ（✅）"],
+            ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
             horizontal=True,
             key="hint_reanalyze_filter",
         )
         if hint_filter == "未確認のみ（📝）":
             hint_target_list = unreviewed
-        elif hint_filter == "登録済みのみ（✅）":
+        elif hint_filter == "確認済みのみ（✅）":
             hint_target_list = reviewed
         else:
             hint_target_list = analyzed_all
@@ -6197,12 +6197,12 @@ def page_import_analyze():
             else:
                 filter_choice = st.radio(
                     "対象を絞る",
-                    ["すべて", "未確認のみ（📝）", "登録済みのみ（✅）"],
+                    ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
                     horizontal=True, key="imp_reanalyze_filter",
                 )
                 if filter_choice == "未確認のみ（📝）":
                     target_list = unreviewed
-                elif filter_choice == "登録済みのみ（✅）":
+                elif filter_choice == "確認済みのみ（✅）":
                     target_list = reviewed
                 else:
                     target_list = analyzed_all
@@ -6271,12 +6271,12 @@ def page_import_analyze():
             else:
                 hint_filter = st.radio(
                     "対象を絞る",
-                    ["すべて", "未確認のみ（📝）", "登録済みのみ（✅）"],
+                    ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
                     horizontal=True, key="imp_hint_filter",
                 )
                 if hint_filter == "未確認のみ（📝）":
                     hint_target_list = unreviewed
-                elif hint_filter == "登録済みのみ（✅）":
+                elif hint_filter == "確認済みのみ（✅）":
                     hint_target_list = reviewed
                 else:
                     hint_target_list = analyzed_all
