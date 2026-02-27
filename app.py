@@ -5867,7 +5867,7 @@ def page_import_analyze():
         with sum_c1:
             st.metric("未解析", f"{len(unanalyzed)} 件")
         with sum_c2:
-            st.metric("未登録", f"{len(unreviewed)} 件")
+            st.metric("未確認", f"{len(unreviewed)} 件")
         with sum_c3:
             st.metric("確認済み", f"{len(reviewed)} 件")
 
