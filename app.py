@@ -6550,7 +6550,7 @@ def page_import_analyze():
                 else:
                     st.info("まず「新規取り込み」で一括AI解析を実行してください。")
             else:
-                st.info(f"**{len(unreviewed_now)} 件**の未登録画像があります。")
+                st.info(f"**{len(unreviewed_now)} 件**の未確認画像があります。")
                 if "imp_review_index" not in st.session_state:
                     st.session_state["imp_review_index"] = 0
                 if st.session_state["imp_review_index"] >= len(unreviewed_now):
