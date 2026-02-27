@@ -8028,8 +8028,8 @@ def main():
                 if _food_count > 0:
                     st.toast(f"🔔 {_food_count} 枚の食事画像を自動取り込みしました", icon="📷")
                     st.rerun()
-    except Exception:
-        pass
+    except Exception as e:
+        _log.error(f"[食事画像自動取り込み] エラー: {type(e).__name__}: {e}")
 
     # ─── ページ表示 ───
     active = st.session_state["active_tab"]
