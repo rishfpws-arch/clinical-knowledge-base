@@ -852,7 +852,7 @@ def load_weight_data() -> dict:
     return default
 
 
-def save_weight_data(weight_data: dict) -> bool:
+def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
     """体重管理データを保存する。session_state + Sheets + ローカルJSON。"""
     _set_cache("_cache_weight_data", weight_data)
     sheets_ok = False
@@ -873,6 +873,8 @@ def save_weight_data(weight_data: dict) -> bool:
             json.dump(weight_data, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    if not sheets_ok and show_error and sh is not None:
+        st.toast("⚠️ クラウドへの保存に失敗しました。ローカルに保存済みです。", icon="⚠️")
     return sheets_ok
 
 
