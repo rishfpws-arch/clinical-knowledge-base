@@ -3751,7 +3751,7 @@ def page_batch_analyze():
                 if img["id"] in metadata
                 and get_status(metadata[img["id"]]) == STATUS_REVIEWED
             ]
-            action_label = "未登録に戻す"
+            action_label = "未確認に戻す"
             action_key_prefix = "bulkunrev"
 
         if not target_list:
@@ -6625,7 +6625,7 @@ def page_import_analyze():
                     img for img in images
                     if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_REVIEWED
                 ]
-                action_label = "未登録に戻す"
+                action_label = "未確認に戻す"
                 action_key_prefix = "imp_bulkunrev"
 
             if not target_list:
