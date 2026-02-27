@@ -3828,7 +3828,7 @@ def page_batch_analyze():
                 st.rerun()
         else:
             if st.button(
-                f"🆕 選択した {action_count} 件を未登録に戻す",
+                f"🆕 選択した {action_count} 件を未確認に戻す",
                 type="primary",
                 key="bulk_unreview_run",
                 disabled=(action_count == 0),
@@ -3839,7 +3839,7 @@ def page_batch_analyze():
                 save_metadata(metadata)
                 for fid in action_ids:
                     st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                st.success(f"🆕 {action_count} 件を未登録に戻しました。")
+                st.success(f"🆕 {action_count} 件を未確認に戻しました。")
                 st.rerun()
 
     # =======================================================================
@@ -6696,7 +6696,7 @@ def page_import_analyze():
                         st.rerun()
                 else:
                     if st.button(
-                        f"🆕 選択した {action_count} 件を未登録に戻す",
+                        f"🆕 選択した {action_count} 件を未確認に戻す",
                         type="primary", key="imp_bulk_unreview_run",
                         disabled=(action_count == 0),
                     ):
@@ -6706,7 +6706,7 @@ def page_import_analyze():
                         save_metadata(metadata)
                         for fid in action_ids:
                             st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                        st.success(f"🆕 {action_count} 件を未登録に戻しました。")
+                        st.success(f"🆕 {action_count} 件を未確認に戻しました。")
                         st.rerun()
 
 
