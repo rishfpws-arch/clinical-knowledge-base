@@ -2656,7 +2656,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
         f"<p style='text-align:center;'>"
         f"<span style='background:#1a3a5c; color:#7eb8da; padding:6px 18px;"
         f"border-radius:20px; font-size:14px;'>"
-        f"📚 {knowledge_count}件 の知識が登録済み</span></p>",
+        f"📚 {knowledge_count}件 の知識を収録</span></p>",
         unsafe_allow_html=True,
     )
 
