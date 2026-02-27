@@ -7794,7 +7794,7 @@ def main():
         1 for m in metadata_for_sidebar.values()
         if get_status(m) == STATUS_REVIEWED
     )
-    st.sidebar.caption(f"📊 登録済み {reviewed_sidebar} / 全 {total_count} 件")
+    st.sidebar.caption(f"📊 確認済み {reviewed_sidebar} / 全 {total_count} 件")
 
     # ─── サイドバー: 自動取り込み ON/OFF ───
     if "auto_scan_enabled" not in st.session_state:
