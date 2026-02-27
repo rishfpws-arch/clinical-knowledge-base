@@ -2871,7 +2871,7 @@ def page_image_manager():
                 if s == STATUS_REVIEWED:
                     st.success("✅ 確認済み")
                 else:
-                    st.warning("🆕 未登録")
+                    st.warning("📝 未確認")
             # 要約/検査所見
             _sl = get_summary_label(meta)
             summary_text = meta.get("summary", "")
@@ -4572,7 +4572,7 @@ def page_folder_ai():
                     if s == STATUS_REVIEWED:
                         st.success("✅ 確認済み")
                     else:
-                        st.warning("🆕 未登録")
+                        st.warning("📝 未確認")
                 render_summary(meta.get("summary", ""))
                 keywords = meta.get("keywords", [])
                 if keywords:
@@ -5524,7 +5524,7 @@ def page_image_library():
                 if s == STATUS_REVIEWED:
                     st.success("✅ 確認済み")
                 else:
-                    st.warning("🆕 未登録")
+                    st.warning("📝 未確認")
             _sl = get_summary_label(meta)
             summary_text = meta.get("summary", "")
             if summary_text:
