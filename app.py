@@ -7111,52 +7111,53 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
 
     # --- インライン編集フォーム ---
     if is_editing and item_id:
-        with st.container():
+        with st.form(key=f"wm_edit_form_{item_id}"):
             ec1, ec2 = st.columns(2)
             with ec1:
-                new_name = st.text_input("品目名", value=name, key=f"wm_en_{item_id}")
+                new_name = st.text_input("品目名", value=name)
             with ec2:
-                new_qty = st.text_input("量", value=qty, key=f"wm_eq_{item_id}")
+                new_qty = st.text_input("量", value=qty)
             ec3, ec4 = st.columns(2)
             with ec3:
                 meal_options = list(MEAL_TYPE_LABELS.keys())
                 meal_labels = [MEAL_TYPE_LABELS[k] for k in meal_options]
                 current_idx = meal_options.index(meal_type) if meal_type in meal_options else 0
-                new_meal_label = st.selectbox("食事タイプ", meal_labels, index=current_idx, key=f"wm_em_{item_id}")
+                new_meal_label = st.selectbox("食事タイプ", meal_labels, index=current_idx)
                 new_meal_type = meal_options[meal_labels.index(new_meal_label)]
             with ec4:
                 st.markdown(f"現在: **{cal} kcal**")
                 st.caption("💡 品目名・量を変更すると保存時にAIが自動再計算します")
-            if st.button("💾 保存", key=f"wm_esave_{item_id}", use_container_width=True):
-                final_name = new_name.strip() or name
-                final_qty = new_qty.strip() or qty
-                # 品目名 or 量が変わったら AI でカロリー再計算
-                name_changed = final_name != name
-                qty_changed = final_qty != qty
-                final_cal = cal
-                if name_changed or qty_changed:
-                    api_key = get_gemini_api_key()
-                    if api_key:
-                        with st.spinner("🤖 カロリーを再計算中..."):
-                            recalc = _recalc_calories(
-                                [{"name": final_name, "quantity": final_qty}],
-                                api_key,
-                            )
-                        if recalc and len(recalc) > 0 and recalc[0] > 0:
-                            final_cal = recalc[0]
-                for x in day_data.get("items", []):
-                    if x.get("id") == item_id:
-                        x["name"] = final_name
-                        x["quantity"] = final_qty
-                        x["calories"] = final_cal
-                        x["meal_type"] = new_meal_type
-                        break
-                day_data["total_calories"] = sum(
-                    x.get("calories", 0) for x in _get_day_items(day_data)
-                )
-                save_weight_data(weight_data)
-                st.session_state[edit_key] = False
-                st.rerun()
+            edit_submitted = st.form_submit_button("💾 保存", use_container_width=True)
+        if edit_submitted:
+            final_name = new_name.strip() or name
+            final_qty = new_qty.strip() or qty
+            # 品目名 or 量が変わったら AI でカロリー再計算
+            name_changed = final_name != name
+            qty_changed = final_qty != qty
+            final_cal = cal
+            if name_changed or qty_changed:
+                api_key = get_gemini_api_key()
+                if api_key:
+                    with st.spinner("🤖 カロリーを再計算中..."):
+                        recalc = _recalc_calories(
+                            [{"name": final_name, "quantity": final_qty}],
+                            api_key,
+                        )
+                    if recalc and len(recalc) > 0 and recalc[0] > 0:
+                        final_cal = recalc[0]
+            for x in day_data.get("items", []):
+                if x.get("id") == item_id:
+                    x["name"] = final_name
+                    x["quantity"] = final_qty
+                    x["calories"] = final_cal
+                    x["meal_type"] = new_meal_type
+                    break
+            day_data["total_calories"] = sum(
+                x.get("calories", 0) for x in _get_day_items(day_data)
+            )
+            save_weight_data(weight_data)
+            st.session_state[edit_key] = False
+            st.rerun()
 
 
 def _render_weight_history(records: dict, goals: dict):
