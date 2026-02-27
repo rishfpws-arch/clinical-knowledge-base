@@ -567,7 +567,8 @@ def load_metadata() -> dict:
 
 def save_metadata(metadata: dict) -> bool:
     """メタデータを保存する。session_state + Sheets + ローカル（バックアップ）。
-    Sheetsへの書き込み成否を返す（未接続の場合もFalse）。"""
+    Sheetsへの書き込み成否を返す（未接続の場合もFalse）。
+    失敗時は session_state にペンディングデータを保持し次回再試行。"""
     _log.info(f"[save_metadata] 保存開始 entries={len(metadata)}")
     _set_cache("_cache_metadata", metadata)
     sheets_ok = False
@@ -600,6 +601,8 @@ def save_metadata(metadata: dict) -> bool:
     except IOError:
         pass
     if not sheets_ok and sh is not None:
+        # 次回 rerun で再試行するためペンディングデータを保持
+        st.session_state["_pending_metadata"] = metadata
         try:
             detail = st.session_state.pop("_save_error_detail", "")
             msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
@@ -608,7 +611,39 @@ def save_metadata(metadata: dict) -> bool:
             st.toast(msg, icon="⚠️")
         except Exception:
             pass
+    elif sheets_ok:
+        # 成功したらペンディングをクリア
+        st.session_state.pop("_pending_metadata", None)
     return sheets_ok
+
+
+def _retry_pending_saves() -> None:
+    """前回失敗した Sheets 書き込みを再試行する。"""
+    # metadata のリトライ
+    pending_meta = st.session_state.get("_pending_metadata")
+    if pending_meta is not None:
+        _log.info(f"[retry] pending metadata: {len(pending_meta)} entries")
+        sh = get_sheets_client()
+        if sh is not None:
+            ok = _write_json_to_sheet(sh, "metadata", pending_meta)
+            if ok:
+                _log.info("[retry] metadata Sheets書き込み成功")
+                st.session_state.pop("_pending_metadata", None)
+            else:
+                _log.warning("[retry] metadata Sheets書き込み再失敗")
+
+    # weight_data のリトライ
+    pending_wd = st.session_state.get("_pending_weight_data")
+    if pending_wd is not None:
+        _log.info("[retry] pending weight_data")
+        sh = get_sheets_client()
+        if sh is not None:
+            ok = _write_json_to_sheet(sh, "weight_data", pending_wd)
+            if ok:
+                _log.info("[retry] weight_data Sheets書き込み成功")
+                st.session_state.pop("_pending_weight_data", None)
+            else:
+                _log.warning("[retry] weight_data Sheets書き込み再失敗")
 
 
 def get_status(meta: dict) -> str:
