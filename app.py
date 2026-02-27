@@ -1985,8 +1985,15 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
             st.error(f"Google Driveの読み取りに失敗しました: {e}")
         return 0
 
-    # 未処理画像を抽出
-    new_files = [f for f in all_files if f["id"] not in processed]
+    # 未処理画像を抽出（手動スキャン時はAI解析失敗分も再処理）
+    if manual:
+        new_files = [
+            f for f in all_files
+            if f["id"] not in processed
+            or processed.get(f["id"], {}).get("status") in ("no_items", "error")
+        ]
+    else:
+        new_files = [f for f in all_files if f["id"] not in processed]
     if not new_files:
         return 0
 
