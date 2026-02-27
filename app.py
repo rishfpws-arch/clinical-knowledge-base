@@ -2142,25 +2142,31 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
     # 処理済みリスト読み込み
     processed = load_food_processed()
 
-    # Google Driveから画像一覧を取得
+    # Google Driveから画像一覧を取得（ページネーション対応）
+    all_files: list[dict] = []
     try:
         mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
         query = f"'{food_folder_id}' in parents and ({mime_query}) and trashed=false"
-        results = (
-            service.files()
-            .list(
+        _page_token = None
+        while True:
+            params = dict(
                 q=query,
-                fields="files(id, name, mimeType, createdTime, modifiedTime)",
+                fields="nextPageToken, files(id, name, mimeType, createdTime, modifiedTime)",
                 orderBy="modifiedTime desc",
                 pageSize=100,
             )
-            .execute()
-        )
-        all_files = results.get("files", [])
+            if _page_token:
+                params["pageToken"] = _page_token
+            results = service.files().list(**params).execute()
+            all_files.extend(results.get("files", []))
+            _page_token = results.get("nextPageToken")
+            if not _page_token:
+                break
     except Exception as e:
         if manual:
             st.error(f"Google Driveの読み取りに失敗しました: {e}")
-        return 0
+        if not all_files:
+            return 0
 
     # 未処理画像を抽出（手動スキャン時はAI解析失敗分も再処理）
     if manual:
