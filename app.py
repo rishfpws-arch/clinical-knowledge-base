@@ -430,7 +430,8 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
     """JSONデータをチャンク分割してワークシートに書き込む。
-    失敗時は最大3回リトライ（待機時間を段階的に増加）。"""
+    失敗時は最大3回リトライ（待機時間を段階的に増加）。
+    API呼び出し回数を最小化するため batch_update を使用。"""
     last_err = ""
     for attempt in range(3):
         try:
@@ -445,11 +446,13 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
                 chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
             if not chunks:
                 chunks = ["{}"]
-            # 行数が足りなければ拡張
+            # 行数が足りなければ拡張 (resize + clear + update = 3 API calls)
             needed_rows = len(chunks) + 5
             if ws.row_count < needed_rows:
                 ws.resize(rows=needed_rows, cols=max(ws.col_count, 1))
+                time.sleep(1)
             ws.clear()
+            time.sleep(0.5)
             cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
                      for idx, chunk in enumerate(chunks)]
             ws.update_cells(cells)
@@ -461,7 +464,7 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
             last_err = f"APIError({status_code}): {e}"
             _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {last_err}")
             if attempt < 2:
-                time.sleep(3 * (attempt + 1))
+                time.sleep(5 * (attempt + 1))
                 continue
             st.session_state["_save_error_detail"] = last_err
             return False
@@ -469,7 +472,7 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
             last_err = f"{type(e).__name__}: {e}"
             _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {last_err}")
             if attempt < 2:
-                time.sleep(3 * (attempt + 1))
+                time.sleep(5 * (attempt + 1))
                 continue
             st.session_state["_save_error_detail"] = last_err
             return False
