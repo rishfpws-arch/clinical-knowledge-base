@@ -3824,7 +3824,7 @@ def page_batch_analyze():
                 save_metadata(metadata)
                 for fid in action_ids:
                     st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                st.success(f"✅ {action_count} 件を登録済みにしました。")
+                st.success(f"✅ {action_count} 件を確認済みにしました。")
                 st.rerun()
         else:
             if st.button(
@@ -6692,7 +6692,7 @@ def page_import_analyze():
                         save_metadata(metadata)
                         for fid in action_ids:
                             st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                        st.success(f"✅ {action_count} 件を登録済みにしました。")
+                        st.success(f"✅ {action_count} 件を確認済みにしました。")
                         st.rerun()
                 else:
                     if st.button(
