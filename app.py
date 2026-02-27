@@ -1144,36 +1144,57 @@ def get_food_folder_id() -> str | None:
 
 
 def load_food_processed() -> dict:
-    """処理済み食事画像IDの辞書を読み込む。Sheets → ローカルの順。"""
+    """処理済み食事画像IDの辞書を読み込む。Sheets+ローカルをマージ。"""
     ck = "_cache_food_processed"
     if _is_cache_valid(ck):
         return st.session_state[ck]
 
+    sheets_data = None
+    local_data = None
     sh = get_sheets_client()
+
     if sh is not None:
         try:
-            data = _read_json_from_sheet(sh, "food_processed")
-            if data is not None:
-                _set_cache(ck, data)
-                try:
-                    with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
-                        json.dump(data, f, ensure_ascii=False, indent=2)
-                except IOError:
-                    pass
-                return data
+            sheets_data = _read_json_from_sheet(sh, "food_processed")
         except Exception:
             pass
 
     try:
         if FOOD_IMAGES_PROCESSED_PATH.exists():
             with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                _set_cache(ck, data)
-                return data
+                local_data = json.load(f)
     except Exception:
         pass
-    _set_cache(ck, {})
-    return {}
+
+    # マージ: Sheets をベースに、ローカルにしかないエントリを補完
+    if sheets_data is not None and local_data is not None:
+        merged = dict(sheets_data)
+        new_from_local = 0
+        for fid, meta in local_data.items():
+            if fid not in merged:
+                merged[fid] = meta
+                new_from_local += 1
+        if new_from_local > 0:
+            _log.info(f"[load_food_processed] ローカルから {new_from_local} 件を補完 → Sheets再同期")
+            try:
+                _write_json_to_sheet(sh, "food_processed", merged)
+            except Exception:
+                pass
+        data = merged
+    elif sheets_data is not None:
+        data = sheets_data
+    elif local_data is not None:
+        data = local_data
+    else:
+        data = {}
+
+    _set_cache(ck, data)
+    try:
+        with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except IOError:
+        pass
+    return data
 
 
 def save_food_processed(data: dict) -> None:
