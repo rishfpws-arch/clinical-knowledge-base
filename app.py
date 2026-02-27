@@ -7580,15 +7580,17 @@ def page_weight_management():
                         st.session_state.pop("wm_recalced_items", None)
                         st.rerun()
             else:
-                # 画像未アップロード時の手動入力
-                mc1, mc2, mc3 = st.columns([3, 1.5, 1.5])
-                with mc1:
-                    add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
-                with mc2:
-                    add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1, key=f"wm_manual_qty_{date_key}")
-                with mc3:
-                    add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
-                if add_name.strip() and st.button("➕ 追加する", key="wm_manual_save", type="primary"):
+                # 画像未アップロード時の手動入力（formで囲んでスマホ対応）
+                with st.form(key=f"wm_manual_form_{date_key}", clear_on_submit=True):
+                    mc1, mc2, mc3 = st.columns([3, 1.5, 1.5])
+                    with mc1:
+                        add_name = st.text_input("品目名", placeholder="例: カレーライス")
+                    with mc2:
+                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1)
+                    with mc3:
+                        add_cal = st.number_input("kcal", value=0, min_value=0, step=10)
+                    manual_submitted = st.form_submit_button("➕ 追加する", type="primary")
+                if manual_submitted and add_name.strip():
                     item_entry = {
                         "id": f"item_{uuid.uuid4().hex[:12]}",
                         "name": add_name.strip(),
@@ -7596,12 +7598,23 @@ def page_weight_management():
                         "calories": add_cal,
                         "meal_type": meal_type,
                     }
+                    # カロリー0の場合はAIで推定
+                    if add_cal == 0:
+                        _ak = get_gemini_api_key()
+                        if _ak:
+                            recalc = _recalc_calories(
+                                [{"name": add_name.strip(), "quantity": add_qty}], _ak
+                            )
+                            if recalc and len(recalc) > 0 and recalc[0] > 0:
+                                item_entry["calories"] = recalc[0]
                     day_data.setdefault("items", []).append(item_entry)
                     all_items = _get_day_items(day_data)
                     day_data["total_calories"] = sum(it.get("calories", 0) for it in all_items)
                     save_weight_data(weight_data)
-                    st.toast(f"✅ {add_name.strip()}（{add_cal} kcal）を追加しました")
+                    st.toast(f"✅ {add_name.strip()}（{item_entry['calories']} kcal）を追加しました")
                     st.rerun()
+                elif manual_submitted and not add_name.strip():
+                    st.warning("品目名を入力してください。")
 
         # ====== 目標設定 ======
         with st.expander("🎯 目標設定"):
