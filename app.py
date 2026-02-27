@@ -2245,7 +2245,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     elif status == STATUS_REVIEWED:
         st.success("✅ 確認済み")
     else:
-        st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
+        st.warning("📝 未確認 — AIが自動生成した情報です。内容を確認・修正してください")
 
     # 前回保存結果の通知（rerun後に表示）
     if st.session_state.pop(f"_saved_ok_{file_id}", False):
