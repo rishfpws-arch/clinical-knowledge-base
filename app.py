@@ -3813,7 +3813,7 @@ def page_batch_analyze():
 
         if review_filter == "未確認→確認済み（📝→✅）":
             if st.button(
-                f"✅ 選択した {action_count} 件を登録済みにする",
+                f"✅ 選択した {action_count} 件を確認済みにする",
                 type="primary",
                 key="bulk_review_run",
                 disabled=(action_count == 0),
@@ -6682,7 +6682,7 @@ def page_import_analyze():
                 action_count = len(action_ids)
                 if review_filter == "未確認→確認済み（📝→✅）":
                     if st.button(
-                        f"✅ 選択した {action_count} 件を登録済みにする",
+                        f"✅ 選択した {action_count} 件を確認済みにする",
                         type="primary", key="imp_bulk_review_run",
                         disabled=(action_count == 0),
                     ):
