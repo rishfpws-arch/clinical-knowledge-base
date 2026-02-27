@@ -5097,7 +5097,7 @@ def page_chat():
                     st.markdown(f"### {meta.get('title', '不明')}")
                     status = get_status(meta)
                     if status == STATUS_REVIEWED:
-                        st.markdown("✅ **登録済み**")
+                        st.markdown("✅ **確認済み**")
                     else:
                         st.markdown("🆕 **未登録**")
                     kw = meta.get("keywords", [])
