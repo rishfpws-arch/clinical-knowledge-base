@@ -1285,35 +1285,44 @@ def list_images(_service, folder_id: str) -> list[dict]:
 
 @st.cache_data(ttl=120, show_spinner="患者データを取得中...")
 def list_patient_images(_service, patient_folder_id: str) -> list[dict]:
-    """患者データフォルダ内の画像ファイル一覧を取得する（2分キャッシュ）。"""
+    """患者データフォルダ内の画像ファイル一覧を取得する（2分キャッシュ、ページネーション対応）。"""
     mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
     query = f"'{patient_folder_id}' in parents and ({mime_query}) and trashed=false"
+    all_files: list[dict] = []
+    page_token = None
     max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            results = (
-                _service.files()
-                .list(
+    while True:
+        for attempt in range(max_retries):
+            try:
+                params = dict(
                     q=query,
-                    fields="files(id, name, mimeType, createdTime, modifiedTime, thumbnailLink)",
+                    fields="nextPageToken, files(id, name, mimeType, createdTime, modifiedTime, thumbnailLink)",
                     orderBy="modifiedTime desc",
                     pageSize=100,
                 )
-                .execute()
-            )
-            return results.get("files", [])
-        except HttpError as e:
-            if e.resp.status == 404:
-                return []
-            if attempt < max_retries - 1:
-                time.sleep(2)
-                continue
-            return []
-        except Exception:
-            if attempt < max_retries - 1:
-                time.sleep(2)
-                continue
-            return []
+                if page_token:
+                    params["pageToken"] = page_token
+                results = _service.files().list(**params).execute()
+                all_files.extend(results.get("files", []))
+                page_token = results.get("nextPageToken")
+                break
+            except HttpError as e:
+                if e.resp.status == 404:
+                    return []
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+                return all_files
+            except Exception:
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+                return all_files
+        else:
+            return all_files
+        if not page_token:
+            break
+    return all_files
 
 
 def list_all_images(_service, folder_id: str, metadata: dict,
