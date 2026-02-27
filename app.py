@@ -2683,7 +2683,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
     st.sidebar.write(f"📚 全知識: **{knowledge_count}** 件")
-    st.sidebar.write(f"✅ 登録済み: **{reviewed_count}** 件")
+    st.sidebar.write(f"✅ 確認済み: **{reviewed_count}** 件")
 
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
@@ -5099,7 +5099,7 @@ def page_chat():
                     if status == STATUS_REVIEWED:
                         st.markdown("✅ **確認済み**")
                     else:
-                        st.markdown("🆕 **未登録**")
+                        st.markdown("📝 **未確認**")
                     kw = meta.get("keywords", [])
                     if kw:
                         st.markdown(" ".join(f"`{k}`" for k in kw))
