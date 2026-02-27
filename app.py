@@ -846,38 +846,72 @@ def save_chat_sessions(sessions: dict) -> None:
 # 体重管理データ管理
 # ---------------------------------------------------------------------------
 def load_weight_data() -> dict:
-    """体重管理データを読み込む。session_state → Sheets → ローカルの順。"""
+    """体重管理データを読み込む。Sheets+ローカルをマージ。"""
     ck = "_cache_weight_data"
     if _is_cache_valid(ck):
         return st.session_state[ck]
 
     default = {"goals": {}, "records": {}}
+    sheets_data = None
+    local_data = None
     sh = get_sheets_client()
+
+    # Sheets から読み込み
     if sh is not None:
         try:
-            data = _read_json_from_sheet(sh, "weight_data")
-            if data is not None:
-                _set_cache(ck, data)
-                try:
-                    with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
-                        json.dump(data, f, ensure_ascii=False, indent=2)
-                except IOError:
-                    pass
-                return data
+            sheets_data = _read_json_from_sheet(sh, "weight_data")
         except Exception:
             pass
 
+    # ローカルから読み込み
     if WEIGHT_DATA_PATH.exists():
         try:
             with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            _set_cache(ck, data)
-            return data
+                local_data = json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
 
-    _set_cache(ck, default)
-    return default
+    # マージ: records レベルで補完
+    if sheets_data is not None and local_data is not None:
+        merged = dict(sheets_data)
+        s_records = merged.setdefault("records", {})
+        l_records = local_data.get("records", {})
+        new_from_local = 0
+        for dk, day in l_records.items():
+            if dk not in s_records:
+                s_records[dk] = day
+                new_from_local += 1
+            else:
+                # 日付は存在するが items が少ない場合、ローカルの items を補完
+                s_items_ids = {it.get("id") for it in s_records[dk].get("items", []) if it.get("id")}
+                for it in day.get("items", []):
+                    if it.get("id") and it["id"] not in s_items_ids:
+                        s_records[dk].setdefault("items", []).append(it)
+                        new_from_local += 1
+        # goals はローカルが新しければ上書き
+        if not merged.get("goals") and local_data.get("goals"):
+            merged["goals"] = local_data["goals"]
+        if new_from_local > 0:
+            _log.info(f"[load_weight_data] ローカルから {new_from_local} 件を補完")
+            try:
+                _write_json_to_sheet(sh, "weight_data", merged)
+            except Exception:
+                pass
+        data = merged
+    elif sheets_data is not None:
+        data = sheets_data
+    elif local_data is not None:
+        data = local_data
+    else:
+        data = default
+
+    _set_cache(ck, data)
+    try:
+        with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except IOError:
+        pass
+    return data
 
 
 def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
