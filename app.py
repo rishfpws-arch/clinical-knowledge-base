@@ -7623,11 +7623,14 @@ def page_weight_management():
             cur_target_date = goals.get("target_date", "")
             cur_target_cal = goals.get("daily_calorie_target", 0)
 
-            new_target_wt = st.number_input(
-                "目標体重 (kg)", min_value=0.0, max_value=300.0,
-                value=float(cur_target_wt), step=0.1, format="%.1f",
-                key="wm_goal_weight",
-            )
+            # 現在体重を取得（目標計算用）
+            current_weight = weight
+            if not current_weight:
+                for dk in sorted(records.keys(), reverse=True):
+                    w = records[dk].get("weight")
+                    if w:
+                        current_weight = w
+                        break
 
             default_target_date = date.today()
             if cur_target_date:
@@ -7646,42 +7649,26 @@ def page_weight_management():
                         del st.session_state["wm_goal_date"]
                 except Exception:
                     st.session_state.pop("wm_goal_date", None)
-            new_target_date = st.date_input(
-                "いつまでに達成？", value=default_target_date,
-                key="wm_goal_date",
-            )
-            if new_target_date < date.today():
-                st.caption("⚠️ 過去の日付です。今日以降を選択してください。")
-                new_target_date = date.today()
 
-            auto_cal = 0
-            current_weight = weight
-            if not current_weight:
-                for dk in sorted(records.keys(), reverse=True):
-                    w = records[dk].get("weight")
-                    if w:
-                        current_weight = w
-                        break
+            cal_default = cur_target_cal if cur_target_cal > 0 else 2000
 
-            if current_weight and new_target_wt > 0 and new_target_wt < current_weight:
-                remaining_days = (new_target_date - date.today()).days
-                if remaining_days > 0:
-                    need_loss_kg = current_weight - new_target_wt
-                    daily_deficit = (need_loss_kg * 7200) / remaining_days
-                    auto_cal = max(1200, int(2000 - daily_deficit))
-                    st.info(
-                        f"📐 現在 **{current_weight} kg** → 目標 **{new_target_wt} kg**"
-                        f"（**-{round(need_loss_kg, 1)} kg**）\n\n"
-                        f"残り **{remaining_days}日** — 推奨: **{auto_cal} kcal/日**"
-                    )
+            with st.form(key="wm_goal_form"):
+                new_target_wt = st.number_input(
+                    "目標体重 (kg)", min_value=0.0, max_value=300.0,
+                    value=float(cur_target_wt), step=0.1, format="%.1f",
+                )
+                new_target_date = st.date_input(
+                    "いつまでに達成？", value=default_target_date,
+                )
+                new_target_cal = st.number_input(
+                    "1日の目標カロリー (kcal)", min_value=0, max_value=10000,
+                    value=int(cal_default), step=100,
+                )
+                goal_submitted = st.form_submit_button("💾 目標を保存", type="primary")
 
-            cal_default = cur_target_cal if cur_target_cal > 0 else (auto_cal if auto_cal > 0 else 2000)
-            new_target_cal = st.number_input(
-                "1日の目標カロリー (kcal)", min_value=0, max_value=10000,
-                value=int(cal_default), step=100, key="wm_goal_cal",
-            )
-
-            if st.button("💾 目標を保存", key="wm_goal_save", type="primary"):
+            if goal_submitted:
+                if new_target_date < date.today():
+                    new_target_date = date.today()
                 new_goals = {
                     "target_weight_kg": round(new_target_wt, 1),
                     "target_date": new_target_date.strftime("%Y-%m-%d"),
@@ -7693,6 +7680,19 @@ def page_weight_management():
                 save_weight_data(weight_data)
                 st.toast("✅ 目標を保存しました")
                 st.rerun()
+
+            # 推奨カロリー表示（form外に配置）
+            if current_weight and cur_target_wt > 0 and cur_target_wt < current_weight:
+                remaining_days = (default_target_date - date.today()).days
+                if remaining_days > 0:
+                    need_loss_kg = current_weight - cur_target_wt
+                    daily_deficit = (need_loss_kg * 7200) / remaining_days
+                    auto_cal = max(1200, int(2000 - daily_deficit))
+                    st.info(
+                        f"📐 現在 **{current_weight} kg** → 目標 **{cur_target_wt} kg**"
+                        f"（**-{round(need_loss_kg, 1)} kg**）\n\n"
+                        f"残り **{remaining_days}日** — 推奨: **{auto_cal} kcal/日**"
+                    )
 
 
 # ===========================================================================
