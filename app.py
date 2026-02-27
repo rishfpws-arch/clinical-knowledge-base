@@ -994,7 +994,11 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
     except IOError:
         pass
     if not sheets_ok and show_error and sh is not None:
-        st.toast("⚠️ クラウドへの保存に失敗しました。ローカルに保存済みです。", icon="⚠️")
+        detail = st.session_state.pop("_save_error_detail", "")
+        msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
+        if detail:
+            msg += f"\n({detail})"
+        st.toast(msg, icon="⚠️")
     return sheets_ok
 
 
