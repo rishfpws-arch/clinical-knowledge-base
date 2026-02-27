@@ -429,30 +429,48 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 
 
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
-    """JSONデータをチャンク分割してワークシートに書き込む。"""
-    try:
+    """JSONデータをチャンク分割してワークシートに書き込む。
+    API Rate Limit 対策として最大2回リトライする。"""
+    for attempt in range(3):
         try:
-            ws = sh.worksheet(worksheet_name)
-        except gspread.exceptions.WorksheetNotFound:
-            ws = sh.add_worksheet(title=worksheet_name, rows=100, cols=1)
-            _log.info(f"[Sheets] ワークシート '{worksheet_name}' を自動作成しました")
-        json_str = json.dumps(data, ensure_ascii=False)
-        chunks = []
-        for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
-            chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
-        if not chunks:
-            chunks = ["{}"]
-        ws.clear()
-        cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
-                 for idx, chunk in enumerate(chunks)]
-        ws.update_cells(cells)
-        _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks)")
-        return True
-    except Exception as e:
-        err_msg = f"{type(e).__name__}: {e}"
-        _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {err_msg}")
-        st.session_state["_save_error_detail"] = err_msg
-        return False
+            try:
+                ws = sh.worksheet(worksheet_name)
+            except gspread.exceptions.WorksheetNotFound:
+                ws = sh.add_worksheet(title=worksheet_name, rows=100, cols=1)
+                _log.info(f"[Sheets] ワークシート '{worksheet_name}' を自動作成しました")
+            json_str = json.dumps(data, ensure_ascii=False)
+            chunks = []
+            for i in range(0, len(json_str), _SHEETS_CHUNK_SIZE):
+                chunks.append(json_str[i:i + _SHEETS_CHUNK_SIZE])
+            if not chunks:
+                chunks = ["{}"]
+            # 行数が足りなければ拡張
+            needed_rows = len(chunks) + 5
+            if ws.row_count < needed_rows:
+                ws.resize(rows=needed_rows, cols=max(ws.col_count, 1))
+            ws.clear()
+            cells = [gspread.Cell(row=idx + 1, col=1, value=chunk)
+                     for idx, chunk in enumerate(chunks)]
+            ws.update_cells(cells)
+            _log.info(f"[Sheets] {worksheet_name}: 書き込み成功 ({len(json_str)} chars, {len(chunks)} chunks)")
+            return True
+        except gspread.exceptions.APIError as e:
+            status = getattr(e, "response", None)
+            status_code = getattr(status, "status_code", 0) if status else 0
+            err_msg = f"APIError({status_code}): {e}"
+            _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {err_msg}")
+            if status_code == 429 and attempt < 2:
+                # Rate Limit → 少し待ってリトライ
+                time.sleep(2 * (attempt + 1))
+                continue
+            st.session_state["_save_error_detail"] = err_msg
+            return False
+        except Exception as e:
+            err_msg = f"{type(e).__name__}: {e}"
+            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {err_msg}")
+            st.session_state["_save_error_detail"] = err_msg
+            return False
+    return False
 
 
 def _is_cache_valid(cache_key: str) -> bool:
