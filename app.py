@@ -546,6 +546,7 @@ def save_metadata(metadata: dict) -> bool:
     _log.info(f"[save_metadata] 保存開始 entries={len(metadata)}")
     _set_cache("_cache_metadata", metadata)
     sheets_ok = False
+    sh = None
     try:
         sh = get_sheets_client()
         if sh is not None:
@@ -573,9 +574,13 @@ def save_metadata(metadata: dict) -> bool:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
-    if not sheets_ok:
+    if not sheets_ok and sh is not None:
         try:
-            st.toast("⚠️ クラウドへの保存に失敗しました。ローカルに保存済みです。", icon="⚠️")
+            detail = st.session_state.pop("_save_error_detail", "")
+            msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
+            if detail:
+                msg += f"\n({detail})"
+            st.toast(msg, icon="⚠️")
         except Exception:
             pass
     return sheets_ok
