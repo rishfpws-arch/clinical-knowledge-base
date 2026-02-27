@@ -2243,7 +2243,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
     if _is_pd_edit:
         st.info("🏥 患者データ — 検査所見を手動で入力してください")
     elif status == STATUS_REVIEWED:
-        st.success("✅ 登録済み")
+        st.success("✅ 確認済み")
     else:
         st.warning("🆕 未登録 — AIが自動生成した情報です。内容を確認・修正してください")
 
@@ -2869,7 +2869,7 @@ def page_image_manager():
             if file_id in metadata and not is_patient_data(meta):
                 s = get_status(meta)
                 if s == STATUS_REVIEWED:
-                    st.success("✅ 登録済み")
+                    st.success("✅ 確認済み")
                 else:
                     st.warning("🆕 未登録")
             # 要約/検査所見
@@ -4570,7 +4570,7 @@ def page_folder_ai():
                 if file_id in metadata:
                     s = get_status(meta)
                     if s == STATUS_REVIEWED:
-                        st.success("✅ 登録済み")
+                        st.success("✅ 確認済み")
                     else:
                         st.warning("🆕 未登録")
                 render_summary(meta.get("summary", ""))
@@ -5522,7 +5522,7 @@ def page_image_library():
             if file_id in metadata and not is_patient_data(meta):
                 s = get_status(meta)
                 if s == STATUS_REVIEWED:
-                    st.success("✅ 登録済み")
+                    st.success("✅ 確認済み")
                 else:
                     st.warning("🆕 未登録")
             _sl = get_summary_label(meta)
