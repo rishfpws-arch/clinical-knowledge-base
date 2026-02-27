@@ -430,7 +430,8 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
     """JSONデータをチャンク分割してワークシートに書き込む。
-    API Rate Limit 対策として最大2回リトライする。"""
+    失敗時は最大3回リトライ（待機時間を段階的に増加）。"""
+    last_err = ""
     for attempt in range(3):
         try:
             try:
@@ -457,19 +458,22 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
         except gspread.exceptions.APIError as e:
             status = getattr(e, "response", None)
             status_code = getattr(status, "status_code", 0) if status else 0
-            err_msg = f"APIError({status_code}): {e}"
-            _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {err_msg}")
-            if status_code == 429 and attempt < 2:
-                # Rate Limit → 少し待ってリトライ
-                time.sleep(2 * (attempt + 1))
+            last_err = f"APIError({status_code}): {e}"
+            _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {last_err}")
+            if attempt < 2:
+                time.sleep(3 * (attempt + 1))
                 continue
-            st.session_state["_save_error_detail"] = err_msg
+            st.session_state["_save_error_detail"] = last_err
             return False
         except Exception as e:
-            err_msg = f"{type(e).__name__}: {e}"
-            _log.error(f"[Sheets] {worksheet_name} 書き込みエラー: {err_msg}")
-            st.session_state["_save_error_detail"] = err_msg
+            last_err = f"{type(e).__name__}: {e}"
+            _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {last_err}")
+            if attempt < 2:
+                time.sleep(3 * (attempt + 1))
+                continue
+            st.session_state["_save_error_detail"] = last_err
             return False
+    st.session_state["_save_error_detail"] = last_err
     return False
 
 
