@@ -2287,7 +2287,7 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             )
         with col_status:
             if get_status(meta) == STATUS_REVIEWED:
-                st.caption("ステータス: ✅ 登録済み")
+                st.caption("ステータス: ✅ 確認済み")
             else:
                 st.caption("ステータス: 🆕 未登録")
 
