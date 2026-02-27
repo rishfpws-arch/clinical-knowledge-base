@@ -3732,12 +3732,12 @@ def page_batch_analyze():
         # 対象選択
         review_filter = st.radio(
             "対象",
-            ["未登録→登録済み（🆕→✅）", "登録済み→未登録に戻す（✅→🆕）"],
+            ["未確認→確認済み（📝→✅）", "登録済み→未登録に戻す（✅→🆕）"],
             horizontal=True,
             key="bulk_review_filter",
         )
 
-        if review_filter == "未登録→登録済み（🆕→✅）":
+        if review_filter == "未確認→確認済み（📝→✅）":
             target_list = [
                 img for img in images
                 if img["id"] in metadata
@@ -3811,7 +3811,7 @@ def page_batch_analyze():
         st.markdown("---")
         action_count = len(action_ids)
 
-        if review_filter == "未登録→登録済み（🆕→✅）":
+        if review_filter == "未確認→確認済み（📝→✅）":
             if st.button(
                 f"✅ 選択した {action_count} 件を登録済みにする",
                 type="primary",
@@ -6610,10 +6610,10 @@ def page_import_analyze():
             metadata = load_metadata()
             review_filter = st.radio(
                 "対象",
-                ["未登録→登録済み（🆕→✅）", "登録済み→未登録に戻す（✅→🆕）"],
+                ["未確認→確認済み（📝→✅）", "登録済み→未登録に戻す（✅→🆕）"],
                 horizontal=True, key="imp_bulk_review_filter",
             )
-            if review_filter == "未登録→登録済み（🆕→✅）":
+            if review_filter == "未確認→確認済み（📝→✅）":
                 target_list = [
                     img for img in images
                     if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_AUTO
@@ -6680,7 +6680,7 @@ def page_import_analyze():
 
                 st.markdown("---")
                 action_count = len(action_ids)
-                if review_filter == "未登録→登録済み（🆕→✅）":
+                if review_filter == "未確認→確認済み（📝→✅）":
                     if st.button(
                         f"✅ 選択した {action_count} 件を登録済みにする",
                         type="primary", key="imp_bulk_review_run",
