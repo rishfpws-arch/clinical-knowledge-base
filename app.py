@@ -1053,12 +1053,16 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
             json.dump(weight_data, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
-    if not sheets_ok and show_error and sh is not None:
-        detail = st.session_state.pop("_save_error_detail", "")
-        msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
-        if detail:
-            msg += f"\n({detail})"
-        st.toast(msg, icon="⚠️")
+    if not sheets_ok and sh is not None:
+        st.session_state["_pending_weight_data"] = weight_data
+        if show_error:
+            detail = st.session_state.pop("_save_error_detail", "")
+            msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
+            if detail:
+                msg += f"\n({detail})"
+            st.toast(msg, icon="⚠️")
+    elif sheets_ok:
+        st.session_state.pop("_pending_weight_data", None)
     return sheets_ok
 
 
