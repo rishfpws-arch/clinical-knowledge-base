@@ -663,14 +663,15 @@ def save_metadata(metadata: dict) -> bool:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    _sync_err = ""
     if not sheets_ok and sh is not None:
         # 次回 rerun で再試行するためペンディングデータを保持
         st.session_state["_pending_metadata"] = metadata
         try:
-            detail = st.session_state.pop("_save_error_detail", "")
+            _sync_err = st.session_state.pop("_save_error_detail", "")
             msg = "⚠️ Sheetsへの保存に失敗しました。次回アクセス時に再試行します。"
-            if detail:
-                msg += f"\n({detail})"
+            if _sync_err:
+                msg += f"\n({_sync_err})"
             st.toast(msg, icon="⚠️")
         except Exception:
             pass
@@ -678,8 +679,7 @@ def save_metadata(metadata: dict) -> bool:
         # 成功したらペンディングをクリア
         st.session_state.pop("_pending_metadata", None)
     # --- 同期ステータス記録 ---
-    _record_sync_status("metadata", sheets_ok, count=len(metadata),
-                        error=st.session_state.pop("_save_error_detail", "") if not sheets_ok else "")
+    _record_sync_status("metadata", sheets_ok, count=len(metadata), error=_sync_err)
     return sheets_ok
 
 
