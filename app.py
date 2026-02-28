@@ -677,7 +677,23 @@ def save_metadata(metadata: dict) -> bool:
     elif sheets_ok:
         # 成功したらペンディングをクリア
         st.session_state.pop("_pending_metadata", None)
+    # --- 同期ステータス記録 ---
+    _record_sync_status("metadata", sheets_ok, count=len(metadata),
+                        error=st.session_state.pop("_save_error_detail", "") if not sheets_ok else "")
     return sheets_ok
+
+
+def _record_sync_status(data_type: str, success: bool, count: int = 0, error: str = ""):
+    """各データタイプの Sheets 同期ステータスを session_state に記録する。"""
+    key = "_sync_status"
+    if key not in st.session_state:
+        st.session_state[key] = {}
+    st.session_state[key][data_type] = {
+        "success": success,
+        "count": count,
+        "error": error,
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 def _retry_pending_saves() -> None:
