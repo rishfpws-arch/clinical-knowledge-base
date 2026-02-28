@@ -7598,6 +7598,36 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
         st.markdown("".join(micro_html_parts), unsafe_allow_html=True)
 
 
+def _render_food_thumbnails(day_data: dict):
+    """当日の食事画像をサムネイルギャラリーとして表示する。"""
+    day_items = _get_day_items(day_data)
+
+    # ユニークな image_id を収集
+    seen_ids: set[str] = set()
+    images_info: list[dict] = []
+    for it in day_items:
+        img_id = it.get("image_id")
+        img_ext = it.get("image_ext", "png")
+        if img_id and img_id not in seen_ids:
+            seen_ids.add(img_id)
+            meal_label = MEAL_TYPE_LABELS.get(it.get("meal_type", ""), "")
+            images_info.append({"id": img_id, "ext": img_ext, "meal_label": meal_label})
+
+    if not images_info:
+        return
+
+    st.markdown("### 📸 食事の写真")
+    cols_per_row = 4
+    for row_start in range(0, len(images_info), cols_per_row):
+        row_imgs = images_info[row_start:row_start + cols_per_row]
+        cols = st.columns(cols_per_row)
+        for ci, img in enumerate(row_imgs):
+            img_path = WEIGHT_UPLOADS_DIR / f"{img['id']}.{img['ext']}"
+            with cols[ci]:
+                if img_path.exists():
+                    st.image(str(img_path), width=100, caption=img["meal_label"])
+
+
 def _render_meal_groups(day_data: dict, weight_data: dict):
     """食事タイプ別にグループ化して表示（MoneyForwardカテゴリ風）。"""
     current_items = _get_day_items(day_data)
