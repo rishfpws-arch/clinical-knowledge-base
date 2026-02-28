@@ -1356,8 +1356,8 @@ def save_food_processed(data: dict) -> None:
     except Exception:
         pass
     # --- 同期ステータス記録 ---
-    _record_sync_status("food_processed", sheets_ok, count=len(data),
-                        error=st.session_state.pop("_save_error_detail", "") if not sheets_ok else "")
+    _sync_err = st.session_state.pop("_save_error_detail", "") if not sheets_ok else ""
+    _record_sync_status("food_processed", sheets_ok, count=len(data), error=_sync_err)
 
 
 def get_gemini_api_key() -> str | None:
