@@ -3848,7 +3848,7 @@ def page_image_manager():
     if st.session_state["img_delete_mode"]:
         del_c1, del_c2, del_c3 = st.columns([1, 1, 4])
         with del_c1:
-            if st.button("☑️ 全選択", key="img_del_all"):
+            if st.button("✅ 全選択", key="img_del_all"):
                 for img in filtered_images:
                     if img["id"] in metadata:
                         st.session_state[f"img_del_{img['id']}"] = True
@@ -4061,7 +4061,7 @@ def page_batch_analyze():
         sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_batch_sel_flag", [f"batch_sel_{img['id']}" for img in unanalyzed])
         with sel_col1:
-            if st.button("☑️ 全選択", key="batch_select_all"):
+            if st.button("✅ 全選択", key="batch_select_all"):
                 _set_batch_checkbox("_batch_sel_flag", True)
         with sel_col2:
             if st.button("🔄 全解除", key="batch_deselect_all"):
@@ -4141,7 +4141,7 @@ def page_batch_analyze():
         rc1, rc2, rc3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_reanalyze_sel_flag", [f"reanalyze_sel_{img['id']}" for img in target_list])
         with rc1:
-            if st.button("☑️ 全選択", key="reanalyze_sel_all"):
+            if st.button("✅ 全選択", key="reanalyze_sel_all"):
                 _set_batch_checkbox("_reanalyze_sel_flag", True)
         with rc2:
             if st.button("🔄 全解除", key="reanalyze_sel_none"):
@@ -4229,7 +4229,7 @@ def page_batch_analyze():
         hc1, hc2, hc3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_hint_sel_flag", [f"hint_sel_{img['id']}" for img in hint_target_list])
         with hc1:
-            if st.button("☑️ 全選択", key="hint_sel_all"):
+            if st.button("✅ 全選択", key="hint_sel_all"):
                 _set_batch_checkbox("_hint_sel_flag", True)
         with hc2:
             if st.button("🔄 全解除", key="hint_sel_none"):
@@ -4644,7 +4644,7 @@ def page_batch_analyze():
 
         bc1, bc2, bc3 = st.columns([1, 1, 3])
         with bc1:
-            if st.button("☑️ 全選択", key=f"{action_key_prefix}_sel_all"):
+            if st.button("✅ 全選択", key=f"{action_key_prefix}_sel_all"):
                 for img in target_list:
                     st.session_state[f"{action_key_prefix}_{img['id']}"] = True
                 st.rerun()
@@ -4827,7 +4827,7 @@ def page_batch_analyze():
         del_col1, del_col2, del_col3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_del_sel_flag", [f"del_sel_{img['id']}" for img in analyzed_images])
         with del_col1:
-            if st.button("☑️ 全選択", key="del_select_all"):
+            if st.button("✅ 全選択", key="del_select_all"):
                 _set_batch_checkbox("_del_sel_flag", True)
         with del_col2:
             if st.button("🔄 全解除", key="del_deselect_all"):
@@ -5042,7 +5042,7 @@ def page_trash():
     _apply_batch_checkbox("_trash_sel_flag", [f"trash_sel_{i}" for i in range(len(trash))])
     act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
     with act_col1:
-        if st.button("☑️ 全選択", key="trash_sel_all"):
+        if st.button("✅ 全選択", key="trash_sel_all"):
             _set_batch_checkbox("_trash_sel_flag", True)
     with act_col2:
         if st.button("🔄 全解除", key="trash_sel_none"):
@@ -5404,7 +5404,7 @@ def page_folder_manual():
     _apply_batch_checkbox("_mf_sel_flag", [f"mf_sel_{img['id']}" for img in display_images])
     mc1, mc2, mc3 = st.columns([1, 1, 4])
     with mc1:
-        if st.button("☑️ 全選択", key="mf_sel_all"):
+        if st.button("✅ 全選択", key="mf_sel_all"):
             _set_batch_checkbox("_mf_sel_flag", True)
     with mc2:
         if st.button("🔄 全解除", key="mf_sel_none"):
@@ -5627,7 +5627,7 @@ def page_folder_ai():
         if st.session_state["folder_delete_mode"]:
             fd_sel_c1, fd_sel_c2, fd_sel_c3 = st.columns([1, 1, 4])
             with fd_sel_c1:
-                if st.button("☑️ 全選択", key="fd_del_sel_all"):
+                if st.button("✅ 全選択", key="fd_del_sel_all"):
                     for img in folder_images:
                         st.session_state[f"fd_del_{img['id']}"] = True
                     st.rerun()
@@ -6694,7 +6694,7 @@ def page_image_library():
         _apply_batch_checkbox("_lib_sel_flag", [f"lib_sel_{img['id']}" for img in filtered_images if img["id"] in metadata])
         sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
         with sel_c1:
-            if st.button("☑️ 全選択", key="lib_sel_all"):
+            if st.button("✅ 全選択", key="lib_sel_all"):
                 _set_batch_checkbox("_lib_sel_flag", True)
         with sel_c2:
             if st.button("🔄 全解除", key="lib_sel_none"):
@@ -6938,7 +6938,7 @@ def page_import_analyze():
             _apply_batch_checkbox("_imp_sel_flag", [f"imp_sel_{img['id']}" for img in unanalyzed])
             sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
             with sel_col1:
-                if st.button("☑️ 全選択", key="imp_sel_all"):
+                if st.button("✅ 全選択", key="imp_sel_all"):
                     _set_batch_checkbox("_imp_sel_flag", True)
             with sel_col2:
                 if st.button("🔄 全解除", key="imp_desel_all"):
@@ -7002,7 +7002,7 @@ def page_import_analyze():
 
             sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
             with sel_c1:
-                if st.button("☑️ 全選択", key="pd_sel_all"):
+                if st.button("✅ 全選択", key="pd_sel_all"):
                     _set_batch_checkbox("_pd_sel_flag", True)
             with sel_c2:
                 if st.button("🔄 全解除", key="pd_desel_all"):
@@ -7270,7 +7270,7 @@ def page_import_analyze():
                     _apply_batch_checkbox("_imp_ra_sel_flag", [f"imp_ra_sel_{img['id']}" for img in target_list])
                     rc1, rc2, rc3 = st.columns([1, 1, 3])
                     with rc1:
-                        if st.button("☑️ 全選択", key="imp_ra_sel_all"):
+                        if st.button("✅ 全選択", key="imp_ra_sel_all"):
                             _set_batch_checkbox("_imp_ra_sel_flag", True)
                     with rc2:
                         if st.button("🔄 全解除", key="imp_ra_sel_none"):
@@ -7344,7 +7344,7 @@ def page_import_analyze():
                     _apply_batch_checkbox("_imp_hint_sel_flag", [f"imp_hint_sel_{img['id']}" for img in hint_target_list])
                     hc1, hc2, hc3 = st.columns([1, 1, 3])
                     with hc1:
-                        if st.button("☑️ 全選択", key="imp_hint_sel_all"):
+                        if st.button("✅ 全選択", key="imp_hint_sel_all"):
                             _set_batch_checkbox("_imp_hint_sel_flag", True)
                     with hc2:
                         if st.button("🔄 全解除", key="imp_hint_sel_none"):
@@ -7692,7 +7692,7 @@ def page_import_analyze():
                 st.info(f"**{len(target_list)} 件**が対象です。")
                 bc1, bc2, bc3 = st.columns([1, 1, 3])
                 with bc1:
-                    if st.button("☑️ 全選択", key=f"{action_key_prefix}_sel_all"):
+                    if st.button("✅ 全選択", key=f"{action_key_prefix}_sel_all"):
                         for img in target_list:
                             st.session_state[f"{action_key_prefix}_{img['id']}"] = True
                         st.rerun()
@@ -7983,7 +7983,7 @@ def page_settings_all():
 
             sdel_c1, sdel_c2, sdel_c3 = st.columns([1, 1, 3])
             with sdel_c1:
-                if st.button("☑️ 全選択", key="sys_del_sel_all"):
+                if st.button("✅ 全選択", key="sys_del_sel_all"):
                     for img in analyzed_images:
                         st.session_state[f"sys_del_{img['id']}"] = True
                     st.rerun()
