@@ -4343,7 +4343,7 @@ def page_batch_analyze():
                     col_img, col_form = st.columns([1, 2])
                     with col_img:
                         try:
-                            img_bytes = download_image(service, fid)
+                            img_bytes = download_thumbnail(service, fid)
                             st.image(img_bytes, use_container_width=True)
                         except Exception:
                             st.caption("（画像を読み込めません）")
@@ -8205,7 +8205,7 @@ def _render_food_thumbnails(day_data: dict):
                     try:
                         service = get_drive_service()
                         if service:
-                            img_bytes = download_image(service, img["drive_file_id"])
+                            img_bytes = download_thumbnail(service, img["drive_file_id"])
                             if img_bytes:
                                 st.image(img_bytes, width=100, caption=img["meal_label"])
                             else:
