@@ -2878,9 +2878,12 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
 def filter_images_by_keyword(
-    images: list[dict], keyword: str, metadata: dict
+    images: list[dict], keyword: str, metadata: dict,
+    include_ocr: bool = True,
 ) -> list[dict]:
-    """キーワードでタイトル・要約・タグ・ファイル名を部分一致検索。"""
+    """キーワードでタイトル・要約・タグ・ファイル名を部分一致検索。
+    include_ocr=False の場合はOCRテキスト検索をスキップする。
+    """
     if not keyword:
         return images
     keyword_lower = keyword.lower()
@@ -2893,14 +2896,16 @@ def filter_images_by_keyword(
             title = meta.get("title", "").lower()
             summary = meta.get("summary", "").lower()
             keywords = [kw.lower() for kw in meta.get("keywords", [])]
-            ocr_text = meta.get("ocr_text", "").lower()
-            if (
+            hit = (
                 keyword_lower in title
                 or keyword_lower in summary
                 or any(keyword_lower in kw for kw in keywords)
                 or keyword_lower in file_name
-                or keyword_lower in ocr_text
-            ):
+            )
+            if not hit and include_ocr:
+                ocr_text = meta.get("ocr_text", "").lower()
+                hit = keyword_lower in ocr_text
+            if hit:
                 filtered.append(img)
         else:
             if keyword_lower in file_name:
