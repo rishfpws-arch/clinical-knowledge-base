@@ -2305,9 +2305,18 @@
     "folder": "脊椎・脊髄"
   },
   "1d2FHd-FZburuGzl4ybhKzXCxNK6aoMZq": {
-    "title": "aad71c1f-1b6b-4133-bae3-08b4f34260f7~1.jpg",
-    "summary": "",
-    "keywords": [],
+    "title": "母趾基節骨骨折ではない",
+    "summary": "骨折線に見えるが、線の周りは白く、骨折線ではない",
+    "keywords": [
+      "足部X線",
+      "母趾",
+      "基節骨",
+      "骨折否定",
+      "関節裂隙狭小化",
+      "骨棘形成",
+      "変形性関節症",
+      "足趾"
+    ],
     "status": "reviewed",
     "folder": "患者データ",
     "source": "patient_data"
