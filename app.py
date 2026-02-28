@@ -4644,7 +4644,7 @@ def page_batch_analyze():
 
         bc1, bc2, bc3 = st.columns([1, 1, 3])
         with bc1:
-            if st.button("✅ 全選択", key=f"{action_key_prefix}_sel_all"):
+            if st.button(f"✅ 全選択（全{len(target_list)}件）", key=f"{action_key_prefix}_sel_all"):
                 for img in target_list:
                     st.session_state[f"{action_key_prefix}_{img['id']}"] = True
                 st.rerun()
