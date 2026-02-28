@@ -4757,7 +4757,7 @@ def page_batch_analyze():
                 if st.button("☑️ すべて選択", key="ocr_sel_all"):
                     _set_batch_checkbox("_ocr_sel_flag", True)
             with c2:
-                if st.button("☐ すべて解除", key="ocr_desel_all"):
+                if st.button("🔄 すべて解除", key="ocr_desel_all"):
                     _set_batch_checkbox("_ocr_sel_flag", False)
 
             ocr_page_items, ocr_cur, ocr_total_pages = _paginate(ocr_pending, "batch_ocr_page")
@@ -7794,7 +7794,7 @@ def page_import_analyze():
                     if st.button("☑️ すべて選択", key="imp_ocr_sel_all"):
                         _set_batch_checkbox("_imp_ocr_sel_flag", True)
                 with oc2:
-                    if st.button("☐ すべて解除", key="imp_ocr_desel_all"):
+                    if st.button("🔄 すべて解除", key="imp_ocr_desel_all"):
                         _set_batch_checkbox("_imp_ocr_sel_flag", False)
 
                 ocr_page_items, ocr_cur, ocr_total_pages = _paginate(ocr_pending, "imp_ocr_page")
