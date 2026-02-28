@@ -6305,10 +6305,21 @@ def page_chat():
             "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
         )
 
-    # 質問例クリックからの送信処理
+    # 質問例クリック / ホーム検索からの送信処理（サジェストフローを通す）
     pending = st.session_state.pop("pending_question", None)
     if pending:
-        handle_chat_submit(pending, sessions, metadata, api_key)
+        with st.spinner("知識ベースを検索中..."):
+            suggestions, hit_count = generate_search_suggestions(
+                pending, metadata, api_key,
+            )
+        if suggestions:
+            st.session_state["_search_suggestions"] = suggestions
+            st.session_state["_search_keyword"] = pending
+            st.session_state["_search_hit_count"] = hit_count
+            st.rerun()
+        else:
+            # サジェスト生成できず → 直接回答（全文検索補完あり）
+            handle_chat_submit(pending, sessions, metadata, api_key)
 
     # 送信処理 — 2段階スマート検索
     if send_clicked and user_input:
