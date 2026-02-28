@@ -2657,6 +2657,13 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                     result["status"] = STATUS_REVIEWED
                     assigned_folder = _auto_classify_folder(result, api_key, folders)
                     result["folder"] = assigned_folder
+                    # OCRテキスト抽出
+                    try:
+                        ocr_text = extract_ocr_text(image_bytes, api_key)
+                        if ocr_text:
+                            result["ocr_text"] = ocr_text
+                    except Exception:
+                        pass
                     metadata[fid] = result
                     success_count += 1
                     folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
