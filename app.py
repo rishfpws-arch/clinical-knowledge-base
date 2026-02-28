@@ -7270,7 +7270,7 @@ def page_import_analyze():
                     _apply_batch_checkbox("_imp_ra_sel_flag", [f"imp_ra_sel_{img['id']}" for img in target_list])
                     rc1, rc2, rc3 = st.columns([1, 1, 3])
                     with rc1:
-                        if st.button("✅ 全選択", key="imp_ra_sel_all"):
+                        if st.button(f"✅ 全選択（全{len(target_list)}件）", key="imp_ra_sel_all"):
                             _set_batch_checkbox("_imp_ra_sel_flag", True)
                     with rc2:
                         if st.button("🔄 全解除", key="imp_ra_sel_none"):
@@ -7344,7 +7344,7 @@ def page_import_analyze():
                     _apply_batch_checkbox("_imp_hint_sel_flag", [f"imp_hint_sel_{img['id']}" for img in hint_target_list])
                     hc1, hc2, hc3 = st.columns([1, 1, 3])
                     with hc1:
-                        if st.button("✅ 全選択", key="imp_hint_sel_all"):
+                        if st.button(f"✅ 全選択（全{len(hint_target_list)}件）", key="imp_hint_sel_all"):
                             _set_batch_checkbox("_imp_hint_sel_flag", True)
                     with hc2:
                         if st.button("🔄 全解除", key="imp_hint_sel_none"):
