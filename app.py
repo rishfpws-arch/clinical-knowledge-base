@@ -1081,6 +1081,15 @@ def load_weight_data() -> dict:
                     if it.get("id") and it["id"] not in s_items_ids:
                         s_records[dk].setdefault("items", []).append(it)
                         new_from_local += 1
+                # weight フィールドも補完（Sheets に weight がなくローカルにある場合）
+                if not s_records[dk].get("weight") and day.get("weight"):
+                    s_records[dk]["weight"] = day["weight"]
+                    if day.get("weight_recorded_at"):
+                        s_records[dk]["weight_recorded_at"] = day["weight_recorded_at"]
+                    new_from_local += 1
+                # total_calories もローカルの方が大きければ補完
+                if day.get("total_calories", 0) > s_records[dk].get("total_calories", 0):
+                    s_records[dk]["total_calories"] = day["total_calories"]
         # goals はローカルが新しければ上書き
         if not merged.get("goals") and local_data.get("goals"):
             merged["goals"] = local_data["goals"]
