@@ -7294,7 +7294,109 @@ def page_settings_all():
         page_trash()
 
     # =======================================================================
-    # サブタブ3: システム
+    # サブタブ: 同期管理
+    # =======================================================================
+    with sub_tab_sync:
+        st.subheader("📡 同期管理")
+        st.caption("ローカル ↔ Google Sheets のデータ同期状態を管理します。")
+
+        # --- 同期ヘルスチェック結果表示 ---
+        health = st.session_state.get("_sync_health", {})
+        sync_status = st.session_state.get("_sync_status", {})
+
+        _DATA_LABELS = {"metadata": "📋 メタデータ", "weight_data": "⚖️ 体重データ", "food_processed": "🍽️ 食事処理済み"}
+
+        if health:
+            st.markdown("#### 📊 同期ステータス")
+            for dtype, label in _DATA_LABELS.items():
+                h = health.get(dtype, {})
+                s = sync_status.get(dtype, {})
+                local_n = h.get("local", 0)
+                sheets_n = h.get("sheets", 0)
+                diff = h.get("diff", 0)
+
+                sc1, sc2, sc3, sc4 = st.columns(4)
+                with sc1:
+                    st.metric(f"{label}", f"ローカル: {local_n}")
+                with sc2:
+                    st.metric("Sheets", f"{sheets_n}")
+                with sc3:
+                    if diff == 0:
+                        st.metric("差異", "✅ 0件")
+                    elif diff > 0:
+                        st.metric("差異", f"⚠️ +{diff}件", delta=f"ローカルが{diff}件多い", delta_color="inverse")
+                    else:
+                        st.metric("差異", f"⚠️ {diff}件", delta=f"Sheetsが{abs(diff)}件多い", delta_color="inverse")
+                with sc4:
+                    if s:
+                        icon = "✅" if s.get("success") else "❌"
+                        ts = s.get("timestamp", "")
+                        if ts:
+                            try:
+                                ts_short = datetime.fromisoformat(ts).strftime("%H:%M")
+                            except Exception:
+                                ts_short = ts
+                        else:
+                            ts_short = "---"
+                        st.metric("最終同期", f"{icon} {ts_short}")
+                    else:
+                        st.metric("最終同期", "--- 未実行")
+        else:
+            st.info("同期ヘルスチェックはまだ実行されていません。ページ再読み込みで自動実行されます。")
+
+        st.markdown("---")
+
+        # --- 強制同期ボタン ---
+        st.markdown("#### 🔄 強制同期")
+        sync_c1, sync_c2 = st.columns(2)
+        with sync_c1:
+            if st.button("🔄 Local → Sheets に強制同期", key="force_sync_l2s", type="primary", use_container_width=True):
+                with st.spinner("Sheets へ同期中..."):
+                    results = _force_sync_local_to_sheets()
+                if "error" in results:
+                    st.error(f"❌ {results['error']}")
+                else:
+                    all_ok = all(r.get("success", False) for r in results.values())
+                    if all_ok:
+                        st.success("✅ 全データをSheetsに同期しました！")
+                    else:
+                        for dtype, r in results.items():
+                            lbl = _DATA_LABELS.get(dtype, dtype)
+                            if r.get("success"):
+                                st.success(f"✅ {lbl}: {r.get('count', 0)}件")
+                            else:
+                                st.error(f"❌ {lbl}: {r.get('error', '失敗')}")
+                # ヘルスチェックを即再実行
+                st.session_state["_sync_health_ts"] = 0
+                st.rerun()
+        with sync_c2:
+            if st.button("📥 Sheets → Local に復元", key="force_sync_s2l", use_container_width=True):
+                with st.spinner("ローカルに復元中..."):
+                    results = _force_sync_sheets_to_local()
+                if "error" in results:
+                    st.error(f"❌ {results['error']}")
+                else:
+                    all_ok = all(r.get("success", False) for r in results.values())
+                    if all_ok:
+                        st.success("✅ SheetsからローカルJSONに復元しました！")
+                    else:
+                        for dtype, r in results.items():
+                            lbl = _DATA_LABELS.get(dtype, dtype)
+                            if r.get("success"):
+                                st.success(f"✅ {lbl}: {r.get('count', 0)}件")
+                            else:
+                                st.error(f"❌ {lbl}: {r.get('error', r.get('note', '失敗'))}")
+                st.session_state["_sync_health_ts"] = 0
+                st.rerun()
+
+        # --- 手動ヘルスチェック ---
+        if st.button("🔍 今すぐヘルスチェック", key="manual_health_check"):
+            st.session_state["_sync_health_ts"] = 0
+            _check_sync_health()
+            st.rerun()
+
+    # =======================================================================
+    # サブタブ4: システム
     # =======================================================================
     with sub_tab3:
         st.subheader("🔧 システム")
