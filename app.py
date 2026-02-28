@@ -4754,7 +4754,7 @@ def page_batch_analyze():
             _apply_batch_checkbox("_ocr_sel_flag", [f"ocr_sel_{img['id']}" for img in ocr_pending])
             c1, c2, c3 = st.columns(3)
             with c1:
-                if st.button("☑️ すべて選択", key="ocr_sel_all"):
+                if st.button("✅ すべて選択", key="ocr_sel_all"):
                     _set_batch_checkbox("_ocr_sel_flag", True)
             with c2:
                 if st.button("🔄 すべて解除", key="ocr_desel_all"):
@@ -7791,7 +7791,7 @@ def page_import_analyze():
                 _apply_batch_checkbox("_imp_ocr_sel_flag", [f"imp_ocr_sel_{img['id']}" for img in ocr_pending])
                 oc1, oc2, oc3 = st.columns(3)
                 with oc1:
-                    if st.button("☑️ すべて選択", key="imp_ocr_sel_all"):
+                    if st.button("✅ すべて選択", key="imp_ocr_sel_all"):
                         _set_batch_checkbox("_imp_ocr_sel_flag", True)
                 with oc2:
                     if st.button("🔄 すべて解除", key="imp_ocr_desel_all"):
