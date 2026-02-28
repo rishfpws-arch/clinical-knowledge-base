@@ -1773,6 +1773,21 @@ def _get_day_items(day_data: dict) -> list[dict]:
     return items
 
 
+def _aggregate_day_nutrients(day_data: dict) -> dict[str, float]:
+    """1日の全品目から栄養素を合算して返す。
+
+    Returns:
+        {"protein": 合計g, "fat": 合計g, ...}  キーがない場合は0。
+    """
+    totals: dict[str, float] = {}
+    for item in _get_day_items(day_data):
+        nuts = item.get("nutrients", {})
+        for key, val in nuts.items():
+            if isinstance(val, (int, float)):
+                totals[key] = totals.get(key, 0) + val
+    return totals
+
+
 def _guess_meal_type(hour: int | None = None) -> str:
     """時刻から食事タイプを推定する。hourが省略された場合は現在時刻を使用。"""
     if hour is None:
