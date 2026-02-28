@@ -1825,10 +1825,11 @@ def _group_items_by_meal(items: list[dict]) -> dict:
     return groups
 
 
-def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[int] | None:
-    """品目名+量リストからGeminiでカロリーを再推定する。
+def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[dict] | None:
+    """品目名+量リストからGeminiでカロリーと栄養素を再推定する。
 
     items_for_recalc: [{"name": "品目名", "quantity": "ふつう"}, ...]
+    Returns: [{"calories": int, "nutrients": dict}, ...] or None
     """
     try:
         items_json = json.dumps(items_for_recalc, ensure_ascii=False)
@@ -1837,7 +1838,13 @@ def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[int] | 
         response_text = _gemini_generate(api_key, parts)
         result = _parse_gemini_json(response_text)
         if result and "items" in result:
-            return [it.get("calories", 0) for it in result["items"]]
+            return [
+                {
+                    "calories": it.get("calories", 0),
+                    "nutrients": it.get("nutrients", {}),
+                }
+                for it in result["items"]
+            ]
     except Exception:
         pass
     return None
@@ -7617,14 +7624,23 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
                             [{"name": final_name, "quantity": final_qty}],
                             api_key,
                         )
-                    if recalc and len(recalc) > 0 and recalc[0] > 0:
-                        final_cal = recalc[0]
+                    if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
+                        final_cal = recalc[0]["calories"]
+                        _recalc_nuts = recalc[0].get("nutrients", {})
+                    else:
+                        _recalc_nuts = {}
+                else:
+                    _recalc_nuts = {}
+            else:
+                _recalc_nuts = {}
             for x in day_data.get("items", []):
                 if x.get("id") == item_id:
                     x["name"] = final_name
                     x["quantity"] = final_qty
                     x["calories"] = final_cal
                     x["meal_type"] = new_meal_type
+                    if _recalc_nuts:
+                        x["nutrients"] = _recalc_nuts
                     break
             day_data["total_calories"] = sum(
                 x.get("calories", 0) for x in _get_day_items(day_data)
