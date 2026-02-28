@@ -1030,6 +1030,45 @@ def _retry_pending_saves() -> None:
             else:
                 _log.warning("[retry] weight_data Sheets書き込み再失敗")
 
+    # folders のリトライ
+    pending_folders = st.session_state.get("_pending_folders")
+    if pending_folders is not None:
+        _log.info("[retry] pending folders")
+        sh = get_sheets_client()
+        if sh is not None:
+            ok = _write_json_to_sheet(sh, "folders", {"folders": pending_folders})
+            if ok:
+                _log.info("[retry] folders Sheets書き込み成功")
+                st.session_state.pop("_pending_folders", None)
+            else:
+                _log.warning("[retry] folders Sheets書き込み再失敗")
+
+    # chat_sessions のリトライ
+    pending_cs = st.session_state.get("_pending_chat_sessions")
+    if pending_cs is not None:
+        _log.info("[retry] pending chat_sessions")
+        sh = get_sheets_client()
+        if sh is not None:
+            ok = _write_json_to_sheet(sh, "chat_sessions", {"sessions": pending_cs})
+            if ok:
+                _log.info("[retry] chat_sessions Sheets書き込み成功")
+                st.session_state.pop("_pending_chat_sessions", None)
+            else:
+                _log.warning("[retry] chat_sessions Sheets書き込み再失敗")
+
+    # trash のリトライ
+    pending_trash = st.session_state.get("_pending_trash")
+    if pending_trash is not None:
+        _log.info("[retry] pending trash")
+        sh = get_sheets_client()
+        if sh is not None:
+            ok = _write_json_to_sheet(sh, "trash", {"items": pending_trash})
+            if ok:
+                _log.info("[retry] trash Sheets書き込み成功")
+                st.session_state.pop("_pending_trash", None)
+            else:
+                _log.warning("[retry] trash Sheets書き込み再失敗")
+
 
 def get_status(meta: dict) -> str:
     """メタデータからステータスを取得する。"""
