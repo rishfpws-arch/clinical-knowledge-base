@@ -7983,7 +7983,7 @@ def page_settings_all():
 
             sdel_c1, sdel_c2, sdel_c3 = st.columns([1, 1, 3])
             with sdel_c1:
-                if st.button("✅ 全選択", key="sys_del_sel_all"):
+                if st.button(f"✅ 全選択（全{len(analyzed_images)}件）", key="sys_del_sel_all"):
                     for img in analyzed_images:
                         st.session_state[f"sys_del_{img['id']}"] = True
                     st.rerun()
