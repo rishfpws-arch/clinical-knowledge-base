@@ -7916,32 +7916,32 @@ def _render_weight_history(records: dict, goals: dict):
         st.markdown("### 📈 体重推移")
         import pandas as pd
 
-        # 期間内の全日付を生成（等間隔X軸のため）
-        _min_d = datetime.strptime(_weight_entries[0][0], "%Y-%m-%d").date()
-        _max_d = datetime.strptime(_weight_entries[-1][0], "%Y-%m-%d").date()
-        _all_chart_dates = []
-        _d = _min_d
-        while _d <= _max_d:
-            _all_chart_dates.append(_d.strftime("%Y-%m-%d"))
-            _d += timedelta(days=1)
+        # 体重入力がある日のみでチャートを作成（NaN問題を回避）
+        _wt_dates = [dk for dk, _ in _weight_entries]
+        _wt_vals = [w for _, w in _weight_entries]
 
-        # 体重データをマップ化
-        _wt_map = {dk: w for dk, w in _weight_entries}
-
-        weight_dates = []
-        weight_vals = []
-        for dk in _all_chart_dates:
-            weight_dates.append(dk)
-            weight_vals.append(_wt_map.get(dk))  # None = 未入力日
-
-        chart_df = pd.DataFrame({"日付": weight_dates, "体重(kg)": weight_vals})
-        chart_df["日付"] = pd.to_datetime(chart_df["日付"])
+        chart_df = pd.DataFrame({
+            "日付": pd.to_datetime(_wt_dates),
+            "体重(kg)": _wt_vals,
+        })
         chart_df = chart_df.set_index("日付")
+
+        # 目標体重ラインを追加
+        target_wt = goals.get("target_weight_kg")
+        if target_wt and len(_wt_vals) >= 1:
+            chart_df["目標(kg)"] = target_wt
+
         st.line_chart(chart_df)
 
-        target_wt = goals.get("target_weight_kg")
         if target_wt:
-            st.caption(f"🎯 目標体重: {target_wt} kg")
+            latest_wt = _wt_vals[-1]
+            diff = round(latest_wt - target_wt, 1)
+            if diff > 0:
+                st.caption(f"🎯 目標体重: {target_wt} kg（あと **-{diff}kg**）")
+            elif diff < 0:
+                st.caption(f"🎯 目標体重: {target_wt} kg（**{abs(diff)}kg** 下回っています）")
+            else:
+                st.caption(f"🎯 目標体重: {target_wt} kg（✅ 達成！）")
 
     # --- 期間サマリー ---
     total_days = len(sorted_dates)
