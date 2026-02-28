@@ -7708,7 +7708,8 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
             with ec1:
                 new_name = st.text_input("品目名", value=name)
             with ec2:
-                new_qty = st.text_input("量", value=qty)
+                qty_idx = QUANTITY_OPTIONS.index(qty) if qty in QUANTITY_OPTIONS else 2
+                new_qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_edit_qty_{item_id}")
             ec3, ec4 = st.columns(2)
             with ec3:
                 meal_options = list(MEAL_TYPE_LABELS.keys())
@@ -7718,32 +7719,46 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
                 new_meal_type = meal_options[meal_labels.index(new_meal_label)]
             with ec4:
                 st.markdown(f"現在: **{cal} kcal**")
-                st.caption("💡 品目名・量を変更すると保存時にAIが自動再計算します")
+                st.caption("💡 品目名を変更するとAIが自動再計算、量の変更は即時反映します")
             edit_submitted = st.form_submit_button("💾 保存", use_container_width=True)
         if edit_submitted:
             final_name = new_name.strip() or name
-            final_qty = new_qty.strip() or qty
-            # 品目名 or 量が変わったら AI でカロリー再計算
+            final_qty = new_qty
+            # 品目名 or 量が変わったら再計算
             name_changed = final_name != name
             qty_changed = final_qty != qty
             final_cal = cal
+            _recalc_nuts = {}
+
             if name_changed or qty_changed:
-                api_key = get_gemini_api_key()
-                if api_key:
-                    with st.spinner("🤖 カロリーを再計算中..."):
-                        recalc = _recalc_calories(
-                            [{"name": final_name, "quantity": final_qty}],
-                            api_key,
-                        )
-                    if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
-                        final_cal = recalc[0]["calories"]
-                        _recalc_nuts = recalc[0].get("nutrients", {})
-                    else:
-                        _recalc_nuts = {}
+                # 量の倍率マップ（API不要のローカル計算用）
+                _QTY_SCALE = {"半量": 0.5, "少なめ": 0.6, "ふつう": 1.0, "多め": 1.5}
+                old_scale = _QTY_SCALE.get(qty)
+                new_scale = _QTY_SCALE.get(final_qty)
+
+                if not name_changed and old_scale and new_scale and old_scale != new_scale:
+                    # 品目名そのままで量だけ変更 → ローカルで倍率計算（API不要）
+                    ratio = new_scale / old_scale
+                    final_cal = max(1, round(cal * ratio))
+                    existing_nuts = item.get("nutrients", {})
+                    _recalc_nuts = {
+                        nk: round(nv * ratio, 1)
+                        for nk, nv in existing_nuts.items()
+                        if isinstance(nv, (int, float))
+                    }
                 else:
-                    _recalc_nuts = {}
-            else:
-                _recalc_nuts = {}
+                    # 品目名が変わった or 量が既知の選択肢外 → API で再計算
+                    api_key = get_gemini_api_key()
+                    if api_key:
+                        with st.spinner("🤖 カロリーを再計算中..."):
+                            recalc = _recalc_calories(
+                                [{"name": final_name, "quantity": final_qty}],
+                                api_key,
+                            )
+                        if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
+                            final_cal = recalc[0]["calories"]
+                            _recalc_nuts = recalc[0].get("nutrients", {})
+
             for x in day_data.get("items", []):
                 if x.get("id") == item_id:
                     x["name"] = final_name
