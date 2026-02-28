@@ -3614,7 +3614,7 @@ def page_image_manager():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     # タイトル
@@ -3640,7 +3640,7 @@ def page_image_manager():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     if fid in metadata:
@@ -3823,7 +3823,7 @@ def page_batch_analyze():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     st.caption(f"📄 {img['name']}")
@@ -3907,7 +3907,7 @@ def page_batch_analyze():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     st.caption(f"{status_icon} {title}")
@@ -3995,7 +3995,7 @@ def page_batch_analyze():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     st.caption(f"{status_icon} {title}")
@@ -4414,7 +4414,7 @@ def page_batch_analyze():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     st.caption(f"{status_icon} {title}")
@@ -4525,7 +4525,7 @@ def page_batch_analyze():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     st.caption(f"{status_icon} {title}")
@@ -5059,7 +5059,7 @@ def page_folder_manual():
                     st.markdown(
                         '<div style="background:#333;border-radius:8px;'
                         'height:80px;display:flex;align-items:center;'
-                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                         unsafe_allow_html=True,
                     )
                 st.caption(f"📁 {cur_folder}")
@@ -5288,7 +5288,7 @@ def page_folder_ai():
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
                             'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                             unsafe_allow_html=True,
                         )
                     icon = get_status_icon(meta)
@@ -6297,7 +6297,7 @@ def page_image_library():
                     st.markdown(
                         '<div style="background:#333;border-radius:8px;'
                         'height:80px;display:flex;align-items:center;'
-                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -6538,7 +6538,7 @@ def page_import_analyze():
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
                                 'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                 unsafe_allow_html=True,
                             )
                         st.caption(f"📄 {img['name']}")
@@ -6623,7 +6623,7 @@ def page_import_analyze():
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
                                 'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                 unsafe_allow_html=True,
                             )
                         # AI解析チェックボックス — session_state にデフォルト設定
@@ -6873,7 +6873,7 @@ def page_import_analyze():
                                     st.markdown(
                                         '<div style="background:#333;border-radius:8px;'
                                         'height:80px;display:flex;align-items:center;'
-                                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                         unsafe_allow_html=True,
                                     )
                                 st.caption(f"{status_icon} {title}")
@@ -6948,7 +6948,7 @@ def page_import_analyze():
                                     st.markdown(
                                         '<div style="background:#333;border-radius:8px;'
                                         'height:80px;display:flex;align-items:center;'
-                                        'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                         unsafe_allow_html=True,
                                     )
                                 st.caption(f"{status_icon} {title}")
@@ -7299,7 +7299,7 @@ def page_import_analyze():
                                 st.markdown(
                                     '<div style="background:#333;border-radius:8px;'
                                     'height:80px;display:flex;align-items:center;'
-                                    'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                    'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                     unsafe_allow_html=True,
                                 )
                             st.caption(f"{status_icon} {title}")
@@ -7528,7 +7528,7 @@ def page_settings_all():
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
                                 'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#888;font-size:24px;">🖼️</div>',
+                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
                                 unsafe_allow_html=True,
                             )
                         st.caption(f"{status_icon} {title}")
