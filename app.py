@@ -6223,6 +6223,7 @@ def page_image_library():
 
         if selected_file is None:
             st.session_state["lib_selected_id"] = None
+            st.session_state["lib_enlarged_view"] = False
             st.rerun()
             return
 
