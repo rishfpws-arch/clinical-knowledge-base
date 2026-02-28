@@ -3238,7 +3238,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                     tags_html = " ".join(
                         f"<span style='background:#1a3a5c;color:#7eb8da;"
                         f"padding:2px 8px;border-radius:10px;font-size:11px;"
-                        f"margin:2px;display:inline-block;'>{kw}</span>"
+                        f"margin:2px;display:inline-block;'>{html.escape(kw)}</span>"
                         for kw in keywords[:3]
                     )
                     st.markdown(
