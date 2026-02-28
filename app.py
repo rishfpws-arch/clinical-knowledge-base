@@ -7428,30 +7428,56 @@ def _nutrient_bar_color(ratio: float) -> str:
 
 def _bulk_estimate_nutrients(items_without_nuts: list[dict],
                              day_data: dict, weight_data: dict):
-    """栄養素未推定の品目をまとめて Gemini で推定する。"""
+    """栄養素未推定の品目をまとめて Gemini で推定する（バッチ分割対応）。"""
     api_key = get_gemini_api_key()
     if not api_key:
         st.warning("APIキー未設定")
         return
-    items_for_recalc = [
-        {"name": it.get("name", ""), "quantity": it.get("quantity", "ふつう")}
-        for it in items_without_nuts
-    ]
-    with st.spinner(f"{len(items_for_recalc)} 品目の栄養素を推定中..."):
-        results = _recalc_calories(items_for_recalc, api_key)
-    if results and len(results) == len(items_without_nuts):
-        for it, rc in zip(items_without_nuts, results):
-            it["nutrients"] = rc.get("nutrients", {})
-            if rc.get("calories", 0) > 0:
-                it["calories"] = rc["calories"]
+
+    BATCH_SIZE = 5  # Gemini が安定して返せるサイズ
+    total = len(items_without_nuts)
+    success_count = 0
+
+    progress = st.progress(0, text=f"栄養素を推定中... (0/{total})")
+
+    for batch_start in range(0, total, BATCH_SIZE):
+        batch_items = items_without_nuts[batch_start:batch_start + BATCH_SIZE]
+        items_for_recalc = [
+            {"name": it.get("name", ""), "quantity": it.get("quantity", "ふつう")}
+            for it in batch_items
+        ]
+        try:
+            results = _recalc_calories(items_for_recalc, api_key)
+            if results:
+                # 返却数が一致しなくても、一致する分だけ適用
+                for i, rc in enumerate(results):
+                    if i < len(batch_items):
+                        batch_items[i]["nutrients"] = rc.get("nutrients", {})
+                        if rc.get("calories", 0) > 0:
+                            batch_items[i]["calories"] = rc["calories"]
+                        success_count += 1
+        except Exception:
+            pass  # このバッチは失敗 → 次のバッチへ
+
+        done = min(batch_start + BATCH_SIZE, total)
+        progress.progress(done / total, text=f"栄養素を推定中... ({done}/{total})")
+        if batch_start + BATCH_SIZE < total:
+            time.sleep(1)  # API rate limit 回避
+
+    progress.empty()
+
+    if success_count > 0:
         day_data["total_calories"] = sum(
             x.get("calories", 0) for x in _get_day_items(day_data)
         )
         save_weight_data(weight_data)
-        st.toast(f"✅ {len(items_without_nuts)} 品目の栄養素を推定しました")
+        if success_count == total:
+            st.toast(f"✅ {success_count} 品目の栄養素を推定しました")
+        else:
+            st.toast(f"✅ {success_count}/{total} 品目の栄養素を推定しました（一部失敗）")
         st.rerun()
     else:
-        st.error("一括推定に失敗しました。個別に推定してください。")
+        st.error("一括推定に失敗しました。しばらく待ってから再試行してください。")
 
 
 def _render_nutrient_dashboard(day_data: dict, goals: dict,
