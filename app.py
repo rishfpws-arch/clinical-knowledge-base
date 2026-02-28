@@ -3295,6 +3295,8 @@ def display_kb_response_with_images(
                     st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
                     st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
+        if extra_count > 0:
+            st.caption(f"📎 他 {extra_count}件の関連画像あり（画像ライブラリで検索）")
         st.markdown("---")
 
     # --- 下部: 本文（IDをタイトル名に置換して表示） ---
