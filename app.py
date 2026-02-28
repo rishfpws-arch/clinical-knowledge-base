@@ -8832,6 +8832,22 @@ def main():
     # ─── 前回失敗した Sheets 書き込みを再試行 ───
     _retry_pending_saves()
 
+    # ─── 同期ヘルスチェック（5分間隔） ───
+    _check_sync_health()
+
+    # ─── サイドバー: 同期ステータス ───
+    _sync_health = st.session_state.get("_sync_health", {})
+    _sync_status = st.session_state.get("_sync_status", {})
+    if _sync_health or _sync_status:
+        total_diff = sum(abs(v.get("diff", 0)) for v in _sync_health.values())
+        failed_types = [dt for dt, s in _sync_status.items() if not s.get("success", True)]
+        if failed_types:
+            st.sidebar.caption(f"❌ 同期失敗: {', '.join(failed_types)}")
+        elif total_diff > 0:
+            st.sidebar.caption(f"⚠️ 同期差異: {total_diff}件")
+        else:
+            st.sidebar.caption("📡 同期: OK")
+
     # ─── サイドバー: 自動取り込み ON/OFF ───
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
