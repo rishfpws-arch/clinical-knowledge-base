@@ -1897,6 +1897,55 @@
       "total_calories": 1825,
       "weight": 75.4,
       "weight_recorded_at": "2026-02-28T14:46:02.256324"
+    },
+    "2026-03-01": {
+      "items": [
+        {
+          "id": "item_9a9e51fb31dc",
+          "name": "菓子パン",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 7.0,
+            "fat": 15.0,
+            "carbs": 45.0,
+            "fiber": 2.0,
+            "salt": 0.5,
+            "calcium": 50.0,
+            "iron": 1.0,
+            "vitamin_a": 50.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_86a6a904a8e8",
+          "image_ext": "jpg",
+          "drive_file_id": "1nO72xY2VuXONSfiz-uVCGkgzriHRXSvd"
+        },
+        {
+          "id": "item_acf0b46b61d9",
+          "name": "クリームパン",
+          "quantity": "ふつう",
+          "calories": 250,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 10.0,
+            "carbs": 35.0,
+            "fiber": 1.0,
+            "salt": 0.5,
+            "calcium": 50.0,
+            "iron": 0.5,
+            "vitamin_a": 50.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_5952b04afdf0",
+          "image_ext": "jpg",
+          "drive_file_id": "1MPxjBIKB9u-TW5McOBw6uyHLpf_eYabj"
+        }
+      ],
+      "total_calories": 600
     }
   }
 }
