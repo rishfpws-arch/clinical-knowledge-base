@@ -8492,9 +8492,8 @@ def page_weight_management():
     try:
         _page_weight_management_inner()
     except Exception as e:
-        import traceback
-        st.error(f"体重管理ページでエラーが発生しました: {type(e).__name__}: {e}")
-        st.code(traceback.format_exc())
+        _log.exception("体重管理ページでエラー")
+        st.error("体重管理ページでエラーが発生しました。ページを再読み込みしてください。")
 
 
 def _page_weight_management_inner():
@@ -9134,6 +9133,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        import traceback
-        st.error(f"アプリケーションエラー: {type(e).__name__}: {e}")
-        st.code(traceback.format_exc())
+        _log.exception("アプリケーションエラー")
+        st.error("アプリケーションエラーが発生しました。ページを再読み込みしてください。")
