@@ -158,7 +158,7 @@ def _check_auth() -> bool:
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align:center; color:#888;'>アクセスするにはログインが必要です</p>",
+        "<p style='text-align:center; color:#b0b0b0;'>アクセスするにはログインが必要です</p>",
         unsafe_allow_html=True,
     )
 
@@ -3216,7 +3216,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
         display_count = len(recent_ids)
 
         st.markdown(
-            "<p style='text-align:center;color:#888;font-size:13px;"
+            "<p style='text-align:center;color:#b0b0b0;font-size:13px;"
             "margin-bottom:4px;'>🆕 新着画像</p>",
             unsafe_allow_html=True,
         )
