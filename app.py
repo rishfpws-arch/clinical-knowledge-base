@@ -4061,7 +4061,7 @@ def page_batch_analyze():
         sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_batch_sel_flag", [f"batch_sel_{img['id']}" for img in unanalyzed])
         with sel_col1:
-            if st.button("✅ 全選択", key="batch_select_all"):
+            if st.button(f"✅ 全選択（全{len(unanalyzed)}件）", key="batch_select_all"):
                 _set_batch_checkbox("_batch_sel_flag", True)
         with sel_col2:
             if st.button("🔄 全解除", key="batch_deselect_all"):
@@ -4141,7 +4141,7 @@ def page_batch_analyze():
         rc1, rc2, rc3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_reanalyze_sel_flag", [f"reanalyze_sel_{img['id']}" for img in target_list])
         with rc1:
-            if st.button("✅ 全選択", key="reanalyze_sel_all"):
+            if st.button(f"✅ 全選択（全{len(target_list)}件）", key="reanalyze_sel_all"):
                 _set_batch_checkbox("_reanalyze_sel_flag", True)
         with rc2:
             if st.button("🔄 全解除", key="reanalyze_sel_none"):
