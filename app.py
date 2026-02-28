@@ -6434,8 +6434,10 @@ def page_chat():
         )
 
     if latest_a:
+        _search_kw = latest_q.get("content", "") if latest_q else ""
         display_kb_response_with_images(
-            latest_a.get("content", ""), metadata, service
+            latest_a.get("content", ""), metadata, service,
+            search_keyword=_search_kw,
         )
 
     # --- 過去の履歴（折りたたみ） ---
@@ -6465,6 +6467,7 @@ def page_chat():
                 display_kb_response_with_images(
                     a_msg.get("content", ""), metadata, service,
                     key_suffix=f"_hist{hist_idx}",
+                    search_keyword=q_msg.get("content", ""),
                 )
                 st.markdown("---")
 
