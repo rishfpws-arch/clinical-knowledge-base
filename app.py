@@ -8226,12 +8226,59 @@ def page_weight_management():
                     "target_date": new_target_date.strftime("%Y-%m-%d"),
                     "daily_calorie_target": new_target_cal,
                 }
+                # 既存の栄養素目標を保持
+                if "nutrient_targets" in goals:
+                    new_goals["nutrient_targets"] = goals["nutrient_targets"]
                 if current_weight:
                     new_goals["current_weight_kg"] = current_weight
                 weight_data["goals"] = new_goals
                 save_weight_data(weight_data)
                 st.toast("✅ 目標を保存しました")
                 st.rerun()
+
+            # --- 栄養素目標設定 ---
+            with st.expander("🥗 栄養素目標（詳細）"):
+                st.caption("日本人の食事摂取基準(2020年版)に基づくデフォルト値を使用しています。変更する場合のみ編集してください。")
+                cur_nut_targets = goals.get("nutrient_targets", {})
+                with st.form(key="wm_nutrient_goal_form"):
+                    st.markdown("**三大栄養素 (PFC)**")
+                    _ng_cols = st.columns(3)
+                    _nut_inputs = {}
+                    for i, key in enumerate(_PFC_KEYS):
+                        info = DEFAULT_NUTRIENT_TARGETS[key]
+                        cur_val = cur_nut_targets.get(key, {}).get("target", info["target"]) or 0
+                        with _ng_cols[i]:
+                            _nut_inputs[key] = st.number_input(
+                                f"{info['label']} ({info['unit']})",
+                                min_value=0.0, max_value=1000.0,
+                                value=float(cur_val), step=5.0,
+                                key=f"wm_ng_{key}",
+                            )
+                    st.markdown("**ビタミン・ミネラル**")
+                    _mg_cols = st.columns(3)
+                    _micro_display = _MICRO_KEYS + ["salt"]
+                    for i, key in enumerate(_micro_display):
+                        info = DEFAULT_NUTRIENT_TARGETS[key]
+                        default_val = info["target"] if info["target"] else info.get("upper", 0)
+                        cur_val = cur_nut_targets.get(key, {}).get("target", default_val) or 0
+                        with _mg_cols[i % 3]:
+                            _nut_inputs[key] = st.number_input(
+                                f"{info['label']} ({info['unit']})",
+                                min_value=0.0, max_value=10000.0,
+                                value=float(cur_val), step=1.0,
+                                key=f"wm_ng_{key}",
+                            )
+                    nut_goal_submitted = st.form_submit_button("💾 栄養素目標を保存")
+                if nut_goal_submitted:
+                    new_nut_targets = {}
+                    for key, val in _nut_inputs.items():
+                        if val > 0:
+                            new_nut_targets[key] = {"target": round(val, 1)}
+                    goals["nutrient_targets"] = new_nut_targets
+                    weight_data["goals"] = goals
+                    save_weight_data(weight_data)
+                    st.toast("✅ 栄養素目標を保存しました")
+                    st.rerun()
 
             # 推奨カロリー表示（form外に配置）
             if current_weight and cur_target_wt > 0 and cur_target_wt < current_weight:
