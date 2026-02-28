@@ -7637,11 +7637,8 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
                     for nk in list(nuts.keys()):
                         if isinstance(nuts[nk], (int, float)):
                             nuts[nk] = round(nuts[nk] / 2, 1)
-                    # quantity 変更
-                    if x.get("quantity") == "多め":
-                        x["quantity"] = "ふつう"
-                    elif x.get("quantity") in ("ふつう", "少なめ"):
-                        x["quantity"] = "少なめ"
+                    # quantity を「半量」に変更
+                    x["quantity"] = "半量"
             # total_calories 再計算
             day_data["total_calories"] = sum(
                 x.get("calories", 0) for x in _get_day_items(day_data)
