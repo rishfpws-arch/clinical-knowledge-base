@@ -2793,11 +2793,13 @@ def filter_images_by_keyword(
             title = meta.get("title", "").lower()
             summary = meta.get("summary", "").lower()
             keywords = [kw.lower() for kw in meta.get("keywords", [])]
+            ocr_text = meta.get("ocr_text", "").lower()
             if (
                 keyword_lower in title
                 or keyword_lower in summary
                 or any(keyword_lower in kw for kw in keywords)
                 or keyword_lower in file_name
+                or keyword_lower in ocr_text
             ):
                 filtered.append(img)
         else:
