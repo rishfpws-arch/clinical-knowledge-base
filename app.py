@@ -7736,6 +7736,68 @@ def page_import_analyze():
                         st.success(f"🆕 {action_count} 件を未確認に戻しました。")
                         st.rerun()
 
+        # --- OCRテキスト抽出 ---
+        elif adv_mode == "OCRテキスト抽出":
+            st.caption("解析済み画像からテキスト情報を読み取り、全文検索を可能にします。")
+            metadata = load_metadata()
+            ocr_pending = [
+                img for img in images
+                if img["id"] in metadata
+                and not is_patient_data(metadata[img["id"]])
+                and not metadata[img["id"]].get("ocr_text")
+            ]
+            ocr_done = [
+                img for img in images
+                if img["id"] in metadata
+                and not is_patient_data(metadata[img["id"]])
+                and metadata[img["id"]].get("ocr_text")
+            ]
+            st.info(f"OCR未実施: **{len(ocr_pending)}** 件 ／ OCR済み: **{len(ocr_done)}** 件")
+
+            if not ocr_pending:
+                st.success("✅ すべての解析済み画像のOCRが完了しています。")
+            else:
+                _apply_batch_checkbox("_imp_ocr_sel_flag", [f"imp_ocr_sel_{img['id']}" for img in ocr_pending])
+                oc1, oc2, oc3 = st.columns(3)
+                with oc1:
+                    if st.button("☑️ すべて選択", key="imp_ocr_sel_all"):
+                        _set_batch_checkbox("_imp_ocr_sel_flag", True)
+                with oc2:
+                    if st.button("☐ すべて解除", key="imp_ocr_desel_all"):
+                        _set_batch_checkbox("_imp_ocr_sel_flag", False)
+
+                ocr_page_items, ocr_cur, ocr_total_pages = _paginate(ocr_pending, "imp_ocr_page")
+                _render_pagination_controls("imp_ocr_page", ocr_cur, ocr_total_pages, len(ocr_pending))
+
+                cols = st.columns(4)
+                for idx, img in enumerate(ocr_page_items):
+                    fid = img["id"]
+                    meta = metadata.get(fid, {})
+                    with cols[idx % 4]:
+                        thumb = download_thumbnail(service, fid)
+                        if thumb:
+                            st.image(thumb, use_container_width=True)
+                        else:
+                            st.markdown(
+                                f"<div style='height:100px;background:#2a2a3a;display:flex;"
+                                f"align-items:center;justify-content:center;color:#b0b0b0;'>"
+                                f"📷</div>",
+                                unsafe_allow_html=True,
+                            )
+                        st.checkbox(
+                            meta.get("title", img["name"])[:30],
+                            key=f"imp_ocr_sel_{fid}",
+                            value=st.session_state.get(f"imp_ocr_sel_{fid}", False),
+                        )
+
+                st.markdown("---")
+                if st.button("🚀 OCRテキスト抽出を実行", type="primary", key="imp_ocr_run"):
+                    target = [img for img in ocr_pending if st.session_state.get(f"imp_ocr_sel_{img['id']}")]
+                    if not target:
+                        st.warning("⚠️ 画像を選択してください。")
+                    else:
+                        _run_batch_ocr(service, target, metadata, api_key)
+
 
 # ===========================================================================
 # 統合ページ: ⚙️ 設定（フォルダ管理 + ゴミ箱 + システム 統合）
