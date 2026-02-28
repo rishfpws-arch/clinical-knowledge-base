@@ -6560,6 +6560,11 @@ def page_image_library():
                 keywords = meta.get("keywords", [])
                 if keywords:
                     render_keyword_tags(keywords)
+                # OCRテキスト表示
+                ocr_text = meta.get("ocr_text", "")
+                if ocr_text:
+                    with st.expander("📝 OCRテキスト（画像内文字情報）"):
+                        st.text(ocr_text)
                 # フォルダ表示
                 cur_f = get_folder(meta)
                 f_icon = "🏥" if cur_f == PATIENT_DATA_FOLDER else "📁"
