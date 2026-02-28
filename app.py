@@ -1276,14 +1276,19 @@ def save_folders(folders: list[str]) -> None:
     if DEFAULT_FOLDER not in folders:
         folders.insert(0, DEFAULT_FOLDER)
     _set_cache("_cache_folders", folders)
+    sheets_ok = False
     sh = get_sheets_client()
     if sh is not None:
-        _write_json_to_sheet(sh, "folders", {"folders": folders})
+        sheets_ok = _write_json_to_sheet(sh, "folders", {"folders": folders})
     try:
         with open(FOLDERS_PATH, "w", encoding="utf-8") as f:
             json.dump({"folders": folders}, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    if not sheets_ok and sh is not None:
+        st.session_state["_pending_folders"] = folders
+    elif sheets_ok:
+        st.session_state.pop("_pending_folders", None)
 
 
 def get_folder(meta: dict) -> str:
