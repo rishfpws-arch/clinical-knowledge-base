@@ -8065,6 +8065,16 @@ def _render_weight_history(records: dict, goals: dict):
 
 def page_weight_management():
     """体重管理ページ — MoneyForward風UI。"""
+    try:
+        _page_weight_management_inner()
+    except Exception as e:
+        import traceback
+        st.error(f"体重管理ページでエラーが発生しました: {type(e).__name__}: {e}")
+        st.code(traceback.format_exc())
+
+
+def _page_weight_management_inner():
+    """体重管理ページ内部実装。"""
     _inject_wm_css()
     st.markdown("## ⚖️ 体重管理")
 
