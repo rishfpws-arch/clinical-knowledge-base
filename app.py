@@ -3234,7 +3234,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                     st.markdown(
                         "<div style='height:150px;background:#222;border-radius:8px;"
                         "display:flex;align-items:center;justify-content:center;"
-                        "color:#666;'>🖼️ 読み込み失敗</div>",
+                        "color:#aaa;'>🖼️ 読み込み失敗</div>",
                         unsafe_allow_html=True,
                     )
                 st.markdown(
