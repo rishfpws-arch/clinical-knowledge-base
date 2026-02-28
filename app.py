@@ -8691,4 +8691,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        st.error(f"アプリケーションエラー: {type(e).__name__}: {e}")
+        st.code(traceback.format_exc())
