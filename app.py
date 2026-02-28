@@ -8056,6 +8056,9 @@ def page_weight_management():
         # ====== ダッシュボードカード ======
         _render_dashboard_card(day_data, goals, records)
 
+        # ====== 食事の写真 ======
+        _render_food_thumbnails(day_data)
+
         # ====== 体重入力 ======
         st.markdown("### ⚖️ 体重を入力")
         default_wt = day_data.get("weight") or 0.0
