@@ -7980,7 +7980,7 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
     salt_icon = "✅" if salt_ok else "⚠️"
     salt_color = "#4CAF50" if salt_ok else "#F44336"
     st.markdown(f"""
-    <div style="padding:6px 12px;background:#F5F5F5;border-radius:6px;margin:8px 0;font-size:13px;">
+    <div style="padding:6px 12px;background:#2a2a3a;border-radius:6px;margin:8px 0;font-size:13px;">
         🧂 <b>食塩</b>: <span style="color:{salt_color};">{salt_actual}g</span> / {salt_upper}g以下 {salt_icon}
     </div>
     """, unsafe_allow_html=True)
