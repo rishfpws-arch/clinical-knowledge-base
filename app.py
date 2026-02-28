@@ -2757,7 +2757,7 @@ def render_keyword_tags(keywords: list[str]) -> None:
     tag_html = " ".join(
         f'<span style="background-color:#1a5276; color:#d6eaf8; padding:4px 12px; '
         f'border-radius:16px; margin:2px 4px; display:inline-block; '
-        f'font-size:0.9em; border:1px solid #2980b9;">{kw}</span>'
+        f'font-size:0.9em; border:1px solid #2980b9;">{html.escape(kw)}</span>'
         for kw in keywords
     )
     st.markdown(tag_html, unsafe_allow_html=True)
