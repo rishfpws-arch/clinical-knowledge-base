@@ -7800,7 +7800,7 @@ def page_weight_management():
                             st.markdown("<br>", unsafe_allow_html=True)
                             remove = st.checkbox("削除", key=f"wm_item_del_{date_key}_{i}")
                         if not remove and name.strip():
-                            edited_items.append({"name": name.strip(), "quantity": qty, "calories": cal})
+                            edited_items.append({"name": name.strip(), "quantity": qty, "calories": cal, "nutrients": item.get("nutrients", {})})
 
                     st.markdown("---")
                     ac1, ac2, ac3 = st.columns([3, 1.5, 1.5])
@@ -7892,6 +7892,7 @@ def page_weight_management():
                                 "name": it["name"],
                                 "quantity": it.get("quantity", "ふつう"),
                                 "calories": it["calories"],
+                                "nutrients": it.get("nutrients", {}),
                                 "meal_type": meal_type,
                             }
                             if saved_image_ids:
