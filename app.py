@@ -3421,9 +3421,10 @@ def handle_chat_submit(
 # チャット機能: ホーム画面
 # ---------------------------------------------------------------------------
 def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
-    """アクティブな会話がないときにホーム画面を表示する。"""
+    """アクティブな会話がないときにホーム画面を表示する（ChatGPT/Gemini風）。"""
 
     # 中央寄せの余白
+    st.markdown("")
     st.markdown("")
     st.markdown("")
     st.markdown("")
@@ -3434,76 +3435,55 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
     # 中央カラムでレイアウト
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
+        # 🧸 アイコン
         st.markdown(
-            "<h1 style='text-align:center; font-size:56px; margin-bottom:8px;'>🧸</h1>",
+            "<h1 style='text-align:center; font-size:64px; margin-bottom:4px;'>🧸</h1>",
             unsafe_allow_html=True,
         )
+        # アプリ名
         st.markdown(
-            f"<p style='text-align:center; color:#b0b0b0; font-size:14px; "
-            f"font-style:italic; line-height:1.6;'>"
+            "<h2 style='text-align:center; color:#e0e0e0; font-weight:300; "
+            "letter-spacing:4px; margin:0 0 16px;'>Clinica</h2>",
+            unsafe_allow_html=True,
+        )
+        # 名言
+        st.markdown(
+            f"<p style='text-align:center; color:#b0b0b0; font-size:13px; "
+            f"font-style:italic; line-height:1.6; margin-bottom:24px;'>"
             f"\"{quote_text}\"<br>"
-            f"<span style='color:#999; font-size:13px;'>— {quote_author}</span></p>",
+            f"<span style='color:#999; font-size:12px;'>— {quote_author}</span></p>",
             unsafe_allow_html=True,
         )
 
-    st.markdown("")
+        # 検索フォーム
+        with st.form(key="home_search_form", clear_on_submit=True):
+            home_query = st.text_input(
+                "検索",
+                placeholder="臨床知識を検索...",
+                label_visibility="collapsed",
+            )
+            home_search_clicked = st.form_submit_button(
+                "🔍 検索する", type="primary", use_container_width=True,
+            )
+        if home_search_clicked and home_query:
+            st.session_state["pending_question"] = home_query
+            st.rerun()
 
-    # 新着画像カード（最大3枚）— クリックで詳細画面に遷移
-    if metadata:
-        # メタデータの末尾（最新登録順）から最大3件を取得
-        all_ids = list(metadata.keys())
-        recent_ids = list(reversed(all_ids))[:3]
-        display_count = len(recent_ids)
-
+        # 検索例ヒント
         st.markdown(
-            "<p style='text-align:center;color:#b0b0b0;font-size:13px;"
-            "margin-bottom:4px;'>🆕 新着画像</p>",
+            "<p style='text-align:center; color:#666; font-size:12px; margin-top:8px;'>例:</p>",
             unsafe_allow_html=True,
         )
-
-        cols = st.columns(display_count)
-        for col, fid in zip(cols, recent_ids):
-            meta = metadata.get(fid, {})
-            title = meta.get("title", "不明")
-            keywords = meta.get("keywords", [])
-            with col:
-                try:
-                    img_bytes = download_thumbnail(service, fid)
-                    st.image(img_bytes, width="stretch")
-                except Exception:
-                    st.markdown(
-                        "<div style='height:150px;background:#222;border-radius:8px;"
-                        "display:flex;align-items:center;justify-content:center;"
-                        "color:#aaa;'>🖼️ 読み込み失敗</div>",
-                        unsafe_allow_html=True,
-                    )
-                st.markdown(
-                    f"<p style='text-align:center;font-size:13px;font-weight:600;"
-                    f"margin:4px 0 2px;'>{html.escape(title)}</p>",
-                    unsafe_allow_html=True,
-                )
-                if keywords:
-                    tags_html = " ".join(
-                        f"<span style='background:#1a3a5c;color:#7eb8da;"
-                        f"padding:2px 8px;border-radius:10px;font-size:11px;"
-                        f"margin:2px;display:inline-block;'>{html.escape(kw)}</span>"
-                        for kw in keywords[:3]
-                    )
-                    st.markdown(
-                        f"<p style='text-align:center;'>{tags_html}</p>",
-                        unsafe_allow_html=True,
-                    )
-                if st.button(
-                    "🔍 詳細を見る",
-                    key=f"home_img_{fid}",
-                    width="stretch",
-                ):
-                    st.session_state["lib_selected_id"] = fid
-                    st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
-                    st.session_state["active_tab"] = "📸 画像ライブラリ"
+        hint_cols = st.columns(3)
+        _hints = ["心電図の読み方", "抗菌薬の選択", "画像診断のポイント"]
+        for hc, hint in zip(hint_cols, _hints):
+            with hc:
+                if st.button(hint, key=f"home_hint_{hint}", use_container_width=True):
+                    st.session_state["pending_question"] = hint
                     st.rerun()
 
     # 知識件数バッジ
+    st.markdown("")
     st.markdown("")
     st.markdown(
         f"<p style='text-align:center;'>"
