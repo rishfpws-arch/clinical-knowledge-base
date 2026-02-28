@@ -494,6 +494,7 @@ def _read_json_from_sheet(sh, worksheet_name: str):
 def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
     """JSONデータをチャンク分割してワークシートに書き込む。
     失敗時は最大3回リトライ（待機時間を段階的に増加）。
+    429 (quota) → 長め待機、401/403 (auth) → 接続リセット後リトライ。
     API呼び出し回数を最小化するため batch_update を使用。"""
     last_err = ""
     for attempt in range(3):
@@ -527,7 +528,21 @@ def _write_json_to_sheet(sh, worksheet_name: str, data) -> bool:
             last_err = f"APIError({status_code}): {e}"
             _log.warning(f"[Sheets] {worksheet_name} attempt {attempt+1}: {last_err}")
             if attempt < 2:
-                time.sleep(5 * (attempt + 1))
+                if status_code == 429:
+                    # quota超過 → 長めに待つ
+                    wait = 10 * (attempt + 1)
+                    _log.info(f"[Sheets] 429 quota — {wait}秒待機")
+                    time.sleep(wait)
+                elif status_code in (401, 403):
+                    # 認証エラー → 接続をリセットしてリトライ
+                    _log.info("[Sheets] 認証エラー — 接続リセット")
+                    st.session_state.pop("_sheets_conn", None)
+                    new_sh = _new_sheets_connection()
+                    if new_sh is not None:
+                        sh = new_sh
+                    time.sleep(3)
+                else:
+                    time.sleep(5 * (attempt + 1))
                 continue
             st.session_state["_save_error_detail"] = last_err
             return False
