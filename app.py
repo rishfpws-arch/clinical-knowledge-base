@@ -140,8 +140,12 @@ def _check_auth() -> bool:
             if token == expected_token:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
-                # localStorageにトークンを保存（ブラウザ再起動後も有効）
                 _save_token_to_storage(uname, expected_token)
+                # URLからトークンを即削除（履歴・ログへの漏洩防止）
+                try:
+                    del st.query_params["token"]
+                except Exception:
+                    pass
                 return True
 
     # localStorageからトークンを復元（tokenパラメータがない場合）
