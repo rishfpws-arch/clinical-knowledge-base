@@ -6509,8 +6509,11 @@ def page_image_library():
     st.sidebar.header("🔍 検索・フィルタ")
     search_keyword = st.sidebar.text_input(
         "キーワード検索",
-        placeholder="タイトル、要約、タグで検索...",
+        placeholder="タイトル、タグ、画像内テキストで検索...",
         key="lib_search",
+    )
+    lib_ocr_toggle = st.sidebar.checkbox(
+        "📝 全文検索（OCR）", value=True, key="lib_ocr_search_toggle",
     )
 
     # フォルダ選択（ラジオボタンスタイル）
@@ -6529,7 +6532,9 @@ def page_image_library():
         st.rerun()
 
     # --- フィルタ適用 ---
-    filtered_images = filter_images_by_keyword(images, search_keyword, metadata)
+    filtered_images = filter_images_by_keyword(
+        images, search_keyword, metadata, include_ocr=lib_ocr_toggle,
+    )
     if selected_folder != "すべて":
         filtered_images = [
             img for img in filtered_images
