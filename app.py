@@ -6001,9 +6001,39 @@ def page_chat():
     if pending:
         handle_chat_submit(pending, sessions, metadata, api_key)
 
-    # 送信処理
+    # 送信処理 — 2段階スマート検索
     if send_clicked and user_input:
-        handle_chat_submit(user_input, sessions, metadata, api_key)
+        with st.spinner("知識ベースを検索中..."):
+            suggestions, hit_count = generate_search_suggestions(
+                user_input, metadata, api_key,
+            )
+        if suggestions:
+            st.session_state["_search_suggestions"] = suggestions
+            st.session_state["_search_keyword"] = user_input
+            st.session_state["_search_hit_count"] = hit_count
+            st.rerun()
+        else:
+            # 2件以下 or サジェスト生成失敗 → 直接回答
+            handle_chat_submit(user_input, sessions, metadata, api_key)
+
+    # --- サジェスト選択肢の表示 ---
+    _suggestions = st.session_state.get("_search_suggestions")
+    if _suggestions:
+        _kw = st.session_state.get("_search_keyword", "")
+        _hc = st.session_state.get("_search_hit_count", 0)
+        st.info(f"🔍「{_kw}」に関連する知識が **{_hc}件** あります。何について知りたいですか？")
+        _sg_cols = st.columns(min(len(_suggestions) + 1, 5))
+        for i, sg in enumerate(_suggestions):
+            with _sg_cols[i]:
+                if st.button(sg, key=f"_sg_{i}", use_container_width=True):
+                    st.session_state.pop("_search_suggestions", None)
+                    focused_query = f"{_kw} について、{sg}"
+                    handle_chat_submit(focused_query, sessions, metadata, api_key)
+        with _sg_cols[len(_suggestions)]:
+            if st.button("📋 すべて表示", key="_sg_all", use_container_width=True):
+                st.session_state.pop("_search_suggestions", None)
+                handle_chat_submit(_kw, sessions, metadata, api_key)
+        return  # サジェスト表示中は他を描画しない
 
     # --- 表示エリア ---
     if not st.session_state["chat_messages"]:
