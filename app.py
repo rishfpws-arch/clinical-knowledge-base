@@ -174,17 +174,36 @@ def _check_auth() -> bool:
             if not username or not password:
                 st.error("ユーザー名とパスワードを入力してください。")
             else:
+                # --- ログイン試行回数制限 ---
+                fail_count = st.session_state.get("_login_fail_count", 0)
+                last_fail_time = st.session_state.get("_login_last_fail", 0)
+                now = time.time()
+                if fail_count >= _MAX_LOGIN_ATTEMPTS:
+                    remaining = _LOGIN_COOLDOWN_SECONDS - (now - last_fail_time)
+                    if remaining > 0:
+                        st.error(f"ログイン試行回数が上限に達しました。{int(remaining)}秒後に再度お試しください。")
+                        return False
+                    else:
+                        st.session_state["_login_fail_count"] = 0
+                        fail_count = 0
+
                 pw_hash = hashlib.sha256(password.encode()).hexdigest()
                 if username in auth_users and auth_users[username] == pw_hash:
+                    st.session_state["_login_fail_count"] = 0
                     st.session_state["authenticated"] = True
                     st.session_state["auth_user"] = username
                     auth_token = _make_auth_token(username, pw_hash)
-                    st.query_params["token"] = auth_token
-                    # localStorageにトークンを保存
+                    # URLにトークンを設定しない（localStorage のみに保存）
                     _save_token_to_storage(username, auth_token)
                     st.rerun()
                 else:
-                    st.error("ユーザー名またはパスワードが正しくありません。")
+                    st.session_state["_login_fail_count"] = fail_count + 1
+                    st.session_state["_login_last_fail"] = now
+                    remaining_attempts = _MAX_LOGIN_ATTEMPTS - (fail_count + 1)
+                    if remaining_attempts > 0:
+                        st.error(f"ユーザー名またはパスワードが正しくありません。（残り{remaining_attempts}回）")
+                    else:
+                        st.error(f"ログイン試行回数が上限に達しました。{_LOGIN_COOLDOWN_SECONDS}秒後に再度お試しください。")
 
     return False
 
