@@ -5767,6 +5767,8 @@ def page_chat():
                                 UPLOADS_DIR.mkdir(exist_ok=True)
                                 file_id = f"upload_{uuid.uuid4().hex[:12]}"
                                 ext = img_name.rsplit(".", 1)[-1].lower() if "." in img_name else "png"
+                                if ext not in ("jpg", "jpeg", "png"):
+                                    ext = "png"
                                 save_path = UPLOADS_DIR / f"{file_id}.{ext}"
                                 save_path.write_bytes(img_bytes)
                                 # メタデータに保存
