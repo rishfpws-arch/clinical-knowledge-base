@@ -6100,17 +6100,34 @@ def page_chat():
         )
         return
 
-    # --- 入力欄（常に上部に表示 / Enterキーで送信） ---
-    with st.form(key="chat_form", clear_on_submit=True):
-        user_input = st.text_input(
-            "質問を入力",
-            placeholder="臨床知識について質問してください...",
-            label_visibility="collapsed",
-        )
-        send_clicked = st.form_submit_button("🔍 検索する", type="primary")
+    # --- ホーム画面判定（メッセージなし＆サジェストなし → ホーム画面を表示）---
+    _is_home = (
+        not st.session_state["chat_messages"]
+        and not st.session_state.get("_search_suggestions")
+    )
 
-    # --- 📷 画像取り込み ---
-    with st.expander("📷 画像を取り込む", expanded=False):
+    # --- 入力欄（会話中のみ上部に表示 / ホーム画面では非表示）---
+    user_input = ""
+    send_clicked = False
+    if not _is_home:
+        with st.form(key="chat_form", clear_on_submit=True):
+            user_input = st.text_input(
+                "質問を入力",
+                placeholder="臨床知識について質問してください...",
+                label_visibility="collapsed",
+            )
+            send_clicked = st.form_submit_button("🔍 検索する", type="primary")
+
+    # --- 📷 画像取り込み（会話中のみ表示）---
+    if not _is_home:
+        pass  # expander を _is_home でない場合のみ表示
+    if not _is_home:
+        _show_image_upload = True
+    else:
+        _show_image_upload = False
+    if _show_image_upload:
+        pass
+    with st.expander("📷 画像を取り込む", expanded=False) if not _is_home else contextlib.nullcontext():
         # pib() と file_uploader をタブで分離（モバイル互換性のため）
         upload_tab1, upload_tab2 = st.tabs(["📁 ファイル選択", "📋 クリップボード（PC）"])
 
