@@ -6344,6 +6344,36 @@ def page_chat():
                 handle_chat_submit(_kw, sessions, metadata, api_key)
         return  # サジェスト表示中は他を描画しない
 
+    # --- 全文検索プレビュー表示 ---
+    _ocr_preview_fid = st.session_state.get("_ocr_preview_id")
+    if _ocr_preview_fid and _ocr_preview_fid in metadata:
+        _prev_meta = metadata[_ocr_preview_fid]
+        _prev_title = _prev_meta.get("title", "不明")
+
+        # 閉じるボタン + ライブラリ遷移ボタン
+        _pc1, _pc2, _pc3 = st.columns([2, 2, 6])
+        with _pc1:
+            if st.button("✖ 閉じる", key="ocr_preview_close"):
+                st.session_state.pop("_ocr_preview_id", None)
+                st.rerun()
+        with _pc2:
+            if st.button("📸 ライブラリで開く", key="ocr_preview_open_lib"):
+                st.session_state["active_tab"] = "📸 画像ライブラリ"
+                st.session_state["lib_selected_id"] = _ocr_preview_fid
+                st.session_state["lib_enlarged_view"] = True
+                st.session_state["lib_back_tab"] = "💬 チャット"
+                st.session_state.pop("_ocr_preview_id", None)
+                st.rerun()
+
+        # 拡大表示
+        try:
+            _prev_bytes = download_image(service, _ocr_preview_fid)
+            if _prev_bytes:
+                render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
+        except Exception:
+            st.error("画像の読み込みに失敗しました。")
+        return  # プレビュー表示中は他を描画しない
+
     # --- 表示エリア ---
     if not st.session_state["chat_messages"]:
         render_home_screen(knowledge_count, metadata, service)
