@@ -7426,15 +7426,26 @@ def _nutrient_bar_color(ratio: float) -> str:
         return "#F44336"   # 赤（過剰）
 
 
-def _render_nutrient_dashboard(day_data: dict, goals: dict):
+def _render_nutrient_dashboard(day_data: dict, goals: dict,
+                               weight_data: dict | None = None,
+                               date_key: str = ""):
     """栄養素の摂取状況をプログレスバーで表示する。"""
     day_items = _get_day_items(day_data)
     totals = _aggregate_day_nutrients(day_data)
+
+    # 栄養素未推定品目の一括推定ボタン
+    items_without_nuts = [it for it in day_items if not it.get("nutrients")]
+
     if not totals:
         # 品目はあるが栄養素データがない場合のみヒントを表示
-        if day_items:
+        if day_items and items_without_nuts:
             with st.expander("🥗 栄養バランス", expanded=False):
-                st.caption("栄養素データがありません。各品目の「🔄 栄養素を推定」ボタンで推定できます。")
+                st.caption(f"栄養素データ未推定: {len(items_without_nuts)}品目")
+                if weight_data is not None and st.button(
+                    f"🔄 この日の {len(items_without_nuts)} 品目を一括推定",
+                    key=f"wm_bulk_retro_{date_key}",
+                ):
+                    _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
         return
 
     targets = _get_nutrient_targets(goals)
