@@ -7692,7 +7692,7 @@ def page_import_analyze():
                 st.info(f"**{len(target_list)} 件**が対象です。")
                 bc1, bc2, bc3 = st.columns([1, 1, 3])
                 with bc1:
-                    if st.button("✅ 全選択", key=f"{action_key_prefix}_sel_all"):
+                    if st.button(f"✅ 全選択（全{len(target_list)}件）", key=f"{action_key_prefix}_sel_all"):
                         for img in target_list:
                             st.session_state[f"{action_key_prefix}_{img['id']}"] = True
                         st.rerun()
@@ -7791,7 +7791,7 @@ def page_import_analyze():
                 _apply_batch_checkbox("_imp_ocr_sel_flag", [f"imp_ocr_sel_{img['id']}" for img in ocr_pending])
                 oc1, oc2, oc3 = st.columns(3)
                 with oc1:
-                    if st.button("✅ すべて選択", key="imp_ocr_sel_all"):
+                    if st.button(f"✅ すべて選択（全{len(ocr_pending)}件）", key="imp_ocr_sel_all"):
                         _set_batch_checkbox("_imp_ocr_sel_flag", True)
                 with oc2:
                     if st.button("🔄 すべて解除", key="imp_ocr_desel_all"):
