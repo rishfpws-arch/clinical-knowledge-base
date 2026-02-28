@@ -7968,7 +7968,7 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
             {f_icon} F {f_pct}%（理想 20-30%）
             {c_icon} C {c_pct}%（理想 50-65%）
         </div>
-        <div style="text-align:center;padding:4px 8px;background:#F5F5F5;border-radius:6px;margin:4px 0 12px;font-size:13px;font-weight:bold;color:{overall_color};">
+        <div style="text-align:center;padding:4px 8px;background:#2a2a3a;border-radius:6px;margin:4px 0 12px;font-size:13px;font-weight:bold;color:{overall_color};">
             {overall_icon}
         </div>
         """, unsafe_allow_html=True)
@@ -8012,7 +8012,7 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
                     <span>{label}</span>
                     <span>{actual}{unit} {target_str} ({pct}%)</span>
                 </div>
-                <div style="background:#E0E0E0;border-radius:3px;height:8px;overflow:hidden;">
+                <div style="background:#3a3a4a;border-radius:3px;height:8px;overflow:hidden;">
                     <div style="background:{color};width:{display_pct}%;height:100%;border-radius:3px;"></div>
                 </div>
             </div>""")
