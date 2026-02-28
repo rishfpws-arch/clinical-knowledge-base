@@ -4229,7 +4229,7 @@ def page_batch_analyze():
         hc1, hc2, hc3 = st.columns([1, 1, 3])
         _apply_batch_checkbox("_hint_sel_flag", [f"hint_sel_{img['id']}" for img in hint_target_list])
         with hc1:
-            if st.button("✅ 全選択", key="hint_sel_all"):
+            if st.button(f"✅ 全選択（全{len(hint_target_list)}件）", key="hint_sel_all"):
                 _set_batch_checkbox("_hint_sel_flag", True)
         with hc2:
             if st.button("🔄 全解除", key="hint_sel_none"):
