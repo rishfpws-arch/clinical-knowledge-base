@@ -2215,6 +2215,31 @@ def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str =
         return None
 
 
+def extract_ocr_text(image_bytes: bytes, api_key: str) -> str:
+    """Gemini で画像内のテキストをOCR抽出する。
+
+    臨床画像（教科書、スライド、検査レポート等）に含まれるテキストを読み取り、
+    プレーンテキストとして返す。テキストがない場合やエラー時は空文字を返す。
+    """
+    try:
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+        parts = [
+            {"text": OCR_EXTRACT_PROMPT},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        result = _gemini_generate(api_key, parts).strip()
+        return result
+    except Exception as e:
+        _log.error(f"OCRテキスト抽出エラー: {e}")
+        return ""
+
+
 # ---------------------------------------------------------------------------
 # 新着画像の自動検知 & AI解析
 # ---------------------------------------------------------------------------
