@@ -8020,7 +8020,7 @@ def page_weight_management():
         st.info(comment)
 
         # ====== 栄養バランス ======
-        _render_nutrient_dashboard(day_data, goals)
+        _render_nutrient_dashboard(day_data, goals, weight_data, date_key)
 
         # ====== カテゴリ別食事リスト ======
         _render_meal_groups(day_data, weight_data)
