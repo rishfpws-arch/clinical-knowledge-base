@@ -3334,19 +3334,22 @@ def generate_search_suggestions(
     """キーワードに該当するエントリが多い場合、切り口のサジェストを生成する。
     Returns: (suggestions_list, hit_count)
     """
-    # 該当エントリを抽出
+    # 該当エントリを抽出（title / summary / keywords + ocr_text でヒット判定）
     kw_lower = keyword.lower()
     hits: list[dict] = []
     for fid, meta in metadata.items():
         title = meta.get("title", "").lower()
         summary = meta.get("summary", "").lower()
         kws = [k.lower() for k in meta.get("keywords", [])]
+        ocr = meta.get("ocr_text", "").lower()
         if (kw_lower in title or kw_lower in summary
-                or any(kw_lower in k for k in kws)):
+                or any(kw_lower in k for k in kws)
+                or kw_lower in ocr):
             hits.append(meta)
 
     hit_count = len(hits)
-    if hit_count <= 2:
+    _log.info(f"サジェスト検索: keyword='{keyword}', hit_count={hit_count}")
+    if hit_count <= 1:
         return [], hit_count
 
     # 該当エントリの要約をプロンプトに含める（最大15件）
@@ -3357,14 +3360,17 @@ def generate_search_suggestions(
     prompt = CHAT_SUGGEST_PROMPT.format(keyword=keyword, entries=entries_text)
     try:
         raw = _gemini_generate(api_key, [{"text": prompt}]).strip()
+        _log.info(f"サジェスト生成 raw response: {raw[:200]}")
         # JSON配列をパース（```json...``` ラッパーも除去）
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
         suggestions = json.loads(raw)
         if isinstance(suggestions, list) and all(isinstance(s, str) for s in suggestions):
+            _log.info(f"サジェスト生成成功: {suggestions[:4]}")
             return suggestions[:4], hit_count
+        _log.warning(f"サジェスト生成: 不正なフォーマット: {type(suggestions)}")
     except Exception as e:
-        _log.warning(f"サジェスト生成失敗: {e}")
+        _log.warning(f"サジェスト生成失敗: {e} | raw={raw[:200] if 'raw' in dir() else 'N/A'}")
     return [], hit_count
 
 
