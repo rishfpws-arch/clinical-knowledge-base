@@ -471,7 +471,7 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 # ---------------------------------------------------------------------------
 _SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
 _SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data", "food_processed"]
-_CACHE_TTL = 30  # 秒
+_CACHE_TTL = 120  # 秒（save時はキャッシュ直接更新するのでTTLは再取得間隔のみ影響）
 
 
 def _new_sheets_connection():
