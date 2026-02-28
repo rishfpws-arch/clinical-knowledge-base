@@ -6716,51 +6716,76 @@ def page_image_library():
     else:
         st.subheader("📸 画像ライブラリ")
 
-    # モード切替ボタン
+    # モード切替ボタン（セグメントコントロール風）
     if "lib_mode" not in st.session_state:
         st.session_state["lib_mode"] = "browse"  # browse / delete / move
 
-    mode_c1, mode_c2, mode_c3, mode_c4 = st.columns([1, 1, 1, 3])
+    _cur_mode = st.session_state["lib_mode"]
+    mode_c1, mode_c2, mode_c3 = st.columns(3)
     with mode_c1:
-        if st.session_state["lib_mode"] != "browse":
-            if st.button("✖ モード終了", key="lib_exit_mode", width="stretch"):
+        if _cur_mode == "browse":
+            st.button("🔍 閲覧", key="lib_mode_browse", type="primary",
+                      use_container_width=True, disabled=True)
+        else:
+            if st.button("🔍 閲覧", key="lib_mode_browse", use_container_width=True):
                 st.session_state["lib_mode"] = "browse"
-                # チェック状態クリア
                 for img in filtered_images:
                     st.session_state.pop(f"lib_sel_{img['id']}", None)
                 st.rerun()
     with mode_c2:
-        if st.session_state["lib_mode"] != "delete":
-            if st.button("🗑️ 削除モード", key="lib_enter_delete", width="stretch"):
+        if _cur_mode == "delete":
+            st.button("🗑️ 削除", key="lib_mode_delete", type="primary",
+                      use_container_width=True, disabled=True)
+        else:
+            if st.button("🗑️ 削除", key="lib_mode_delete", use_container_width=True):
                 st.session_state["lib_mode"] = "delete"
                 st.rerun()
     with mode_c3:
-        if st.session_state["lib_mode"] != "move":
-            if st.button("📂 移動モード", key="lib_enter_move", width="stretch"):
+        if _cur_mode == "move":
+            st.button("📂 移動", key="lib_mode_move", type="primary",
+                      use_container_width=True, disabled=True)
+        else:
+            if st.button("📂 移動", key="lib_mode_move", use_container_width=True):
                 st.session_state["lib_mode"] = "move"
                 st.rerun()
 
     st.caption(f"{len(filtered_images)} 件")
 
-    # 移動モード: 移動先フォルダ選択
-    if st.session_state["lib_mode"] == "move":
-        dest_folder = st.selectbox(
-            "移動先フォルダ",
-            folders,
-            key="lib_dest_folder",
+    # --- 削除/移動モード時のステータスバー + オプション ---
+    dest_folder = None
+    del_method = None
+    if _cur_mode == "delete":
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#4a1a1a,#2a1a1a);'
+            'border:1px solid #c0392b;border-radius:10px;padding:12px 16px;'
+            'margin:4px 0 12px;">'
+            '<span style="color:#e74c3c;font-weight:600;font-size:0.95em;">'
+            '🗑️ 削除モード</span></div>',
+            unsafe_allow_html=True,
         )
-
-    # 削除モード: 削除方法の選択
-    if st.session_state["lib_mode"] == "delete":
         del_method = st.radio(
             "削除方法",
             ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
             key="lib_del_method",
             horizontal=True,
         )
+    elif _cur_mode == "move":
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#1a2a4a,#1a1a2a);'
+            'border:1px solid #2980b9;border-radius:10px;padding:12px 16px;'
+            'margin:4px 0 12px;">'
+            '<span style="color:#3498db;font-weight:600;font-size:0.95em;">'
+            '📂 移動モード</span></div>',
+            unsafe_allow_html=True,
+        )
+        dest_folder = st.selectbox(
+            "移動先フォルダ",
+            folders,
+            key="lib_dest_folder",
+        )
 
     # 全選択/全解除（削除・移動モード時）
-    if st.session_state["lib_mode"] in ("delete", "move"):
+    if _cur_mode in ("delete", "move"):
         _apply_batch_checkbox("_lib_sel_flag", [f"lib_sel_{img['id']}" for img in filtered_images if img["id"] in metadata])
         sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
         with sel_c1:
