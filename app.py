@@ -3738,7 +3738,7 @@ def page_image_manager():
                 if not st.session_state["img_delete_mode"]:
                     # サムネイル表示
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -3764,7 +3764,7 @@ def page_image_manager():
                 else:
                     # 削除モード
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -3947,7 +3947,7 @@ def page_batch_analyze():
                 fid = img["id"]
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -4031,7 +4031,7 @@ def page_batch_analyze():
                 status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -4119,7 +4119,7 @@ def page_batch_analyze():
                 kw = meta.get("keywords", [])
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -4538,7 +4538,7 @@ def page_batch_analyze():
                 status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -4649,7 +4649,7 @@ def page_batch_analyze():
                 status_icon = get_status_icon(meta)
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -5183,7 +5183,7 @@ def page_folder_manual():
 
             with cols[col_idx]:
                 try:
-                    thumb_bytes = download_image(service, fid)
+                    thumb_bytes = download_thumbnail(service, fid)
                     st.image(thumb_bytes, width="stretch")
                 except Exception:
                     st.markdown(
@@ -5412,7 +5412,7 @@ def page_folder_ai():
 
                 with cols[col_idx]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         st.markdown(
@@ -5730,7 +5730,7 @@ def page_folder_ai():
                 title = meta.get("title", img["name"])
                 with cols[idx % 4]:
                     try:
-                        thumb_bytes = download_image(service, fid)
+                        thumb_bytes = download_thumbnail(service, fid)
                         st.image(thumb_bytes, width="stretch")
                     except Exception:
                         pass
@@ -6439,7 +6439,7 @@ def page_image_library():
 
             with cols[col_idx]:
                 try:
-                    thumb_bytes = download_image(service, fid)
+                    thumb_bytes = download_thumbnail(service, fid)
                     st.image(thumb_bytes, width="stretch")
                 except Exception:
                     st.markdown(
@@ -6680,7 +6680,7 @@ def page_import_analyze():
                     fid = img["id"]
                     with cols[col_idx]:
                         try:
-                            thumb_bytes = download_image(service, fid)
+                            thumb_bytes = download_thumbnail(service, fid)
                             st.image(thumb_bytes, width="stretch")
                         except Exception:
                             st.markdown(
@@ -7015,7 +7015,7 @@ def page_import_analyze():
                             status_icon = get_status_icon(meta)
                             with cols[col_idx]:
                                 try:
-                                    thumb_bytes = download_image(service, fid)
+                                    thumb_bytes = download_thumbnail(service, fid)
                                     st.image(thumb_bytes, width="stretch")
                                 except Exception:
                                     st.markdown(
@@ -7090,7 +7090,7 @@ def page_import_analyze():
                             kw = meta.get("keywords", [])
                             with cols[col_idx]:
                                 try:
-                                    thumb_bytes = download_image(service, fid)
+                                    thumb_bytes = download_thumbnail(service, fid)
                                     st.image(thumb_bytes, width="stretch")
                                 except Exception:
                                     st.markdown(
@@ -7441,7 +7441,7 @@ def page_import_analyze():
                         status_icon = get_status_icon(meta)
                         with cols[col_idx]:
                             try:
-                                thumb_bytes = download_image(service, fid)
+                                thumb_bytes = download_thumbnail(service, fid)
                                 st.image(thumb_bytes, width="stretch")
                             except Exception:
                                 st.markdown(
@@ -7670,7 +7670,7 @@ def page_settings_all():
                     status_icon = get_status_icon(meta)
                     with cols[col_idx]:
                         try:
-                            thumb_bytes = download_image(service, fid)
+                            thumb_bytes = download_thumbnail(service, fid)
                             st.image(thumb_bytes, width="stretch")
                         except Exception:
                             st.markdown(
