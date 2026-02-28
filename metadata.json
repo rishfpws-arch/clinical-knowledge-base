@@ -2674,7 +2674,8 @@
       "手術療法"
     ],
     "status": "reviewed",
-    "folder": "整形外科"
+    "folder": "整形外科",
+    "ocr_text": "分類 鎖骨遠位端骨折 Craigの分類(田久保による改変)\ntype I\ntype II A\ntype II B\ntype III\ntypeV\ntype VI\ntype I: 最小限の転位\ntype IIA:烏口鎖骨靱帯の付着部より内側での骨折で\n転位を伴う\ntype IIB:円錐靱帯は断裂して、菱形靱帯は遠位骨片\nについている\ntypeⅢ: 関節面骨折\ntypeIV: 靱帯の骨膜への付着部は無傷(小児)。近位\n骨片は骨膜からはがれて、上方へ転位して\nいる\ntypeV: 粉砕骨折。烏口鎖骨靱帯は遠位骨片にも近\n位骨片にもつかず、粉砕した第3骨片につく\ntype VI: 鎖骨遠位端は関節外骨折。円錐靱帯と菱形\n靱帯の両方が断裂している。Craigの分類(I\n~V)に田久保が追加した\n文献2) より引用\n93\n68"
   },
   "1iU1OgmgMlupHGmuvmfzpi6xs0whnATtH": {
     "title": "鎖骨遠位端骨折：烏口鎖骨間離開と手術後のX線評価",
