@@ -1426,7 +1426,8 @@ def get_drive_service():
         )
         st.stop()
     except Exception as e:
-        st.error(f"Google Drive への認証に失敗しました: {e}")
+        _log.error(f"Google Drive 認証失敗: {e}")
+        st.error("Google Drive への認証に失敗しました。管理者にお問い合わせください。")
         st.stop()
 
 
