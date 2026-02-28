@@ -2574,7 +2574,8 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
                 break
     except Exception as e:
         if manual:
-            st.error(f"Google Driveの読み取りに失敗しました: {e}")
+            _log.error(f"Google Drive読み取り失敗: {e}")
+            st.error("Google Driveの読み取りに失敗しました。")
         if not all_files:
             return 0
 
@@ -2862,7 +2863,8 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
         st.success("✅ 保存しました！（Google Sheets に同期済み）")
     if st.session_state.pop(f"_saved_fail_{file_id}", False):
         err_detail = st.session_state.pop("_save_error_detail", "不明")
-        st.error(f"⚠️ Google Sheets への同期に失敗しました。\n\nエラー: {err_detail}")
+        _log.error(f"Sheets同期失敗: {err_detail}")
+        st.error("⚠️ Google Sheets への同期に失敗しました。再度お試しください。")
 
     form_heading = "📝 検査所見の編集" if _is_pd_edit else "📝 解析結果の編集"
     st.subheader(form_heading)
