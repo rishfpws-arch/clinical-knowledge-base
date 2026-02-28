@@ -6232,13 +6232,25 @@ def page_image_library():
         # 遷移元のページがあればそちらに戻る、なければ一覧に戻る
         back_tab = st.session_state.get("lib_back_tab")
         back_label = "⬅️ チャットに戻る" if back_tab == "💬 チャット" else "⬅️ 一覧に戻る"
-        if st.button(back_label, key="lib_back_to_grid"):
-            st.session_state["lib_selected_id"] = None
-            st.session_state.pop("editing_file_id", None)
-            if back_tab and back_tab != "📸 画像ライブラリ":
-                st.session_state["active_tab"] = back_tab
-                st.session_state.pop("lib_back_tab", None)
-            st.rerun()
+        _nav1, _nav2, _nav3 = st.columns([2, 2, 6])
+        with _nav1:
+            if st.button(back_label, key="lib_back_to_grid"):
+                st.session_state["lib_selected_id"] = None
+                st.session_state["lib_enlarged_view"] = False
+                st.session_state.pop("editing_file_id", None)
+                if back_tab and back_tab != "📸 画像ライブラリ":
+                    st.session_state["active_tab"] = back_tab
+                    st.session_state.pop("lib_back_tab", None)
+                st.rerun()
+        with _nav2:
+            if st.session_state.get("lib_enlarged_view"):
+                if st.button("🔍 通常表示", key="lib_view_toggle"):
+                    st.session_state["lib_enlarged_view"] = False
+                    st.rerun()
+            else:
+                if st.button("🔍 拡大表示", key="lib_view_toggle"):
+                    st.session_state["lib_enlarged_view"] = True
+                    st.rerun()
 
         # --- 画像読み込み ---
         image_bytes = None
@@ -6251,39 +6263,44 @@ def page_image_library():
 
         meta = metadata.get(file_id, {})
 
-        # --- 横並びレイアウト ---
-        col_img, col_info = st.columns([1, 1])
-        with col_img:
-            st.image(image_bytes, width="stretch")
-        with col_info:
-            title = meta.get("title", selected_file["name"])
-            st.subheader(title)
-            if is_patient_data(meta):
-                st.markdown(
-                    '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
-                    'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
-                    unsafe_allow_html=True,
-                )
-            if file_id in metadata and not is_patient_data(meta):
-                s = get_status(meta)
-                if s == STATUS_REVIEWED:
-                    st.success("✅ 確認済み")
-                else:
-                    st.warning("📝 未確認")
-            _sl = get_summary_label(meta)
-            summary_text = meta.get("summary", "")
-            if summary_text:
-                st.markdown(f"**{_sl}:**")
-                render_summary(summary_text)
-            elif is_patient_data(meta):
-                st.info("検査所見が未入力です。編集から入力してください。")
-            keywords = meta.get("keywords", [])
-            if keywords:
-                render_keyword_tags(keywords)
-            # フォルダ表示
-            cur_f = get_folder(meta)
-            f_icon = "🏥" if cur_f == PATIENT_DATA_FOLDER else "📁"
-            st.caption(f"{f_icon} {cur_f}")
+        if st.session_state.get("lib_enlarged_view"):
+            # --- 拡大表示モード ---
+            _title = meta.get("title", selected_file["name"])
+            render_enlarged_view(image_bytes, meta, _title)
+        else:
+            # --- 通常の横並びレイアウト ---
+            col_img, col_info = st.columns([1, 1])
+            with col_img:
+                st.image(image_bytes, width="stretch")
+            with col_info:
+                title = meta.get("title", selected_file["name"])
+                st.subheader(title)
+                if is_patient_data(meta):
+                    st.markdown(
+                        '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
+                        'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
+                        unsafe_allow_html=True,
+                    )
+                if file_id in metadata and not is_patient_data(meta):
+                    s = get_status(meta)
+                    if s == STATUS_REVIEWED:
+                        st.success("✅ 確認済み")
+                    else:
+                        st.warning("📝 未確認")
+                _sl = get_summary_label(meta)
+                summary_text = meta.get("summary", "")
+                if summary_text:
+                    st.markdown(f"**{_sl}:**")
+                    render_summary(summary_text)
+                elif is_patient_data(meta):
+                    st.info("検査所見が未入力です。編集から入力してください。")
+                keywords = meta.get("keywords", [])
+                if keywords:
+                    render_keyword_tags(keywords)
+                # フォルダ表示
+                cur_f = get_folder(meta)
+                f_icon = "🏥" if cur_f == PATIENT_DATA_FOLDER else "📁"
+                st.caption(f"{f_icon} {cur_f}")
 
         # --- 編集フォーム ---
         if file_id in metadata:
