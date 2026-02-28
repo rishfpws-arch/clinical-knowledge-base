@@ -3492,18 +3492,27 @@ def display_kb_response_with_images(
             st.caption(f"📎 他 {extra_count}件の関連画像あり（画像ライブラリで検索）")
         st.markdown("---")
 
-    # --- 下部: 患者データの所見のみ表示（AI長文回答は非表示） ---
-    # 患者データの所見を収集
-    patient_findings: list[str] = []
-    for fid in found_ids:
-        meta = metadata[fid]
-        if is_patient_data(meta):
-            summary = meta.get("summary", "").strip()
-            title = meta.get("title", "不明")
-            if summary:
-                patient_findings.append(f"**🏥 {title}**: {summary}")
-    if patient_findings:
-        st.markdown("\n\n".join(patient_findings))
+    # --- 下部: テキスト表示 ---
+    if found_ids:
+        # 画像がある場合 → 患者データの所見のみ表示
+        patient_findings: list[str] = []
+        for fid in found_ids:
+            meta = metadata[fid]
+            if is_patient_data(meta):
+                summary = meta.get("summary", "").strip()
+                title = meta.get("title", "不明")
+                if summary:
+                    patient_findings.append(f"**🏥 {title}**: {summary}")
+        if patient_findings:
+            st.markdown("\n\n".join(patient_findings))
+    else:
+        # 画像が見つからない場合 → AI回答テキストをフォールバック表示
+        clean_text = text
+        clean_text = re.sub(pattern, "", clean_text)
+        clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
+        clean_text = clean_text.strip()
+        if clean_text:
+            st.markdown(clean_text)
 
 
 # ---------------------------------------------------------------------------
