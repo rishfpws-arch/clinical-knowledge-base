@@ -2771,6 +2771,101 @@ def render_keyword_tags(keywords: list[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# UI部品: 画像拡大表示 + 所見サイドパネル
+# ---------------------------------------------------------------------------
+def render_enlarged_view(image_bytes: bytes, meta: dict, title: str) -> None:
+    """画像を拡大表示し、検査所見・キーワードを横に並べる。"""
+    import streamlit.components.v1 as components
+
+    # Base64 data URI
+    try:
+        pil_img = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_img.format or "PNG"
+    except Exception:
+        fmt = "PNG"
+    mime = f"image/{fmt.lower()}"
+    if mime == "image/jpg":
+        mime = "image/jpeg"
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
+    data_uri = f"data:{mime};base64,{b64}"
+
+    escaped_title = html.escape(title)
+
+    # 患者データバッジ
+    pd_badge = ""
+    if is_patient_data(meta):
+        pd_badge = (
+            '<span style="background-color:#2e7d32;color:#c8e6c9;'
+            'padding:3px 10px;border-radius:12px;font-size:0.85em;">'
+            '🏥 患者データ</span>'
+        )
+
+    # 所見テキストをHTML箇条書き化（render_summary と同じロジック）
+    summary_label = get_summary_label(meta)
+    summary_text = meta.get("summary", "")
+    summary_html = ""
+    if summary_text:
+        text = summary_text.replace("\\n", "\n")
+        text = re.sub(r"\s*[•・]\s*【", "\n【", text)
+        text = re.sub(r"\s*[•・]\s*", "\n", text)
+        lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
+        items = []
+        for ln in lines:
+            clean = re.sub(r"^[•・\-]\s*", "", ln)
+            if clean:
+                items.append(f"<li style='margin-bottom:6px;'>{html.escape(clean)}</li>")
+        if items:
+            summary_html = (
+                "<ul style='padding-left:20px;margin:8px 0;line-height:1.6;'>"
+                + "".join(items) + "</ul>"
+            )
+    if not summary_html:
+        summary_html = '<p style="color:#888;">未入力</p>'
+
+    # キーワードタグHTML
+    kw_html = ""
+    keywords = meta.get("keywords", [])
+    if keywords:
+        tags = [
+            f'<span style="background-color:#1a5276;color:#d6eaf8;'
+            f'padding:4px 12px;border-radius:16px;margin:2px 4px;'
+            f'display:inline-block;font-size:0.85em;'
+            f'border:1px solid #2980b9;">{html.escape(kw)}</span>'
+            for kw in keywords
+        ]
+        kw_html = f"<div style='margin-top:12px;'>{''.join(tags)}</div>"
+
+    full_html = f"""
+    <div style="display:flex;gap:16px;width:100%;height:750px;
+                font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+                background:#1a1a2e;border-radius:12px;padding:12px;
+                box-sizing:border-box;">
+        <div style="flex:0 0 65%;display:flex;align-items:center;
+                    justify-content:center;background:#111;
+                    border-radius:8px;overflow:hidden;">
+            <img src="{data_uri}"
+                 style="max-width:100%;max-height:100%;object-fit:contain;"
+                 alt="{escaped_title}" />
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:16px;
+                    background:#2a2a3a;border-radius:8px;color:#e0e0e0;">
+            <h2 style="margin:0 0 8px;font-size:1.3em;color:#fff;">
+                {escaped_title}
+            </h2>
+            {pd_badge}
+            <hr style="border-color:#444;margin:12px 0;" />
+            <h3 style="color:#b0b0b0;font-size:1em;margin:8px 0 4px;">
+                {html.escape(summary_label)}:
+            </h3>
+            {summary_html}
+            {kw_html}
+        </div>
+    </div>
+    """
+    components.html(full_html, height=780, scrolling=False)
+
+
+# ---------------------------------------------------------------------------
 # UI部品: チェックボックス一括選択ヘルパー
 # ---------------------------------------------------------------------------
 def _apply_batch_checkbox(batch_key: str, items_keys: list[str]) -> None:
