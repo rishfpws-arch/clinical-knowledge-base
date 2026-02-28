@@ -3199,10 +3199,10 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             unsafe_allow_html=True,
         )
         st.markdown(
-            f"<p style='text-align:center; color:#888; font-size:14px; "
+            f"<p style='text-align:center; color:#b0b0b0; font-size:14px; "
             f"font-style:italic; line-height:1.6;'>"
             f"\"{quote_text}\"<br>"
-            f"<span style='color:#666; font-size:13px;'>— {quote_author}</span></p>",
+            f"<span style='color:#999; font-size:13px;'>— {quote_author}</span></p>",
             unsafe_allow_html=True,
         )
 
