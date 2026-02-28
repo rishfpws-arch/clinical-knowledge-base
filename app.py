@@ -5822,7 +5822,10 @@ _auto_push_started = False
 def _auto_push_loop():
     """バックグラウンドで定期的に git commit & push を実行する。"""
     repo_dir = str(Path(__file__).parent)
-    target_files = ["app.py", "requirements.txt", ".gitignore"]
+    target_files = [
+        "app.py", "requirements.txt", ".gitignore",
+        "metadata.json", "weight_data.json", "food_images_processed.json",
+    ]
 
     while True:
         time.sleep(_AUTO_PUSH_INTERVAL)
@@ -5853,8 +5856,8 @@ def _auto_push_loop():
                 ["git", "push", "origin", "main"],
                 cwd=repo_dir, capture_output=True, text=True, timeout=60,
             )
-        except Exception:
-            pass  # エラーが出ても静かに続行
+        except Exception as e:
+            _log.warning(f"[auto_push] エラー: {type(e).__name__}: {e}")
 
 
 def _is_local_env() -> bool:
