@@ -17,6 +17,7 @@ _os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 import base64
 import hashlib
 import hmac
+import html
 import io
 import json
 import logging
