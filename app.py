@@ -7836,6 +7836,9 @@ def page_weight_management():
         comment = _generate_weight_comment(day_data, goals)
         st.info(comment)
 
+        # ====== 栄養バランス ======
+        _render_nutrient_dashboard(day_data, goals)
+
         # ====== カテゴリ別食事リスト ======
         _render_meal_groups(day_data, weight_data)
 
