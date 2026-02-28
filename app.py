@@ -3231,7 +3231,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                     )
                 st.markdown(
                     f"<p style='text-align:center;font-size:13px;font-weight:600;"
-                    f"margin:4px 0 2px;'>{title}</p>",
+                    f"margin:4px 0 2px;'>{html.escape(title)}</p>",
                     unsafe_allow_html=True,
                 )
                 if keywords:
