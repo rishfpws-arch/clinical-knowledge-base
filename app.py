@@ -2481,9 +2481,9 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                     folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
                     with results_container:
                         st.markdown(
-                            f"✅ **{result.get('title', fname)}**{folder_label}  \n"
+                            f"✅ **{html.escape(result.get('title', fname))}**{html.escape(folder_label)}  \n"
                             f"<span style='color:#888;font-size:12px;'>"
-                            f"{', '.join(result.get('keywords', [])[:4])}</span>",
+                            f"{', '.join(html.escape(k) for k in result.get('keywords', [])[:4])}</span>",
                             unsafe_allow_html=True,
                         )
                 else:
