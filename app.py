@@ -2911,6 +2911,26 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
             if kw.strip()
         ]
         _log.info(f"[display_edit_form] submit: file_id={file_id}, edited_keywords_str='{edited_keywords_str}', new_keywords={new_keywords}")
+
+        # --- 自動キーワード生成（タイトル/サマリー変更時） ---
+        title_changed = edited_title != meta.get("title", "")
+        summary_changed = edited_summary != meta.get(get_summary_label(meta), meta.get("summary", ""))
+        if title_changed or summary_changed:
+            try:
+                api_key = get_gemini_api_key()
+                if api_key:
+                    service = get_drive_service()
+                    image_bytes = download_image(service, file_id)
+                    if image_bytes:
+                        auto_kws = generate_keywords_with_gemini(
+                            image_bytes, api_key, title=edited_title,
+                        )
+                        if auto_kws:
+                            new_keywords = auto_kws
+                            st.toast("🤖 キーワードを自動生成しました", icon="✅")
+            except Exception as e:
+                _log.error(f"自動キーワード生成失敗: {e}")
+
         # 渡されたmetadata（現在のセッションのもの）を直接更新してsave
         # ※ load し直すとAPI呼び出しが増えレート制限に当たる可能性があるため
         existing = metadata.get(file_id, {})
