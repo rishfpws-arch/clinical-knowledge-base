@@ -6852,64 +6852,77 @@ def page_image_library():
                         ):
                             selected_ids.append(fid)
 
-    # --- アクションボタン ---
-    if st.session_state["lib_mode"] == "delete":
-        st.markdown("---")
+    # --- アクションエリア（削除/移動モード時） ---
+    if _cur_mode == "delete":
         del_count = len(selected_ids)
-        if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
-            if del_count > 0:
-                st.warning(f"🗑️ **{del_count} 件**をゴミ箱に移動します。")
+        with st.container():
+            st.markdown(
+                f'<div style="background:linear-gradient(135deg,#4a1a1a,#2a1a1a);'
+                f'border:1px solid #c0392b;border-radius:10px;padding:14px 18px;'
+                f'margin:8px 0;text-align:center;">'
+                f'<span style="color:#e74c3c;font-size:1.1em;font-weight:600;">'
+                f'🗑️ {del_count} 件選択中</span></div>',
+                unsafe_allow_html=True,
+            )
+            if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
+                if st.button(
+                    f"🗑️ 選択した {del_count} 件をゴミ箱へ",
+                    type="primary", key="lib_del_trash_run",
+                    disabled=(del_count == 0), use_container_width=True,
+                ):
+                    moved = move_to_trash(selected_ids, metadata)
+                    for fid in selected_ids:
+                        st.session_state.pop(f"lib_sel_{fid}", None)
+                    st.session_state["lib_mode"] = "browse"
+                    _invalidate_all_caches()
+                    st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
+                    st.rerun()
+            else:
+                if st.button(
+                    f"🔄 選択した {del_count} 件のメタデータを削除",
+                    type="primary", key="lib_del_meta_run",
+                    disabled=(del_count == 0), use_container_width=True,
+                ):
+                    removed = 0
+                    for fid in selected_ids:
+                        if fid in metadata:
+                            del metadata[fid]
+                            removed += 1
+                        st.session_state.pop(f"lib_sel_{fid}", None)
+                    remove_from_ignore_list(selected_ids)
+                    save_metadata(metadata)
+                    st.session_state["lib_mode"] = "browse"
+                    _invalidate_all_caches()
+                    st.success(f"✅ {removed} 件のメタデータを削除しました。")
+                    st.rerun()
+
+    elif _cur_mode == "move":
+        move_count = len(selected_ids)
+        with st.container():
+            _dest_label = dest_folder or "未選択"
+            st.markdown(
+                f'<div style="background:linear-gradient(135deg,#1a2a4a,#1a1a2a);'
+                f'border:1px solid #2980b9;border-radius:10px;padding:14px 18px;'
+                f'margin:8px 0;text-align:center;">'
+                f'<span style="color:#3498db;font-size:1.1em;font-weight:600;">'
+                f'📂 {move_count} 件選択中 → {_dest_label}</span></div>',
+                unsafe_allow_html=True,
+            )
             if st.button(
-                f"🗑️ 選択した {del_count} 件をゴミ箱へ",
-                type="primary", key="lib_del_trash_run",
-                disabled=(del_count == 0),
+                f"📁 選択した {move_count} 件を「{_dest_label}」に移動",
+                type="primary", key="lib_move_run",
+                disabled=(move_count == 0), use_container_width=True,
             ):
-                moved = move_to_trash(selected_ids, metadata)
-                for fid in selected_ids:
-                    st.session_state.pop(f"lib_sel_{fid}", None)
-                st.session_state["lib_mode"] = "browse"
-                _invalidate_all_caches()
-                st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
-                st.rerun()
-        else:
-            if del_count > 0:
-                st.info(f"🔄 **{del_count} 件**のメタデータを削除します。")
-            if st.button(
-                f"🔄 選択した {del_count} 件のメタデータを削除",
-                type="primary", key="lib_del_meta_run",
-                disabled=(del_count == 0),
-            ):
-                removed = 0
                 for fid in selected_ids:
                     if fid in metadata:
-                        del metadata[fid]
-                        removed += 1
-                    st.session_state.pop(f"lib_sel_{fid}", None)
-                remove_from_ignore_list(selected_ids)
+                        metadata[fid]["folder"] = dest_folder
                 save_metadata(metadata)
+                for fid in selected_ids:
+                    st.session_state.pop(f"lib_sel_{fid}", None)
                 st.session_state["lib_mode"] = "browse"
                 _invalidate_all_caches()
-                st.success(f"✅ {removed} 件のメタデータを削除しました。")
+                st.success(f"✅ {move_count} 件を「{dest_folder}」に移動しました。")
                 st.rerun()
-
-    elif st.session_state["lib_mode"] == "move":
-        st.markdown("---")
-        move_count = len(selected_ids)
-        if st.button(
-            f"📁 選択した {move_count} 件を「{dest_folder}」に移動",
-            type="primary", key="lib_move_run",
-            disabled=(move_count == 0),
-        ):
-            for fid in selected_ids:
-                if fid in metadata:
-                    metadata[fid]["folder"] = dest_folder
-            save_metadata(metadata)
-            for fid in selected_ids:
-                st.session_state.pop(f"lib_sel_{fid}", None)
-            st.session_state["lib_mode"] = "browse"
-            _invalidate_all_caches()
-            st.success(f"✅ {move_count} 件を「{dest_folder}」に移動しました。")
-            st.rerun()
 
 
 # ---------------------------------------------------------------------------
