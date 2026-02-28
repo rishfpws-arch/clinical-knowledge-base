@@ -1,5 +1,5 @@
 """
-Clinical Knowledge Base - Phase 4: チャット検索(Q&A)付き画像ビューワー
+Clinica - Phase 4: チャット検索(Q&A)付き画像ビューワー
 
 Google Driveの指定フォルダ内にある医療関連スクリーンショットを
 ブラウザ上で閲覧し、Gemini 2.0 Flash で内容を自動解析する。
@@ -154,7 +154,7 @@ def _check_auth() -> bool:
 
     # ログイン画面
     st.markdown(
-        "<h1 style='text-align:center; margin-top:60px;'>🧸 Clinical Knowledge Base</h1>",
+        "<h1 style='text-align:center; margin-top:60px;'>🧸 Clinica</h1>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -9409,7 +9409,7 @@ def _page_weight_management_inner():
 # ===========================================================================
 def main():
     st.set_page_config(
-        page_title="Clinical Knowledge Base",
+        page_title="Clinica",
         page_icon="🧸",
         layout="wide",
     )
@@ -9444,7 +9444,7 @@ def main():
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
 
-    home_clicked = st.button("🧸 Clinical Knowledge Base", key="home_btn")
+    home_clicked = st.button("🧸 Clinica", key="home_btn")
     st.markdown(
         """<style>
         div[data-testid="stMainBlockContainer"] > div:nth-child(2) button {
