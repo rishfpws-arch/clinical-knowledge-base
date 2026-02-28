@@ -3272,10 +3272,12 @@ def display_kb_response_with_images(
             seen.add(fid)
             found_ids.append(fid)
 
-    # --- 上部: 参照画像をまとめてグリッド表示 ---
+    # --- 上部: 参照画像をまとめてグリッド表示（最大2枚） ---
     if found_ids:
-        cols = st.columns(min(len(found_ids), 3))
-        for idx, fid in enumerate(found_ids):
+        display_ids = found_ids[:2]
+        extra_count = len(found_ids) - 2
+        cols = st.columns(min(len(display_ids), 3))
+        for idx, fid in enumerate(display_ids):
             meta = metadata[fid]
             title = meta.get("title", "不明")
             with cols[idx % 3]:
