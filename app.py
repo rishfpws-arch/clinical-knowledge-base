@@ -108,9 +108,17 @@ QUOTES = [
 # ---------------------------------------------------------------------------
 # 認証
 # ---------------------------------------------------------------------------
+def _validate_file_id(file_id: str) -> str:
+    """ファイルIDが安全な文字のみで構成されていることを検証する。
+    パストラバーサル防止用。"""
+    if not re.match(r'^[a-zA-Z0-9_\-]+$', file_id):
+        raise ValueError("Invalid file_id: contains unsafe characters")
+    return file_id
+
+
 def _make_auth_token(username: str, pw_hash: str) -> str:
     """ユーザー名とパスワードハッシュからログイントークンを生成する。"""
-    return hmac.new(pw_hash.encode(), username.encode(), "sha256").hexdigest()[:16]
+    return hmac.new(pw_hash.encode(), username.encode(), "sha256").hexdigest()
 
 
 def _check_auth() -> bool:
