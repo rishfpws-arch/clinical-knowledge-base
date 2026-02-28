@@ -7619,6 +7619,40 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
         unsafe_allow_html=True,
     )
 
+    # --- 半量ボタン（チェック品目がある場合のみ表示） ---
+    selected_ids = [
+        it.get("id") for it in current_items
+        if it.get("id") and st.session_state.get(f"wm_half_{it['id']}", False)
+    ]
+    if selected_ids:
+        if st.button(
+            f"½ 選択した {len(selected_ids)} 品目を半量にする",
+            key="wm_half_apply",
+            type="primary",
+        ):
+            for x in day_data.get("items", []):
+                if x.get("id") in selected_ids:
+                    x["calories"] = max(1, round(x.get("calories", 0) / 2))
+                    nuts = x.get("nutrients", {})
+                    for nk in list(nuts.keys()):
+                        if isinstance(nuts[nk], (int, float)):
+                            nuts[nk] = round(nuts[nk] / 2, 1)
+                    # quantity 変更
+                    if x.get("quantity") == "多め":
+                        x["quantity"] = "ふつう"
+                    elif x.get("quantity") in ("ふつう", "少なめ"):
+                        x["quantity"] = "少なめ"
+            # total_calories 再計算
+            day_data["total_calories"] = sum(
+                x.get("calories", 0) for x in _get_day_items(day_data)
+            )
+            save_weight_data(weight_data)
+            # チェックボックスをリセット
+            for sid in selected_ids:
+                st.session_state.pop(f"wm_half_{sid}", None)
+            st.toast(f"½ {len(selected_ids)} 品目を半量にしました")
+            st.rerun()
+
 
 def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
     """MoneyForward風の1品目行（タップで編集展開）。"""
