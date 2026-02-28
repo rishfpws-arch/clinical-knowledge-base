@@ -7519,12 +7519,22 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
         label = info["label"]
         unit = info["unit"]
         target_str = f"/ {target_val}{unit}" if target_val else ""
-        warn = " ⚠️" if ratio > 1.2 or (target_val > 0 and ratio < 0.6) else ""
+        # 判定テキスト
+        if ratio <= 0:
+            judge = '<span style="color:#9E9E9E;">ー</span>'
+        elif ratio < 0.6:
+            judge = '<span style="color:#F44336;font-weight:bold;">✖ 大幅不足</span>'
+        elif ratio < 0.8:
+            judge = '<span style="color:#FF9800;font-weight:bold;">△ やや不足</span>'
+        elif ratio <= 1.2:
+            judge = '<span style="color:#4CAF50;font-weight:bold;">◎ 良好</span>'
+        else:
+            judge = '<span style="color:#F44336;font-weight:bold;">✖ 摂りすぎ</span>'
         pfc_html_parts.append(f"""
-        <div style="margin-bottom:8px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:2px;">
-                <span><b>{label}</b></span>
-                <span>{actual}{unit} {target_str} ({pct}%){warn}</span>
+        <div style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:2px;">
+                <span><b>{label}</b> {judge}</span>
+                <span>{actual}{unit} {target_str} ({pct}%)</span>
             </div>
             <div style="background:#E0E0E0;border-radius:4px;height:12px;overflow:hidden;">
                 <div style="background:{color};width:{pct}%;height:100%;border-radius:4px;transition:width 0.3s;"></div>
@@ -7541,14 +7551,38 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
         p_pct = int(p_cal / total_pfc_cal * 100)
         f_pct = int(f_cal / total_pfc_cal * 100)
         c_pct = 100 - p_pct - f_pct
+
+        # 各PFCが理想範囲内かどうか判定
+        _PFC_IDEAL = {"P": (13, 20), "F": (20, 30), "C": (50, 65)}
+        p_ok = _PFC_IDEAL["P"][0] <= p_pct <= _PFC_IDEAL["P"][1]
+        f_ok = _PFC_IDEAL["F"][0] <= f_pct <= _PFC_IDEAL["F"][1]
+        c_ok = _PFC_IDEAL["C"][0] <= c_pct <= _PFC_IDEAL["C"][1]
+
+        p_bg = "#42A5F5" if p_ok else "#EF5350"
+        f_bg = "#FFA726" if f_ok else "#EF5350"
+        c_bg = "#66BB6A" if c_ok else "#EF5350"
+
+        p_icon = "✅" if p_ok else "⚠️"
+        f_icon = "✅" if f_ok else "⚠️"
+        c_icon = "✅" if c_ok else "⚠️"
+
+        all_ok = p_ok and f_ok and c_ok
+        overall_icon = "✅ バランス良好！" if all_ok else "⚠️ バランスに偏りあり"
+        overall_color = "#4CAF50" if all_ok else "#FF9800"
+
         st.markdown(f"""
-        <div style="display:flex;height:20px;border-radius:4px;overflow:hidden;margin:4px 0 12px;">
-            <div style="background:#42A5F5;width:{p_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{p_pct}%P</div>
-            <div style="background:#FFA726;width:{f_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{f_pct}%F</div>
-            <div style="background:#66BB6A;width:{c_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{c_pct}%C</div>
+        <div style="display:flex;height:24px;border-radius:4px;overflow:hidden;margin:4px 0 8px;">
+            <div style="background:{p_bg};width:{p_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{p_pct}%P</div>
+            <div style="background:{f_bg};width:{f_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{f_pct}%F</div>
+            <div style="background:{c_bg};width:{c_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{c_pct}%C</div>
         </div>
-        <div style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">
-            理想: P 13-20% / F 20-30% / C 50-65%
+        <div style="font-size:12px;margin-bottom:4px;">
+            {p_icon} P {p_pct}%（理想 13-20%）
+            {f_icon} F {f_pct}%（理想 20-30%）
+            {c_icon} C {c_pct}%（理想 50-65%）
+        </div>
+        <div style="text-align:center;padding:4px 8px;background:#F5F5F5;border-radius:6px;margin:4px 0 12px;font-size:13px;font-weight:bold;color:{overall_color};">
+            {overall_icon}
         </div>
         """, unsafe_allow_html=True)
 
