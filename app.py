@@ -3469,7 +3469,7 @@ def display_kb_response_with_images(
             badge = "🏥" if _pd else "📷"
             with cols[idx % n_cols]:
                 try:
-                    img_bytes = download_thumbnail(service, fid)
+                    img_bytes = download_image(service, fid)
                     st.image(img_bytes, caption=f"{badge} {title}", width="stretch")
                 except Exception:
                     st.caption(f"{badge} {title}（読込失敗）")
