@@ -6603,11 +6603,11 @@ def page_image_library():
                 st.rerun()
         with _nav2:
             if st.session_state.get("lib_enlarged_view"):
-                if st.button("🔍 通常表示", key="lib_view_toggle"):
+                if st.button("📐 縮小", key="lib_view_toggle"):
                     st.session_state["lib_enlarged_view"] = False
                     st.rerun()
             else:
-                if st.button("🔍 拡大表示", key="lib_view_toggle"):
+                if st.button("📐 拡大", key="lib_view_toggle"):
                     st.session_state["lib_enlarged_view"] = True
                     st.rerun()
 
