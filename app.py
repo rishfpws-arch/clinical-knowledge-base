@@ -3150,12 +3150,16 @@ def build_knowledge_context(metadata: dict) -> str:
         status = "確認済み" if s == STATUS_REVIEWED else "未確認"
         source_note = "（患者データ）" if is_patient_data(meta) else ""
 
+        ocr_text = meta.get("ocr_text", "").strip()
+        ocr_line = f"\nOCRテキスト: {ocr_text}" if ocr_text else ""
+
         entry = (
             f"ID: {file_id}\n"
             f"タイトル: {title}{source_note}\n"
             f"{summary_label}: {summary}\n"
             f"キーワード: {keywords}\n"
             f"ステータス: {status}"
+            f"{ocr_line}"
         )
         entries.append(entry)
 
