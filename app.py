@@ -2166,7 +2166,8 @@ def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str =
         return None
 
     except Exception as e:
-        st.error(f"AIキーワード生成中にエラーが発生しました: {e}")
+        _log.error(f"AIキーワード生成エラー: {e}")
+        st.error("AIキーワード生成中にエラーが発生しました。再度お試しください。")
         return None
 
 
