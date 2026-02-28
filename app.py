@@ -7636,15 +7636,15 @@ def _inject_wm_css():
     .mf-weight-card .mf-value { font-size: 32px; font-weight: bold; margin: 4px 0; }
     .mf-weight-card .mf-sub { font-size: 12px; opacity: 0.7; }
     .mf-cal-card {
-        background: white; border: 1px solid #e0e0e0; border-radius: 16px;
-        padding: 20px; text-align: center; margin-bottom: 8px;
+        background: #1e1e2e; border: 1px solid #3a3a4a; border-radius: 16px;
+        padding: 20px; text-align: center; margin-bottom: 8px; color: #e0e0e0;
     }
-    .mf-cal-card .mf-label { font-size: 13px; color: #666; }
+    .mf-cal-card .mf-label { font-size: 13px; color: #aaa; }
     .mf-cal-card .mf-value { font-size: 36px; font-weight: bold; margin: 4px 0; }
-    .mf-cal-card .mf-target { font-size: 14px; color: #999; }
-    .mf-cal-card .mf-remaining { font-size: 13px; color: #666; margin-top: 8px; }
+    .mf-cal-card .mf-target { font-size: 14px; color: #bbb; }
+    .mf-cal-card .mf-remaining { font-size: 13px; color: #aaa; margin-top: 8px; }
     .mf-progress-bg {
-        background: #e0e0e0; border-radius: 10px; height: 12px; margin: 10px 0;
+        background: #3a3a4a; border-radius: 10px; height: 12px; margin: 10px 0;
         overflow: hidden;
     }
     .mf-progress-bar {
@@ -7652,13 +7652,13 @@ def _inject_wm_css():
     }
     .mf-meal-header {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 10px 14px; background: #f8f9fa; border-radius: 8px;
-        margin: 12px 0 4px 0; font-weight: bold; font-size: 15px;
+        padding: 10px 14px; background: #2a2a3a; border-radius: 8px;
+        margin: 12px 0 4px 0; font-weight: bold; font-size: 15px; color: #e0e0e0;
     }
     .mf-item-row {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 6px 14px 6px 24px; border-bottom: 1px solid #f5f5f5;
-        font-size: 14px;
+        padding: 6px 14px 6px 24px; border-bottom: 1px solid #3a3a4a;
+        font-size: 14px; color: #d0d0d0;
     }
     .mf-item-row:last-child { border-bottom: none; }
     .mf-date-display {
@@ -7667,7 +7667,7 @@ def _inject_wm_css():
     }
     .mf-grand-total {
         text-align: right; font-size: 16px; font-weight: bold;
-        padding: 12px 14px; border-top: 2px solid #333; margin-top: 8px;
+        padding: 12px 14px; border-top: 2px solid #888; margin-top: 8px; color: #e0e0e0;
     }
     </style>
     """, unsafe_allow_html=True)
