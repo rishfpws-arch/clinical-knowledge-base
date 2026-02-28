@@ -5627,7 +5627,7 @@ def page_folder_ai():
         if st.session_state["folder_delete_mode"]:
             fd_sel_c1, fd_sel_c2, fd_sel_c3 = st.columns([1, 1, 4])
             with fd_sel_c1:
-                if st.button("✅ 全選択", key="fd_del_sel_all"):
+                if st.button(f"✅ 全選択（全{len(folder_images)}件）", key="fd_del_sel_all"):
                     for img in folder_images:
                         st.session_state[f"fd_del_{img['id']}"] = True
                     st.rerun()
@@ -6694,7 +6694,7 @@ def page_image_library():
         _apply_batch_checkbox("_lib_sel_flag", [f"lib_sel_{img['id']}" for img in filtered_images if img["id"] in metadata])
         sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
         with sel_c1:
-            if st.button("✅ 全選択", key="lib_sel_all"):
+            if st.button(f"✅ 全選択（全{len(filtered_images)}件）", key="lib_sel_all"):
                 _set_batch_checkbox("_lib_sel_flag", True)
         with sel_c2:
             if st.button("🔄 全解除", key="lib_sel_none"):
@@ -6938,7 +6938,7 @@ def page_import_analyze():
             _apply_batch_checkbox("_imp_sel_flag", [f"imp_sel_{img['id']}" for img in unanalyzed])
             sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
             with sel_col1:
-                if st.button("✅ 全選択", key="imp_sel_all"):
+                if st.button(f"✅ 全選択（全{len(unanalyzed)}件）", key="imp_sel_all"):
                     _set_batch_checkbox("_imp_sel_flag", True)
             with sel_col2:
                 if st.button("🔄 全解除", key="imp_desel_all"):
@@ -7002,7 +7002,7 @@ def page_import_analyze():
 
             sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
             with sel_c1:
-                if st.button("✅ 全選択", key="pd_sel_all"):
+                if st.button(f"✅ 全選択（全{len(patient_data_images)}件）", key="pd_sel_all"):
                     _set_batch_checkbox("_pd_sel_flag", True)
             with sel_c2:
                 if st.button("🔄 全解除", key="pd_desel_all"):
