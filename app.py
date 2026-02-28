@@ -7981,9 +7981,17 @@ def page_weight_management():
                                 with st.spinner("再計算中..."):
                                     new_cals = _recalc_calories(items_for_recalc, api_key)
                                 if new_cals and len(new_cals) == len(edited_items):
-                                    recalced = [{"name": it["name"], "quantity": it["quantity"], "calories": nc} for it, nc in zip(edited_items, new_cals)]
+                                    recalced = [
+                                        {
+                                            "name": it["name"],
+                                            "quantity": it["quantity"],
+                                            "calories": nc["calories"],
+                                            "nutrients": nc.get("nutrients", {}),
+                                        }
+                                        for it, nc in zip(edited_items, new_cals)
+                                    ]
                                     st.session_state["wm_food_items"] = recalced
-                                    st.session_state["wm_food_total"] = sum(new_cals)
+                                    st.session_state["wm_food_total"] = sum(rc["calories"] for rc in recalced)
                                     st.session_state["wm_recalced_items"] = list(recalced)
                                     for idx in range(len(recalced)):
                                         st.session_state.pop(f"wm_item_name_{date_key}_{idx}", None)
