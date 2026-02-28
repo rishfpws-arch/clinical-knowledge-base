@@ -6845,7 +6845,7 @@ def page_image_library():
                 else:
                     # 削除/移動モード: チェックボックス
                     if fid in metadata:
-                        action_label = "削除" if st.session_state["lib_mode"] == "delete" else "選択"
+                        action_label = "削除" if _cur_mode == "delete" else "選択"
                         if st.checkbox(
                             action_label,
                             value=st.session_state.get(f"lib_sel_{fid}", False),
