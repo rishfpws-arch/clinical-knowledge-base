@@ -1092,14 +1092,19 @@ def load_trash() -> list:
 def save_trash(items: list) -> None:
     """ゴミ箱データを保存する。session_state + Sheets + ローカル。"""
     _set_cache("_cache_trash", items)
+    sheets_ok = False
     sh = get_sheets_client()
     if sh is not None:
-        _write_json_to_sheet(sh, "trash", {"items": items})
+        sheets_ok = _write_json_to_sheet(sh, "trash", {"items": items})
     try:
         with open(TRASH_PATH, "w", encoding="utf-8") as f:
             json.dump({"items": items}, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    if not sheets_ok and sh is not None:
+        st.session_state["_pending_trash"] = items
+    elif sheets_ok:
+        st.session_state.pop("_pending_trash", None)
 
 
 # ---------------------------------------------------------------------------
