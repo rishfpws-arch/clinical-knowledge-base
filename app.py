@@ -7631,8 +7631,12 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
     edit_key = f"wm_edit_{item_id}"
     is_editing = st.session_state.get(edit_key, False)
 
-    c1, c2, c3, c4 = st.columns([4.5, 1.8, 0.5, 0.5])
+    cb, c1, c2, c3, c4 = st.columns([0.35, 4.15, 1.8, 0.5, 0.5])
 
+    with cb:
+        if item_id:
+            st.checkbox("", value=False, key=f"wm_half_{item_id}",
+                         label_visibility="collapsed")
     with c1:
         st.markdown(
             f'**{name}** <span style="color:#999; font-size:13px;">({qty})</span>',
