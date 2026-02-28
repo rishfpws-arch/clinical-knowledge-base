@@ -211,11 +211,14 @@ def _check_auth() -> bool:
 def _save_token_to_storage(username: str, token: str) -> None:
     """ブラウザの localStorage にログイントークンを保存する。"""
     import streamlit.components.v1 as components
+    # json.dumps で JS 文字列リテラルとして安全にエスケープ（XSS防止）
+    safe_token = json.dumps(token)
+    safe_user = json.dumps(username)
     components.html(
         f"""<script>
         try {{
-            localStorage.setItem('ckb_auth_token', '{token}');
-            localStorage.setItem('ckb_auth_user', '{username}');
+            localStorage.setItem('ckb_auth_token', {safe_token});
+            localStorage.setItem('ckb_auth_user', {safe_user});
         }} catch(e) {{}}
         </script>""",
         height=0,
