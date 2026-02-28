@@ -7951,10 +7951,11 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
 
 
 def _render_food_thumbnails(day_data: dict):
-    """当日の食事画像をサムネイルギャラリーとして表示する。"""
+    """当日の食事画像をサムネイルギャラリーとして表示する。
+    ローカルにファイルがない場合は drive_file_id 経由で Google Drive から取得。"""
     day_items = _get_day_items(day_data)
 
-    # ユニークな image_id を収集
+    # ユニークな image_id を収集（drive_file_id も保持）
     seen_ids: set[str] = set()
     images_info: list[dict] = []
     for it in day_items:
@@ -7963,7 +7964,11 @@ def _render_food_thumbnails(day_data: dict):
         if img_id and img_id not in seen_ids:
             seen_ids.add(img_id)
             meal_label = MEAL_TYPE_LABELS.get(it.get("meal_type", ""), "")
-            images_info.append({"id": img_id, "ext": img_ext, "meal_label": meal_label})
+            images_info.append({
+                "id": img_id, "ext": img_ext,
+                "meal_label": meal_label,
+                "drive_file_id": it.get("drive_file_id", ""),
+            })
 
     if not images_info:
         return
@@ -7978,6 +7983,23 @@ def _render_food_thumbnails(day_data: dict):
             with cols[ci]:
                 if img_path.exists():
                     st.image(str(img_path), width=100, caption=img["meal_label"])
+                elif img.get("drive_file_id"):
+                    # Cloud環境: Google Driveからダウンロード（キャッシュ付き）
+                    try:
+                        service = get_drive_service()
+                        if service:
+                            img_bytes = download_image(service, img["drive_file_id"])
+                            if img_bytes:
+                                st.image(img_bytes, width=100, caption=img["meal_label"])
+                            else:
+                                st.caption(f"🖼️ {img['meal_label']}")
+                        else:
+                            st.caption(f"🖼️ {img['meal_label']}")
+                    except Exception:
+                        st.caption(f"🖼️ {img['meal_label']}")
+                else:
+                    # 画像なし — プレースホルダー
+                    st.caption(f"🖼️ {img['meal_label']}")
 
 
 def _render_meal_groups(day_data: dict, weight_data: dict):
