@@ -7426,6 +7426,34 @@ def _nutrient_bar_color(ratio: float) -> str:
         return "#F44336"   # 赤（過剰）
 
 
+def _bulk_estimate_nutrients(items_without_nuts: list[dict],
+                             day_data: dict, weight_data: dict):
+    """栄養素未推定の品目をまとめて Gemini で推定する。"""
+    api_key = get_gemini_api_key()
+    if not api_key:
+        st.warning("APIキー未設定")
+        return
+    items_for_recalc = [
+        {"name": it.get("name", ""), "quantity": it.get("quantity", "ふつう")}
+        for it in items_without_nuts
+    ]
+    with st.spinner(f"{len(items_for_recalc)} 品目の栄養素を推定中..."):
+        results = _recalc_calories(items_for_recalc, api_key)
+    if results and len(results) == len(items_without_nuts):
+        for it, rc in zip(items_without_nuts, results):
+            it["nutrients"] = rc.get("nutrients", {})
+            if rc.get("calories", 0) > 0:
+                it["calories"] = rc["calories"]
+        day_data["total_calories"] = sum(
+            x.get("calories", 0) for x in _get_day_items(day_data)
+        )
+        save_weight_data(weight_data)
+        st.toast(f"✅ {len(items_without_nuts)} 品目の栄養素を推定しました")
+        st.rerun()
+    else:
+        st.error("一括推定に失敗しました。個別に推定してください。")
+
+
 def _render_nutrient_dashboard(day_data: dict, goals: dict,
                                weight_data: dict | None = None,
                                date_key: str = ""):
@@ -7451,6 +7479,15 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
     targets = _get_nutrient_targets(goals)
 
     with st.expander("🥗 栄養バランス", expanded=True):
+        # --- 未推定品目がある場合は一括推定ボタン ---
+        if items_without_nuts and weight_data is not None:
+            st.caption(f"⚠️ 栄養素未推定: {len(items_without_nuts)}品目")
+            if st.button(
+                f"🔄 未推定 {len(items_without_nuts)} 品目を一括推定",
+                key=f"wm_bulk_retro2_{date_key}",
+            ):
+                _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
+
         # --- PFC（三大栄養素）プログレスバー ---
         st.markdown("#### 三大栄養素 (PFC)")
         pfc_html_parts = []
