@@ -3637,6 +3637,45 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
     st.sidebar.write(f"📚 全知識: **{knowledge_count}** 件")
     st.sidebar.write(f"✅ 確認済み: **{reviewed_count}** 件")
 
+    # --- 全文検索（OCRテキスト検索） ---
+    st.sidebar.markdown("---")
+    st.sidebar.header("🔎 全文検索")
+    ocr_query = st.sidebar.text_input(
+        "画像内テキストで検索",
+        placeholder="画像内の文字列を検索...",
+        key="chat_ocr_search",
+    )
+    if ocr_query:
+        q_lower = ocr_query.lower()
+        ocr_hits: list[tuple[str, dict]] = []
+        for fid, meta in metadata.items():
+            ocr_text = meta.get("ocr_text", "").lower()
+            title = meta.get("title", "").lower()
+            summary = meta.get("summary", "").lower()
+            kws = [k.lower() for k in meta.get("keywords", [])]
+            if (q_lower in ocr_text or q_lower in title
+                    or q_lower in summary
+                    or any(q_lower in k for k in kws)):
+                ocr_hits.append((fid, meta))
+        if ocr_hits:
+            st.sidebar.success(f"**{len(ocr_hits)}** 件ヒット")
+            for fid, meta in ocr_hits[:10]:
+                title = meta.get("title", "不明")
+                _pd = "🏥 " if meta.get("source") == SOURCE_PATIENT_DATA else ""
+                if st.sidebar.button(
+                    f"{_pd}{title}",
+                    key=f"ocr_hit_{fid}",
+                    use_container_width=True,
+                ):
+                    st.session_state["active_tab"] = "📸 画像ライブラリ"
+                    st.session_state["lib_selected_id"] = fid
+                    st.session_state["lib_enlarged_view"] = True
+                    st.rerun()
+            if len(ocr_hits) > 10:
+                st.sidebar.caption(f"他 {len(ocr_hits) - 10} 件…")
+        else:
+            st.sidebar.warning("該当なし")
+
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
         sessions.values(),
