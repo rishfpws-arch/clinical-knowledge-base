@@ -1900,7 +1900,8 @@ def analyze_food_images(images_bytes_list: list[bytes], api_key: str) -> dict | 
         st.error("食事画像の解析結果をJSONとして読み取れませんでした。")
         return None
     except Exception as e:
-        st.error(f"食事画像の解析中にエラーが発生しました: {e}")
+        _log.error(f"食事画像解析エラー: {e}")
+        st.error("食事画像の解析中にエラーが発生しました。再度お試しください。")
         return None
 
 
