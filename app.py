@@ -3657,24 +3657,29 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
                     or q_lower in summary
                     or any(q_lower in k for k in kws)):
                 ocr_hits.append((fid, meta))
+        _cur_preview = st.session_state.get("_ocr_preview_id")
         if ocr_hits:
             st.sidebar.success(f"**{len(ocr_hits)}** 件ヒット")
-            for fid, meta in ocr_hits[:10]:
+            for idx, (fid, meta) in enumerate(ocr_hits[:20]):
                 title = meta.get("title", "不明")
                 _pd = "🏥 " if meta.get("source") == SOURCE_PATIENT_DATA else ""
+                _is_viewing = (fid == _cur_preview)
+                _label = f"{'▶ ' if _is_viewing else ''}{_pd}{title}"
                 if st.sidebar.button(
-                    f"{_pd}{title}",
+                    _label,
                     key=f"ocr_hit_{fid}",
                     use_container_width=True,
+                    type="primary" if _is_viewing else "secondary",
                 ):
-                    st.session_state["active_tab"] = "📸 画像ライブラリ"
-                    st.session_state["lib_selected_id"] = fid
-                    st.session_state["lib_enlarged_view"] = True
+                    st.session_state["_ocr_preview_id"] = fid
                     st.rerun()
-            if len(ocr_hits) > 10:
-                st.sidebar.caption(f"他 {len(ocr_hits) - 10} 件…")
+            if len(ocr_hits) > 20:
+                st.sidebar.caption(f"他 {len(ocr_hits) - 20} 件…")
         else:
             st.sidebar.warning("該当なし")
+    else:
+        # 検索クエリが空になったらプレビューをクリア
+        st.session_state.pop("_ocr_preview_id", None)
 
     # --- 過去の会話一覧 ---
     sorted_sessions = sorted(
