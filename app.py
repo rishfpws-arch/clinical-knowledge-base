@@ -7862,7 +7862,7 @@ def page_weight_management():
                                 w_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", rc_item.get("calories", 0))
                                 w_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
                                 if not w_del and str(w_name).strip():
-                                    final_items.append({"name": str(w_name).strip(), "quantity": w_qty, "calories": int(w_cal)})
+                                    final_items.append({"name": str(w_name).strip(), "quantity": w_qty, "calories": int(w_cal), "nutrients": rc_item.get("nutrients", {})})
                         else:
                             final_items = list(edited_items)
 
