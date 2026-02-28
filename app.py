@@ -7419,9 +7419,14 @@ def _nutrient_bar_color(ratio: float) -> str:
 
 def _render_nutrient_dashboard(day_data: dict, goals: dict):
     """栄養素の摂取状況をプログレスバーで表示する。"""
+    day_items = _get_day_items(day_data)
     totals = _aggregate_day_nutrients(day_data)
     if not totals:
-        return  # 栄養素データなし → 何も表示しない
+        # 品目はあるが栄養素データがない場合のみヒントを表示
+        if day_items:
+            with st.expander("🥗 栄養バランス", expanded=False):
+                st.caption("栄養素データがありません。各品目の「🔄 栄養素を推定」ボタンで推定できます。")
+        return
 
     targets = _get_nutrient_targets(goals)
 
