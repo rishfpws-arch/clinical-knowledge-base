@@ -7649,6 +7649,44 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
             st.session_state[edit_key] = False
             st.rerun()
 
+        # --- 栄養素リトロフィットボタン ---
+        has_nutrients = bool(item.get("nutrients"))
+        if not has_nutrients:
+            if st.button("🔄 栄養素を推定", key=f"wm_retro_{item_id}", help="AIで栄養素を推定します"):
+                _ak = get_gemini_api_key()
+                if _ak:
+                    with st.spinner("栄養素を推定中..."):
+                        _retro = _recalc_calories(
+                            [{"name": name, "quantity": qty}], _ak
+                        )
+                    if _retro and len(_retro) > 0:
+                        _retro_nuts = _retro[0].get("nutrients", {})
+                        _retro_cal = _retro[0].get("calories", 0)
+                        for x in day_data.get("items", []):
+                            if x.get("id") == item_id:
+                                x["nutrients"] = _retro_nuts
+                                if _retro_cal > 0:
+                                    x["calories"] = _retro_cal
+                                break
+                        day_data["total_calories"] = sum(
+                            x.get("calories", 0) for x in _get_day_items(day_data)
+                        )
+                        save_weight_data(weight_data)
+                        st.toast(f"✅ {name} の栄養素を推定しました")
+                        st.rerun()
+                    else:
+                        st.error("推定失敗")
+                else:
+                    st.warning("APIキー未設定")
+        else:
+            # 栄養素サマリーを小さく表示
+            nuts = item.get("nutrients", {})
+            p = round(nuts.get("protein", 0), 1)
+            f = round(nuts.get("fat", 0), 1)
+            c = round(nuts.get("carbs", 0), 1)
+            if p or f or c:
+                st.caption(f"P:{p}g  F:{f}g  C:{c}g")
+
 
 def _render_weight_history(records: dict, goals: dict):
     """体重管理の履歴一覧（MoneyForward風）。"""
