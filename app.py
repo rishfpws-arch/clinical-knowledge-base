@@ -8166,7 +8166,7 @@ def page_weight_management():
                     with ac1:
                         add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
                     with ac2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1, key=f"wm_add_qty_{date_key}")
+                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2, key=f"wm_add_qty_{date_key}")
                     with ac3:
                         add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
                     if add_name.strip():
@@ -8210,7 +8210,7 @@ def page_weight_management():
                     with mc1:
                         add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
                     with mc2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1, key=f"wm_manual_qty_{date_key}")
+                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2, key=f"wm_manual_qty_{date_key}")
                     with mc3:
                         add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
                     if add_name.strip():
@@ -8292,7 +8292,7 @@ def page_weight_management():
                     with mc1:
                         add_name = st.text_input("品目名", placeholder="例: カレーライス")
                     with mc2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=1)
+                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2)
                     with mc3:
                         add_cal = st.number_input("kcal", value=0, min_value=0, step=10)
                     manual_submitted = st.form_submit_button("➕ 追加する", type="primary")
