@@ -6120,14 +6120,7 @@ def page_chat():
 
     # --- 📷 画像取り込み（会話中のみ表示）---
     if not _is_home:
-        pass  # expander を _is_home でない場合のみ表示
-    if not _is_home:
-        _show_image_upload = True
-    else:
-        _show_image_upload = False
-    if _show_image_upload:
-        pass
-    with st.expander("📷 画像を取り込む", expanded=False) if not _is_home else contextlib.nullcontext():
+      with st.expander("📷 画像を取り込む", expanded=False):
         # pib() と file_uploader をタブで分離（モバイル互換性のため）
         upload_tab1, upload_tab2 = st.tabs(["📁 ファイル選択", "📋 クリップボード（PC）"])
 
