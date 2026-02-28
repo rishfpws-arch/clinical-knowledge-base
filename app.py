@@ -1925,7 +1925,8 @@ def analyze_weight_scale_image(image_bytes: bytes, api_key: str) -> dict | None:
         st.error("体重計の読み取り結果をJSONとして解析できませんでした。")
         return None
     except Exception as e:
-        st.error(f"体重計の読み取り中にエラーが発生しました: {e}")
+        _log.error(f"体重計読み取りエラー: {e}")
+        st.error("体重計の読み取り中にエラーが発生しました。再度お試しください。")
         return None
 
 
