@@ -7729,17 +7729,35 @@ def _render_weight_history(records: dict, goals: dict):
         return
 
     # --- 体重推移チャート ---
-    weight_dates = []
-    weight_vals = []
-    for dk in sorted(sorted_dates):  # チャートは昇順
+    # 体重が入力されている日を抽出
+    _weight_entries = []
+    for dk in sorted(sorted_dates):
         w = records[dk].get("weight")
         if w:
-            weight_dates.append(dk)
-            weight_vals.append(w)
+            _weight_entries.append((dk, w))
 
-    if weight_vals:
+    if _weight_entries:
         st.markdown("### 📈 体重推移")
         import pandas as pd
+
+        # 期間内の全日付を生成（等間隔X軸のため）
+        _min_d = datetime.strptime(_weight_entries[0][0], "%Y-%m-%d").date()
+        _max_d = datetime.strptime(_weight_entries[-1][0], "%Y-%m-%d").date()
+        _all_chart_dates = []
+        _d = _min_d
+        while _d <= _max_d:
+            _all_chart_dates.append(_d.strftime("%Y-%m-%d"))
+            _d += timedelta(days=1)
+
+        # 体重データをマップ化
+        _wt_map = {dk: w for dk, w in _weight_entries}
+
+        weight_dates = []
+        weight_vals = []
+        for dk in _all_chart_dates:
+            weight_dates.append(dk)
+            weight_vals.append(_wt_map.get(dk))  # None = 未入力日
+
         chart_df = pd.DataFrame({"日付": weight_dates, "体重(kg)": weight_vals})
         chart_df["日付"] = pd.to_datetime(chart_df["日付"])
         chart_df = chart_df.set_index("日付")
