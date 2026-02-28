@@ -1732,7 +1732,12 @@ def list_all_images(_service, folder_id: str, metadata: dict,
 @st.cache_data(ttl=300, show_spinner=False, max_entries=50)
 def download_image(_service, file_id: str) -> bytes:
     """画像をバイト列で返す。ローカルアップロード画像を優先し、なければGoogle Driveから取得。"""
-    # ローカルアップロード画像を確認
+    # ローカルアップロード画像を確認（パストラバーサル防止）
+    try:
+        _validate_file_id(file_id)
+    except ValueError:
+        _log.warning(f"[download_image] 不正なfile_id: {file_id!r}")
+        return b""
     for ext in ("png", "jpg", "jpeg"):
         local_path = UPLOADS_DIR / f"{file_id}.{ext}"
         if local_path.exists():
