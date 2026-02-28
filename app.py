@@ -3422,20 +3422,28 @@ def display_kb_response_with_images(
             seen.add(fid)
             found_ids.append(fid)
 
-    # --- 上部: 参照画像をまとめてグリッド表示（最大2枚） ---
+    # --- 上部: 参照画像をまとめてグリッド表示（最大5枚） ---
     if found_ids:
-        display_ids = found_ids[:2]
-        extra_count = len(found_ids) - 2
-        cols = st.columns(min(len(display_ids), 3))
+        display_ids = found_ids[:5]
+        extra_count = len(found_ids) - 5
+        n_cols = min(len(display_ids), 5)
+        cols = st.columns(n_cols)
         for idx, fid in enumerate(display_ids):
             meta = metadata[fid]
             title = meta.get("title", "不明")
-            with cols[idx % 3]:
+            _pd = is_patient_data(meta)
+            badge = "🏥" if _pd else "📷"
+            with cols[idx % n_cols]:
                 try:
                     img_bytes = download_thumbnail(service, fid)
-                    st.image(img_bytes, caption=f"📷 {title}", width="stretch")
+                    st.image(img_bytes, caption=f"{badge} {title}", width="stretch")
                 except Exception:
-                    st.caption(f"📷 {title}（読込失敗）")
+                    st.caption(f"{badge} {title}（読込失敗）")
+                # 患者データの場合のみ所見を表示
+                if _pd:
+                    summary_text = meta.get("summary", "").strip()
+                    if summary_text:
+                        st.caption(f"📋 {summary_text[:80]}{'…' if len(summary_text) > 80 else ''}")
                 if st.button(
                     "📝 詳細を見る",
                     key=f"kb_detail_{fid}{key_suffix}",
@@ -3449,23 +3457,18 @@ def display_kb_response_with_images(
             st.caption(f"📎 他 {extra_count}件の関連画像あり（画像ライブラリで検索）")
         st.markdown("---")
 
-    # --- 下部: 本文（IDをタイトル名に置換して表示） ---
-    clean_text = text
+    # --- 下部: 患者データの所見のみ表示（AI長文回答は非表示） ---
+    # 患者データの所見を収集
+    patient_findings: list[str] = []
     for fid in found_ids:
-        title = metadata[fid].get("title", "不明")
-        # [ID: xxx] → 「タイトル名」 に置換
-        clean_text = re.sub(
-            rf"\[ID:\s*{re.escape(fid)}\s*\]",
-            f"**「{title}」**",
-            clean_text,
-        )
-    # メタデータにないIDは単純に除去
-    clean_text = re.sub(pattern, "", clean_text)
-    # 空括弧を除去
-    clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
-    clean_text = clean_text.strip()
-    if clean_text:
-        st.markdown(clean_text)
+        meta = metadata[fid]
+        if is_patient_data(meta):
+            summary = meta.get("summary", "").strip()
+            title = meta.get("title", "不明")
+            if summary:
+                patient_findings.append(f"**🏥 {title}**: {summary}")
+    if patient_findings:
+        st.markdown("\n\n".join(patient_findings))
 
 
 # ---------------------------------------------------------------------------
