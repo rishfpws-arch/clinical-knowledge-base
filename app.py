@@ -5665,7 +5665,11 @@ def page_chat():
             )
             if uploaded_file is not None:
                 img_bytes = uploaded_file.getvalue()
-                img_name = uploaded_file.name
+                if len(img_bytes) > _MAX_UPLOAD_BYTES:
+                    st.error(f"ファイルサイズが上限（{_MAX_UPLOAD_BYTES // (1024*1024)}MB）を超えています。")
+                    img_bytes = None
+                else:
+                    img_name = uploaded_file.name
 
         with upload_tab2:
             try:
