@@ -355,6 +355,42 @@ JSON以外のテキストは一切含めないでください。
 - 推定が困難な栄養素は0とする
 - 日本食品標準成分表の値を参考に推定すること"""
 
+# ---------------------------------------------------------------------------
+# 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
+# target = 推奨量/目安量, upper = 耐容上限量 (None = 設定なし)
+# ---------------------------------------------------------------------------
+DEFAULT_NUTRIENT_TARGETS: dict[str, dict] = {
+    "protein":   {"label": "たんぱく質", "unit": "g",     "target": 65,   "upper": 130},
+    "fat":       {"label": "脂質",       "unit": "g",     "target": 65,   "upper": 90},
+    "carbs":     {"label": "炭水化物",   "unit": "g",     "target": 320,  "upper": 420},
+    "fiber":     {"label": "食物繊維",   "unit": "g",     "target": 21,   "upper": None},
+    "salt":      {"label": "食塩相当量", "unit": "g",     "target": None, "upper": 7.5},
+    "calcium":   {"label": "カルシウム", "unit": "mg",    "target": 750,  "upper": 2500},
+    "iron":      {"label": "鉄",         "unit": "mg",    "target": 7.5,  "upper": 50},
+    "vitamin_a": {"label": "ビタミンA",  "unit": "μgRAE", "target": 850,  "upper": 2700},
+    "vitamin_c": {"label": "ビタミンC",  "unit": "mg",    "target": 100,  "upper": None},
+    "vitamin_d": {"label": "ビタミンD",  "unit": "μg",    "target": 8.5,  "upper": 100},
+}
+
+# PFC（三大栄養素）のキー
+_PFC_KEYS = ["protein", "fat", "carbs"]
+# 微量栄養素のキー（PFC・食塩以外）
+_MICRO_KEYS = ["fiber", "calcium", "iron", "vitamin_a", "vitamin_c", "vitamin_d"]
+
+
+def _get_nutrient_targets(goals: dict) -> dict[str, dict]:
+    """ユーザー設定のある栄養素目標を返す。未設定ならデフォルト値。"""
+    user_targets = goals.get("nutrient_targets", {})
+    merged = {}
+    for key, default in DEFAULT_NUTRIENT_TARGETS.items():
+        merged[key] = {**default}
+        if key in user_targets:
+            if "target" in user_targets[key]:
+                merged[key]["target"] = user_targets[key]["target"]
+            if "upper" in user_targets[key]:
+                merged[key]["upper"] = user_targets[key]["upper"]
+    return merged
+
 # チャット用システムプロンプト（知識ベース検索）
 CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 質問者は初期研修医〜後期研修医レベルの若手医師です。
