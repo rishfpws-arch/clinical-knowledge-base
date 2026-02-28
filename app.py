@@ -3184,6 +3184,45 @@ def generate_chat_response(
         return f"回答の生成中にエラーが発生しました: {e}"
 
 
+def generate_search_suggestions(
+    keyword: str, metadata: dict, api_key: str,
+) -> tuple[list[str], int]:
+    """キーワードに該当するエントリが多い場合、切り口のサジェストを生成する。
+    Returns: (suggestions_list, hit_count)
+    """
+    # 該当エントリを抽出
+    kw_lower = keyword.lower()
+    hits: list[dict] = []
+    for fid, meta in metadata.items():
+        title = meta.get("title", "").lower()
+        summary = meta.get("summary", "").lower()
+        kws = [k.lower() for k in meta.get("keywords", [])]
+        if (kw_lower in title or kw_lower in summary
+                or any(kw_lower in k for k in kws)):
+            hits.append(meta)
+
+    hit_count = len(hits)
+    if hit_count <= 2:
+        return [], hit_count
+
+    # 該当エントリの要約をプロンプトに含める（最大15件）
+    entries_text = "\n".join(
+        f"- {m.get('title', '不明')}: {', '.join(m.get('keywords', [])[:5])}"
+        for m in hits[:15]
+    )
+    prompt = CHAT_SUGGEST_PROMPT.format(keyword=keyword, entries=entries_text)
+    try:
+        raw = _gemini_generate(api_key, [{"text": prompt}]).strip()
+        # JSON配列をパース（```json...``` ラッパーも除去）
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw)
+        suggestions = json.loads(raw)
+        if isinstance(suggestions, list) and all(isinstance(s, str) for s in suggestions):
+            return suggestions[:4], hit_count
+    except Exception as e:
+        _log.warning(f"サジェスト生成失敗: {e}")
+    return [], hit_count
+
 
 # ---------------------------------------------------------------------------
 # チャット機能: 参照画像の表示
