@@ -7808,11 +7808,12 @@ def _render_weight_history(records: dict, goals: dict):
         _avg_p = round(sum(_nut_p) / len(_nut_p), 1) if _nut_p else 0
         _avg_f = round(sum(_nut_f) / len(_nut_f), 1) if _nut_f else 0
         _avg_c = round(sum(_nut_c) / len(_nut_c), 1) if _nut_c else 0
-        _avg_salt_vals = [
-            round(_aggregate_day_nutrients(records[dk]).get("salt", 0), 1)
-            for dk in sorted_dates
-            if _aggregate_day_nutrients(records[dk])
-        ]
+        _salt_data = []
+        for dk in _nut_dates:
+            _dn = _aggregate_day_nutrients(records[dk])
+            if _dn:
+                _salt_data.append(round(_dn.get("salt", 0), 1))
+        _avg_salt_vals = _salt_data
         _avg_salt = round(sum(_avg_salt_vals) / len(_avg_salt_vals), 1) if _avg_salt_vals else 0
 
         nc1, nc2, nc3, nc4 = st.columns(4)
