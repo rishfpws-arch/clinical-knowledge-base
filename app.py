@@ -711,6 +711,184 @@ def _record_sync_status(data_type: str, success: bool, count: int = 0, error: st
     }
 
 
+_SYNC_HEALTH_INTERVAL = 300  # 5分
+
+
+def _check_sync_health():
+    """ローカルとSheetsの件数を比較し、差異を session_state に記録する。
+    5分間隔でのみ実行。"""
+    last_check = st.session_state.get("_sync_health_ts", 0)
+    if time.time() - last_check < _SYNC_HEALTH_INTERVAL:
+        return
+    st.session_state["_sync_health_ts"] = time.time()
+
+    health = {}
+    sh = get_sheets_client()
+
+    # メタデータ
+    try:
+        local_meta = {}
+        if METADATA_PATH.exists():
+            with open(METADATA_PATH, "r", encoding="utf-8") as f:
+                local_meta = json.load(f)
+        sheets_meta_count = 0
+        if sh is not None:
+            sheets_data = _read_json_from_sheet(sh, "metadata")
+            if sheets_data and isinstance(sheets_data, dict):
+                sheets_meta_count = len(sheets_data)
+        health["metadata"] = {
+            "local": len(local_meta), "sheets": sheets_meta_count,
+            "diff": len(local_meta) - sheets_meta_count,
+        }
+    except Exception as e:
+        _log.warning(f"[sync_health] metadata チェック失敗: {e}")
+        health["metadata"] = {"local": 0, "sheets": 0, "diff": 0, "error": str(e)}
+
+    # 体重データ
+    try:
+        local_wt = {}
+        if WEIGHT_DATA_PATH.exists():
+            with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
+                local_wt = json.load(f)
+        sheets_wt_count = 0
+        if sh is not None:
+            sheets_wt = _read_json_from_sheet(sh, "weight_data")
+            if sheets_wt and isinstance(sheets_wt, dict):
+                sheets_wt_count = len(sheets_wt)
+        health["weight_data"] = {
+            "local": len(local_wt), "sheets": sheets_wt_count,
+            "diff": len(local_wt) - sheets_wt_count,
+        }
+    except Exception as e:
+        _log.warning(f"[sync_health] weight_data チェック失敗: {e}")
+        health["weight_data"] = {"local": 0, "sheets": 0, "diff": 0, "error": str(e)}
+
+    # 食事画像処理済み
+    try:
+        local_fp = {}
+        if FOOD_IMAGES_PROCESSED_PATH.exists():
+            with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
+                local_fp = json.load(f)
+        sheets_fp_count = 0
+        if sh is not None:
+            sheets_fp = _read_json_from_sheet(sh, "food_processed")
+            if sheets_fp and isinstance(sheets_fp, dict):
+                sheets_fp_count = len(sheets_fp)
+        health["food_processed"] = {
+            "local": len(local_fp), "sheets": sheets_fp_count,
+            "diff": len(local_fp) - sheets_fp_count,
+        }
+    except Exception as e:
+        _log.warning(f"[sync_health] food_processed チェック失敗: {e}")
+        health["food_processed"] = {"local": 0, "sheets": 0, "diff": 0, "error": str(e)}
+
+    st.session_state["_sync_health"] = health
+    total_diff = sum(abs(v.get("diff", 0)) for v in health.values())
+    if total_diff > 0:
+        _log.info(f"[sync_health] 差異検出: {health}")
+
+
+def _force_sync_local_to_sheets() -> dict:
+    """ローカルの全データ（metadata, weight_data, food_processed）を
+    Sheetsに一括書き込みする。結果を返す。"""
+    results = {}
+    sh = get_sheets_client()
+    if sh is None:
+        return {"error": "Sheets未接続"}
+
+    # metadata
+    try:
+        if METADATA_PATH.exists():
+            with open(METADATA_PATH, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            ok = _write_json_to_sheet(sh, "metadata", meta)
+            results["metadata"] = {"success": ok, "count": len(meta)}
+            _record_sync_status("metadata", ok, count=len(meta))
+            time.sleep(2)  # rate limit対策
+        else:
+            results["metadata"] = {"success": True, "count": 0, "note": "ファイルなし"}
+    except Exception as e:
+        results["metadata"] = {"success": False, "error": str(e)}
+
+    # weight_data
+    try:
+        if WEIGHT_DATA_PATH.exists():
+            with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
+                wt = json.load(f)
+            ok = _write_json_to_sheet(sh, "weight_data", wt)
+            results["weight_data"] = {"success": ok, "count": len(wt)}
+            _record_sync_status("weight_data", ok, count=len(wt))
+            time.sleep(2)
+        else:
+            results["weight_data"] = {"success": True, "count": 0, "note": "ファイルなし"}
+    except Exception as e:
+        results["weight_data"] = {"success": False, "error": str(e)}
+
+    # food_processed
+    try:
+        if FOOD_IMAGES_PROCESSED_PATH.exists():
+            with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
+                fp = json.load(f)
+            ok = _write_json_to_sheet(sh, "food_processed", fp)
+            results["food_processed"] = {"success": ok, "count": len(fp)}
+            _record_sync_status("food_processed", ok, count=len(fp))
+        else:
+            results["food_processed"] = {"success": True, "count": 0, "note": "ファイルなし"}
+    except Exception as e:
+        results["food_processed"] = {"success": False, "error": str(e)}
+
+    return results
+
+
+def _force_sync_sheets_to_local() -> dict:
+    """SheetsのデータをローカルJSONに強制上書きする。結果を返す。"""
+    results = {}
+    sh = get_sheets_client()
+    if sh is None:
+        return {"error": "Sheets未接続"}
+
+    # metadata
+    try:
+        data = _read_json_from_sheet(sh, "metadata")
+        if data and isinstance(data, dict):
+            with open(METADATA_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            _set_cache("_cache_metadata", data)
+            results["metadata"] = {"success": True, "count": len(data)}
+        else:
+            results["metadata"] = {"success": False, "note": "Sheetsにデータなし"}
+    except Exception as e:
+        results["metadata"] = {"success": False, "error": str(e)}
+
+    # weight_data
+    try:
+        data = _read_json_from_sheet(sh, "weight_data")
+        if data and isinstance(data, dict):
+            with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            _set_cache("_cache_weight_data", data)
+            results["weight_data"] = {"success": True, "count": len(data)}
+        else:
+            results["weight_data"] = {"success": False, "note": "Sheetsにデータなし"}
+    except Exception as e:
+        results["weight_data"] = {"success": False, "error": str(e)}
+
+    # food_processed
+    try:
+        data = _read_json_from_sheet(sh, "food_processed")
+        if data and isinstance(data, dict):
+            with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            _set_cache("_cache_food_processed", data)
+            results["food_processed"] = {"success": True, "count": len(data)}
+        else:
+            results["food_processed"] = {"success": False, "note": "Sheetsにデータなし"}
+    except Exception as e:
+        results["food_processed"] = {"success": False, "error": str(e)}
+
+    return results
+
+
 def _retry_pending_saves() -> None:
     """前回失敗した Sheets 書き込みを再試行する。"""
     # metadata のリトライ
