@@ -3579,10 +3579,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             st.rerun()
 
         # 検索例ヒント
-        st.markdown(
-            "<p style='text-align:center; color:#666; font-size:12px; margin-top:8px;'>例:</p>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
         hint_cols = st.columns(3)
         _hints = ["心電図の読み方", "抗菌薬の選択", "画像診断のポイント"]
         for hc, hint in zip(hint_cols, _hints):
