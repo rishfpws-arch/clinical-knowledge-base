@@ -2208,9 +2208,18 @@
     "source": "patient_data"
   },
   "1PFARg3pwihIu8CJfHYutDEbzABsmBpcb": {
-    "title": "左腰椎分離症疑い",
+    "title": "左腰椎分離症？",
     "summary": "中学生、テニス部、安静時左腰部痛あり、STIRで左椎弓根に高信号あり",
-    "keywords": [],
+    "keywords": [
+      "腰椎分離症",
+      "腰椎",
+      "MRI",
+      "T2強調画像",
+      "STIR",
+      "椎弓",
+      "骨髄浮腫",
+      "腰痛"
+    ],
     "status": "reviewed",
     "folder": "患者データ",
     "source": "patient_data"
