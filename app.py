@@ -7481,13 +7481,13 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
     if not totals:
         # 品目はあるが栄養素データがない場合のみヒントを表示
         if day_items and items_without_nuts:
-            with st.expander("🥗 栄養バランス", expanded=False):
-                st.caption(f"栄養素データ未推定: {len(items_without_nuts)}品目")
-                if weight_data is not None and st.button(
-                    f"🔄 この日の {len(items_without_nuts)} 品目を一括推定",
-                    key=f"wm_bulk_retro_{date_key}",
-                ):
-                    _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
+            st.markdown("### 🥗 栄養バランス")
+            st.caption(f"栄養素データ未推定: {len(items_without_nuts)}品目")
+            if weight_data is not None and st.button(
+                f"🔄 この日の {len(items_without_nuts)} 品目を一括推定",
+                key=f"wm_bulk_retro_{date_key}",
+            ):
+                _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
         return
 
     targets = _get_nutrient_targets(goals)
