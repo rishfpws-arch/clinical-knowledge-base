@@ -7779,8 +7779,8 @@ def _render_weight_history(records: dict, goals: dict):
     with sc2:
         st.metric("平均カロリー", f"{avg_cal} kcal")
     with sc3:
-        if len(weight_vals) >= 2:
-            wt_change = round(weight_vals[-1] - weight_vals[0], 1)
+        if len(_weight_entries) >= 2:
+            wt_change = round(_weight_entries[-1][1] - _weight_entries[0][1], 1)
             sign = "+" if wt_change > 0 else ""
             st.metric("体重変化", f"{sign}{wt_change} kg")
         else:
