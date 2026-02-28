@@ -7734,6 +7734,54 @@ def _render_weight_history(records: dict, goals: dict):
         pie_df = pie_df.set_index("カテゴリ")
         st.bar_chart(pie_df)
 
+    # --- 栄養素トレンド ---
+    # 各日の栄養素を集計
+    _nut_dates = []
+    _nut_p = []
+    _nut_f = []
+    _nut_c = []
+    for dk in sorted(sorted_dates):  # チャートは昇順
+        day_nuts = _aggregate_day_nutrients(records[dk])
+        if day_nuts:
+            _nut_dates.append(dk)
+            _nut_p.append(round(day_nuts.get("protein", 0), 1))
+            _nut_f.append(round(day_nuts.get("fat", 0), 1))
+            _nut_c.append(round(day_nuts.get("carbs", 0), 1))
+
+    if _nut_dates:
+        st.markdown("### 🥗 栄養素推移 (PFC)")
+        import pandas as pd
+        _nut_df = pd.DataFrame({
+            "日付": _nut_dates,
+            "たんぱく質(g)": _nut_p,
+            "脂質(g)": _nut_f,
+            "炭水化物(g)": _nut_c,
+        })
+        _nut_df["日付"] = pd.to_datetime(_nut_df["日付"])
+        _nut_df = _nut_df.set_index("日付")
+        st.line_chart(_nut_df)
+
+        # 期間平均
+        _avg_p = round(sum(_nut_p) / len(_nut_p), 1) if _nut_p else 0
+        _avg_f = round(sum(_nut_f) / len(_nut_f), 1) if _nut_f else 0
+        _avg_c = round(sum(_nut_c) / len(_nut_c), 1) if _nut_c else 0
+        _avg_salt_vals = [
+            round(_aggregate_day_nutrients(records[dk]).get("salt", 0), 1)
+            for dk in sorted_dates
+            if _aggregate_day_nutrients(records[dk])
+        ]
+        _avg_salt = round(sum(_avg_salt_vals) / len(_avg_salt_vals), 1) if _avg_salt_vals else 0
+
+        nc1, nc2, nc3, nc4 = st.columns(4)
+        with nc1:
+            st.metric("平均P", f"{_avg_p}g")
+        with nc2:
+            st.metric("平均F", f"{_avg_f}g")
+        with nc3:
+            st.metric("平均C", f"{_avg_c}g")
+        with nc4:
+            st.metric("平均食塩", f"{_avg_salt}g")
+
     # --- 日別サマリー（MoneyForward風） ---
     st.markdown("### 📋 日別記録")
 
