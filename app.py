@@ -8011,58 +8011,24 @@ def page_weight_management():
         # ====== ダッシュボードカード ======
         _render_dashboard_card(day_data, goals, records)
 
-        # ====== 体重入力（折りたたみ） ======
-        with st.expander("⚖️ 体重を入力"):
-            wt_uploaded = st.file_uploader(
-                "体重計の写真（任意）",
-                type=["png", "jpg", "jpeg"],
-                key=f"wm_weight_upload_{date_key}",
+        # ====== 体重入力 ======
+        st.markdown("### ⚖️ 体重を入力")
+        default_wt = day_data.get("weight") or 0.0
+        with st.form(key=f"wm_weight_form_{date_key}"):
+            input_weight = st.number_input(
+                "体重 (kg)", min_value=0.0, max_value=300.0,
+                value=float(default_wt), step=0.1, format="%.1f",
             )
-            if wt_uploaded is not None:
-                wt_bytes = wt_uploaded.getvalue()
-                st.image(wt_bytes, width=250, caption="体重計の写真")
-                if st.button("🤖 AIで読み取る", key="wm_weight_ai"):
-                    if api_key:
-                        with st.spinner("体重を読み取り中..."):
-                            result = analyze_weight_scale_image(wt_bytes, api_key)
-                        if result and result.get("weight_kg") is not None:
-                            st.session_state["wm_ai_weight"] = result["weight_kg"]
-                            conf = result.get("confidence", "")
-                            if conf == "high":
-                                st.success(f"✅ 読み取り: **{result['weight_kg']} kg**（高精度）")
-                            elif conf == "low":
-                                st.warning(f"⚠️ 読み取り: **{result['weight_kg']} kg**（低精度）")
-                            else:
-                                st.error("読み取れませんでした。")
-                        else:
-                            st.error("読み取り失敗。手動入力してください。")
-                    else:
-                        st.warning("APIキー未設定")
-
-            default_wt = st.session_state.get("wm_ai_weight", day_data.get("weight") or 0.0)
-            with st.form(key=f"wm_weight_form_{date_key}"):
-                input_weight = st.number_input(
-                    "体重 (kg)", min_value=0.0, max_value=300.0,
-                    value=float(default_wt), step=0.1, format="%.1f",
-                )
-                weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
-            if weight_submitted:
-                if input_weight > 0:
-                    day_data["weight"] = round(input_weight, 1)
-                    day_data["weight_recorded_at"] = datetime.now().isoformat()
-                    if wt_uploaded is not None:
-                        WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
-                        wt_id = f"wm_{uuid.uuid4().hex[:12]}"
-                        ext = wt_uploaded.name.rsplit(".", 1)[-1].lower() if "." in wt_uploaded.name else "png"
-                        (WEIGHT_UPLOADS_DIR / f"{wt_id}.{ext}").write_bytes(wt_uploaded.getvalue())
-                        day_data["weight_image_id"] = wt_id
-                        day_data["weight_image_ext"] = ext
-                    save_weight_data(weight_data)
-                    st.session_state.pop("wm_ai_weight", None)
-                    st.toast(f"✅ 体重 {input_weight} kg を記録しました")
-                    st.rerun()
-                else:
-                    st.warning("0 より大きい値を入力してください。")
+            weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
+        if weight_submitted:
+            if input_weight > 0:
+                day_data["weight"] = round(input_weight, 1)
+                day_data["weight_recorded_at"] = datetime.now().isoformat()
+                save_weight_data(weight_data)
+                st.toast(f"✅ 体重 {input_weight} kg を記録しました")
+                st.rerun()
+            else:
+                st.warning("0 より大きい値を入力してください。")
 
         # ====== AIコメント ======
         comment = _generate_weight_comment(day_data, goals)
