@@ -5851,7 +5851,7 @@ def page_chat():
                 st.markdown(
                     f"<p style='background:#1a3a5c; border-radius:10px; "
                     f"padding:10px 14px; color:#e0e0e0; font-size:14px;'>"
-                    f"💬 {q_msg['content']}</p>",
+                    f"💬 {html.escape(q_msg['content'])}</p>",
                     unsafe_allow_html=True,
                 )
                 display_kb_response_with_images(
