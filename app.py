@@ -6392,11 +6392,13 @@ def page_chat():
         _prev_meta = metadata[_ocr_preview_fid]
         _prev_title = _prev_meta.get("title", "不明")
 
-        # 閉じるボタン + ライブラリ遷移ボタン
-        _pc1, _pc2, _pc3 = st.columns([2, 2, 6])
+        # 閉じるボタン + ライブラリ遷移 + 画像のみトグル
+        _img_only = st.session_state.get("_ocr_image_only", False)
+        _pc1, _pc2, _pc3, _pc4 = st.columns([2, 2, 2, 4])
         with _pc1:
             if st.button("✖ 閉じる", key="ocr_preview_close"):
                 st.session_state.pop("_ocr_preview_id", None)
+                st.session_state.pop("_ocr_image_only", None)
                 st.rerun()
         with _pc2:
             if st.button("📸 ライブラリで開く", key="ocr_preview_open_lib"):
@@ -6405,13 +6407,26 @@ def page_chat():
                 st.session_state["lib_enlarged_view"] = True
                 st.session_state["lib_back_tab"] = "💬 チャット"
                 st.session_state.pop("_ocr_preview_id", None)
+                st.session_state.pop("_ocr_image_only", None)
                 st.rerun()
+        with _pc3:
+            if _img_only:
+                if st.button("📋 所見も表示", key="ocr_toggle_info"):
+                    st.session_state["_ocr_image_only"] = False
+                    st.rerun()
+            else:
+                if st.button("🖼️ 画像のみ", key="ocr_toggle_img"):
+                    st.session_state["_ocr_image_only"] = True
+                    st.rerun()
 
-        # 拡大表示
+        # 表示
         try:
             _prev_bytes = download_image(service, _ocr_preview_fid)
             if _prev_bytes:
-                render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
+                if _img_only:
+                    st.image(_prev_bytes, use_container_width=True)
+                else:
+                    render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
         except Exception:
             st.error("画像の読み込みに失敗しました。")
         return  # プレビュー表示中は他を描画しない
