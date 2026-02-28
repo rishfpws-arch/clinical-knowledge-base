@@ -7923,7 +7923,7 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
                 <span><b>{label}</b> {judge}</span>
                 <span>{actual}{unit} {target_str} ({pct}%)</span>
             </div>
-            <div style="background:#E0E0E0;border-radius:4px;height:12px;overflow:hidden;">
+            <div style="background:#3a3a4a;border-radius:4px;height:12px;overflow:hidden;">
                 <div style="background:{color};width:{pct}%;height:100%;border-radius:4px;transition:width 0.3s;"></div>
             </div>
         </div>""")
