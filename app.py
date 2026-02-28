@@ -4948,6 +4948,46 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
     st.rerun()
 
 
+def _run_batch_ocr(service, target_images, metadata, api_key):
+    """一括OCRテキスト抽出の実行処理。"""
+    total = len(target_images)
+    progress_bar = st.progress(0, text="OCR抽出を開始...")
+    success_count = 0
+    fail_count = 0
+
+    for i, img in enumerate(target_images):
+        fid = img["id"]
+        fname = img["name"]
+        progress_bar.progress(
+            i / total,
+            text=f"OCR抽出中... ({i + 1}/{total}) {fname}",
+        )
+
+        try:
+            image_bytes = download_image(service, fid)
+            if image_bytes:
+                ocr_text = extract_ocr_text(image_bytes, api_key)
+                if fid in metadata:
+                    metadata[fid]["ocr_text"] = ocr_text
+                    save_metadata(metadata)
+                    success_count += 1
+                else:
+                    fail_count += 1
+            else:
+                fail_count += 1
+        except Exception as e:
+            _log.error(f"OCR抽出失敗 {fname}: {e}")
+            st.warning(f"⚠️ {html.escape(fname)} のOCR抽出に失敗しました。")
+            fail_count += 1
+
+        if i < total - 1:
+            time.sleep(1)
+
+    progress_bar.progress(1.0, text="完了！")
+    st.success(f"OCRテキスト抽出が完了しました！ 成功: {success_count} 件 / 失敗: {fail_count} 件")
+    st.rerun()
+
+
 # ===========================================================================
 # ページ: ゴミ箱
 # ===========================================================================
