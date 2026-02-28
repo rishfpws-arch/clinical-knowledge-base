@@ -7392,6 +7392,129 @@ def _render_dashboard_card(day_data: dict, goals: dict, records: dict):
         """, unsafe_allow_html=True)
 
 
+# ---------------------------------------------------------------------------
+# 栄養バランス ダッシュボード
+# ---------------------------------------------------------------------------
+
+def _nutrient_bar_color(ratio: float) -> str:
+    """達成率に応じた色を返す。"""
+    if ratio <= 0:
+        return "#BDBDBD"
+    elif ratio < 0.6:
+        return "#F44336"   # 赤（大幅不足）
+    elif ratio < 0.8:
+        return "#FF9800"   # 黄（やや不足）
+    elif ratio <= 1.2:
+        return "#4CAF50"   # 緑（適正）
+    else:
+        return "#F44336"   # 赤（過剰）
+
+
+def _render_nutrient_dashboard(day_data: dict, goals: dict):
+    """栄養素の摂取状況をプログレスバーで表示する。"""
+    totals = _aggregate_day_nutrients(day_data)
+    if not totals:
+        return  # 栄養素データなし → 何も表示しない
+
+    targets = _get_nutrient_targets(goals)
+
+    with st.expander("🥗 栄養バランス", expanded=True):
+        # --- PFC（三大栄養素）プログレスバー ---
+        st.markdown("#### 三大栄養素 (PFC)")
+        pfc_html_parts = []
+        for key in _PFC_KEYS:
+            info = targets[key]
+            actual = round(totals.get(key, 0), 1)
+            target_val = info["target"] or 0
+            if target_val > 0:
+                ratio = actual / target_val
+                pct = min(100, int(ratio * 100))
+            else:
+                ratio = 0
+                pct = 0
+            color = _nutrient_bar_color(ratio)
+            label = info["label"]
+            unit = info["unit"]
+            target_str = f"/ {target_val}{unit}" if target_val else ""
+            warn = " ⚠️" if ratio > 1.2 or (target_val > 0 and ratio < 0.6) else ""
+            pfc_html_parts.append(f"""
+            <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:2px;">
+                    <span><b>{label}</b></span>
+                    <span>{actual}{unit} {target_str} ({pct}%){warn}</span>
+                </div>
+                <div style="background:#E0E0E0;border-radius:4px;height:12px;overflow:hidden;">
+                    <div style="background:{color};width:{pct}%;height:100%;border-radius:4px;transition:width 0.3s;"></div>
+                </div>
+            </div>""")
+        st.markdown("".join(pfc_html_parts), unsafe_allow_html=True)
+
+        # --- PFCカロリー比率 ---
+        p_cal = totals.get("protein", 0) * 4
+        f_cal = totals.get("fat", 0) * 9
+        c_cal = totals.get("carbs", 0) * 4
+        total_pfc_cal = p_cal + f_cal + c_cal
+        if total_pfc_cal > 0:
+            p_pct = int(p_cal / total_pfc_cal * 100)
+            f_pct = int(f_cal / total_pfc_cal * 100)
+            c_pct = 100 - p_pct - f_pct
+            st.markdown(f"""
+            <div style="display:flex;height:20px;border-radius:4px;overflow:hidden;margin:4px 0 12px;">
+                <div style="background:#42A5F5;width:{p_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{p_pct}%P</div>
+                <div style="background:#FFA726;width:{f_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{f_pct}%F</div>
+                <div style="background:#66BB6A;width:{c_pct}%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">{c_pct}%C</div>
+            </div>
+            <div style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">
+                理想: P 13-20% / F 20-30% / C 50-65%
+            </div>
+            """, unsafe_allow_html=True)
+
+        # --- 食塩摂取量（上限のみ） ---
+        salt_actual = round(totals.get("salt", 0), 1)
+        salt_upper = targets["salt"]["upper"] or 7.5
+        salt_ok = salt_actual <= salt_upper
+        salt_icon = "✅" if salt_ok else "⚠️"
+        salt_color = "#4CAF50" if salt_ok else "#F44336"
+        st.markdown(f"""
+        <div style="padding:6px 12px;background:#F5F5F5;border-radius:6px;margin:8px 0;font-size:13px;">
+            🧂 <b>食塩</b>: <span style="color:{salt_color};">{salt_actual}g</span> / {salt_upper}g以下 {salt_icon}
+        </div>
+        """, unsafe_allow_html=True)
+
+        # --- 微量栄養素（達成率バー） ---
+        has_micro = any(totals.get(k, 0) > 0 for k in _MICRO_KEYS)
+        if has_micro:
+            st.markdown("#### ビタミン・ミネラル")
+            micro_html_parts = []
+            for key in _MICRO_KEYS:
+                info = targets[key]
+                actual = round(totals.get(key, 0), 1)
+                target_val = info["target"]
+                if target_val and target_val > 0:
+                    ratio = actual / target_val
+                    pct = min(150, int(ratio * 100))
+                    display_pct = min(100, pct)
+                else:
+                    ratio = 0
+                    pct = 0
+                    display_pct = 0
+                color = _nutrient_bar_color(ratio)
+                label = info["label"]
+                unit = info["unit"]
+                target_str = f"/ {target_val}{unit}" if target_val else ""
+                micro_html_parts.append(f"""
+                <div style="margin-bottom:6px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:1px;">
+                        <span>{label}</span>
+                        <span>{actual}{unit} {target_str} ({pct}%)</span>
+                    </div>
+                    <div style="background:#E0E0E0;border-radius:3px;height:8px;overflow:hidden;">
+                        <div style="background:{color};width:{display_pct}%;height:100%;border-radius:3px;"></div>
+                    </div>
+                </div>""")
+            st.markdown("".join(micro_html_parts), unsafe_allow_html=True)
+
+
 def _render_meal_groups(day_data: dict, weight_data: dict):
     """食事タイプ別にグループ化して表示（MoneyForwardカテゴリ風）。"""
     current_items = _get_day_items(day_data)
