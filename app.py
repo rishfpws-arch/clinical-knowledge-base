@@ -1345,14 +1345,19 @@ def load_chat_sessions() -> dict:
 def save_chat_sessions(sessions: dict) -> None:
     """チャットセッションを保存する。session_state + Sheets + ローカル。"""
     _set_cache("_cache_chat_sessions", sessions)
+    sheets_ok = False
     sh = get_sheets_client()
     if sh is not None:
-        _write_json_to_sheet(sh, "chat_sessions", {"sessions": sessions})
+        sheets_ok = _write_json_to_sheet(sh, "chat_sessions", {"sessions": sessions})
     try:
         with open(CHAT_SESSIONS_PATH, "w", encoding="utf-8") as f:
             json.dump({"sessions": sessions}, f, ensure_ascii=False, indent=2)
     except IOError:
         pass
+    if not sheets_ok and sh is not None:
+        st.session_state["_pending_chat_sessions"] = sessions
+    elif sheets_ok:
+        st.session_state.pop("_pending_chat_sessions", None)
 
 
 # ---------------------------------------------------------------------------
