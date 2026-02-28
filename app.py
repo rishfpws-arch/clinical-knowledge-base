@@ -3417,9 +3417,12 @@ def display_referenced_images(
 
 
 def display_kb_response_with_images(
-    text: str, metadata: dict, service, key_suffix: str = ""
+    text: str, metadata: dict, service,
+    key_suffix: str = "", search_keyword: str = "",
 ) -> None:
-    """参照画像をまとめて上部に表示し、本文中のIDはタイトル名に置換する。"""
+    """参照画像をまとめて上部に表示し、本文中のIDはタイトル名に置換する。
+    search_keyword が指定されている場合、Gemini参照が3枚未満なら全文検索で補完する。
+    """
     if not text:
         return
 
@@ -3433,6 +3436,25 @@ def display_kb_response_with_images(
         if fid not in seen and fid in metadata:
             seen.add(fid)
             found_ids.append(fid)
+
+    # --- 全文検索補完: 3枚未満ならキーワードマッチで画像を追加 ---
+    _gemini_count = len(found_ids)  # Geminiが参照した枚数
+    if len(found_ids) < 3 and search_keyword:
+        kw_lower = search_keyword.lower()
+        for fid, meta in metadata.items():
+            if fid in seen:
+                continue
+            title = meta.get("title", "").lower()
+            summary = meta.get("summary", "").lower()
+            kws = [k.lower() for k in meta.get("keywords", [])]
+            ocr = meta.get("ocr_text", "").lower()
+            if (kw_lower in title or kw_lower in summary
+                    or any(kw_lower in k for k in kws)
+                    or kw_lower in ocr):
+                found_ids.append(fid)
+                seen.add(fid)
+                if len(found_ids) >= 5:
+                    break
 
     # --- 上部: 参照画像をまとめてグリッド表示（最大5枚） ---
     if found_ids:
