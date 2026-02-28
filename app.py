@@ -8258,23 +8258,55 @@ def _render_weight_history(records: dict, goals: dict):
     if _weight_entries:
         st.markdown("### 📈 体重推移")
         import pandas as pd
+        import altair as alt
 
         # 体重入力がある日のみでチャートを作成（NaN問題を回避）
         _wt_dates = [dk for dk, _ in _weight_entries]
         _wt_vals = [w for _, w in _weight_entries]
 
+        target_wt = goals.get("target_weight_kg")
+
+        # Y軸の範囲をデータに合わせて設定（見やすくするため）
+        _all_vals = list(_wt_vals)
+        if target_wt:
+            _all_vals.append(target_wt)
+        y_min = max(0, min(_all_vals) - 3)
+        y_max = max(_all_vals) + 3
+
+        # 体重データ
         chart_df = pd.DataFrame({
             "日付": pd.to_datetime(_wt_dates),
             "体重(kg)": _wt_vals,
         })
-        chart_df = chart_df.set_index("日付")
 
-        # 目標体重ラインを追加
-        target_wt = goals.get("target_weight_kg")
+        # 体重ライン
+        weight_line = alt.Chart(chart_df).mark_line(
+            point=alt.OverlayMarkDef(size=60),
+            strokeWidth=2.5,
+            color="#42A5F5",
+        ).encode(
+            x=alt.X("日付:T", title="日付"),
+            y=alt.Y("体重(kg):Q", scale=alt.Scale(domain=[y_min, y_max]), title="体重 (kg)"),
+            tooltip=["日付:T", "体重(kg):Q"],
+        )
+
+        chart = weight_line
+
+        # 目標体重ライン
         if target_wt and len(_wt_vals) >= 1:
-            chart_df["目標(kg)"] = target_wt
+            target_rule = alt.Chart(pd.DataFrame({"y": [target_wt]})).mark_rule(
+                strokeDash=[6, 4], color="#FF7043", strokeWidth=2,
+            ).encode(y="y:Q")
+            target_label = alt.Chart(pd.DataFrame({
+                "日付": [pd.to_datetime(_wt_dates[-1])],
+                "y": [target_wt],
+                "label": [f"目標 {target_wt}kg"],
+            })).mark_text(
+                align="left", dx=5, dy=-8, fontSize=11, color="#FF7043",
+            ).encode(x="日付:T", y="y:Q", text="label:N")
+            chart = chart + target_rule + target_label
 
-        st.line_chart(chart_df)
+        st.altair_chart(chart.properties(height=300).interactive(), use_container_width=True)
 
         if target_wt:
             latest_wt = _wt_vals[-1]
