@@ -9042,6 +9042,12 @@ def main():
             st.session_state["active_tab"] = tab_name
             st.rerun()
 
+    # ─── サイドバー: 患者データ快速アクセス ───
+    if st.sidebar.button("🏥 患者データ", key="sidebar_patient_data", use_container_width=True):
+        st.session_state["active_tab"] = TAB_NAMES[1]  # 📸 画像ライブラリ
+        st.session_state["lib_folder_filter"] = PATIENT_DATA_FOLDER
+        st.rerun()
+
     st.sidebar.markdown("---")
 
     # ─── サイドバー: 統計サマリー（1行表示）───
