@@ -3450,11 +3450,12 @@ def display_kb_response_with_images(
                     if summary_text:
                         st.caption(f"📋 {summary_text[:80]}{'…' if len(summary_text) > 80 else ''}")
                 if st.button(
-                    "📝 詳細を見る",
+                    "🔍 拡大表示",
                     key=f"kb_detail_{fid}{key_suffix}",
                     use_container_width=True,
                 ):
                     st.session_state["lib_selected_id"] = fid
+                    st.session_state["lib_enlarged_view"] = True
                     st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
                     st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
