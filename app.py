@@ -3848,7 +3848,7 @@ def page_image_manager():
     if st.session_state["img_delete_mode"]:
         del_c1, del_c2, del_c3 = st.columns([1, 1, 4])
         with del_c1:
-            if st.button("✅ 全選択", key="img_del_all"):
+            if st.button(f"✅ 全選択（全{len(filtered_images)}件）", key="img_del_all"):
                 for img in filtered_images:
                     if img["id"] in metadata:
                         st.session_state[f"img_del_{img['id']}"] = True
