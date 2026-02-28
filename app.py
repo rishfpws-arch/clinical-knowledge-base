@@ -2407,6 +2407,13 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
                         result["folder"] = assigned_folder
                         if assigned_folder != DEFAULT_FOLDER:
                             classified_count += 1
+                        # OCRテキスト抽出
+                        try:
+                            ocr_text = extract_ocr_text(image_bytes, api_key)
+                            if ocr_text:
+                                result["ocr_text"] = ocr_text
+                        except Exception:
+                            pass
                         metadata[fid] = result
                         success_count += 1
                 except Exception:
