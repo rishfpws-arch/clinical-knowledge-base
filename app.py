@@ -1151,6 +1151,9 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
             st.toast(msg, icon="⚠️")
     elif sheets_ok:
         st.session_state.pop("_pending_weight_data", None)
+    # --- 同期ステータス記録 ---
+    _record_sync_status("weight_data", sheets_ok, count=len(weight_data),
+                        error=st.session_state.pop("_save_error_detail", "") if not sheets_ok else "")
     return sheets_ok
 
 
