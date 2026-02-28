@@ -5042,7 +5042,7 @@ def page_trash():
     _apply_batch_checkbox("_trash_sel_flag", [f"trash_sel_{i}" for i in range(len(trash))])
     act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
     with act_col1:
-        if st.button("✅ 全選択", key="trash_sel_all"):
+        if st.button(f"✅ 全選択（全{len(trash)}件）", key="trash_sel_all"):
             _set_batch_checkbox("_trash_sel_flag", True)
     with act_col2:
         if st.button("🔄 全解除", key="trash_sel_none"):
@@ -5404,7 +5404,7 @@ def page_folder_manual():
     _apply_batch_checkbox("_mf_sel_flag", [f"mf_sel_{img['id']}" for img in display_images])
     mc1, mc2, mc3 = st.columns([1, 1, 4])
     with mc1:
-        if st.button("✅ 全選択", key="mf_sel_all"):
+        if st.button(f"✅ 全選択（全{len(display_images)}件）", key="mf_sel_all"):
             _set_batch_checkbox("_mf_sel_flag", True)
     with mc2:
         if st.button("🔄 全解除", key="mf_sel_none"):
