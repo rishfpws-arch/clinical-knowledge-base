@@ -612,11 +612,21 @@ def _set_cache(cache_key: str, data):
     st.session_state[f"{cache_key}_ts"] = time.time()
 
 
-def _invalidate_all_caches():
-    """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
-    for ck in ["_cache_metadata", "_cache_trash", "_cache_ignore_list", "_cache_folders", "_cache_chat_sessions", "_cache_weight_data", "_cache_food_processed"]:
+def _invalidate_cache(*cache_keys: str):
+    """指定したキャッシュのみ無効化する。キー未指定なら全キャッシュを破棄。"""
+    targets = cache_keys if cache_keys else (
+        "_cache_metadata", "_cache_trash", "_cache_ignore_list",
+        "_cache_folders", "_cache_chat_sessions",
+        "_cache_weight_data", "_cache_food_processed",
+    )
+    for ck in targets:
         st.session_state.pop(ck, None)
         st.session_state.pop(f"{ck}_ts", None)
+
+
+def _invalidate_all_caches():
+    """全データキャッシュを無効化し、次回読み込みでSheetsから再取得させる。"""
+    _invalidate_cache()
 
 
 # ---------------------------------------------------------------------------
@@ -1730,7 +1740,7 @@ def list_all_images(_service, folder_id: str, metadata: dict,
     return images
 
 
-@st.cache_data(ttl=300, show_spinner=False, max_entries=50)
+@st.cache_data(ttl=300, show_spinner=False, max_entries=100)
 def download_image(_service, file_id: str) -> bytes:
     """画像をバイト列で返す。ローカルアップロード画像を優先し、なければGoogle Driveから取得。"""
     # ローカルアップロード画像を確認（パストラバーサル防止）
