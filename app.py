@@ -2487,7 +2487,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
                     with results_container:
                         st.markdown(
                             f"✅ **{html.escape(result.get('title', fname))}**{html.escape(folder_label)}  \n"
-                            f"<span style='color:#888;font-size:12px;'>"
+                            f"<span style='color:#b0b0b0;font-size:12px;'>"
                             f"{', '.join(html.escape(k) for k in result.get('keywords', [])[:4])}</span>",
                             unsafe_allow_html=True,
                         )
