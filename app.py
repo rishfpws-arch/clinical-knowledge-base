@@ -2680,7 +2680,8 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
 
         except Exception as e:
             if manual:
-                st.warning(f"⚠️ {file_name} の処理に失敗: {e}")
+                _log.error(f"ファイル処理失敗 {file_name}: {e}")
+                st.warning(f"⚠️ {html.escape(file_name)} の処理に失敗しました。")
             processed[file_id] = {
                 "date": "",
                 "file_name": file_name,
@@ -3453,10 +3454,12 @@ def page_image_manager():
         try:
             image_bytes = download_image(service, file_id)
         except HttpError as e:
-            st.error(f"画像の読み込みに失敗しました: {e}")
+            _log.error(f"画像読み込み失敗: {e}")
+            st.error("画像の読み込みに失敗しました。")
             return
         except Exception as e:
-            st.error(f"画像の表示中にエラーが発生しました: {e}")
+            _log.error(f"画像表示エラー: {e}")
+            st.error("画像の表示中にエラーが発生しました。")
             return
 
         meta = metadata.get(file_id, {})
@@ -4306,7 +4309,8 @@ def page_batch_analyze():
         try:
             image_bytes = download_image(service, current_fid)
         except Exception as e:
-            st.error(f"画像の読み込みに失敗しました: {e}")
+            _log.error(f"画像読み込み失敗: {e}")
+            st.error("画像の読み込みに失敗しました。")
             return
 
         # --- 横並びレイアウト: 画像（左）+ 要約（右） ---
@@ -4623,7 +4627,8 @@ def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=F
             else:
                 fail_count += 1
         except Exception as e:
-            st.warning(f"⚠️ {fname} の解析に失敗: {e}")
+            _log.error(f"解析失敗 {fname}: {e}")
+            st.warning(f"⚠️ {html.escape(fname)} の解析に失敗しました。")
             fail_count += 1
 
         if i < total - 1:
@@ -5166,7 +5171,8 @@ def page_folder_ai():
             try:
                 image_bytes = download_image(service, file_id)
             except Exception as e:
-                st.error(f"画像の表示中にエラーが発生しました: {e}")
+                _log.error(f"画像表示エラー: {e}")
+                st.error("画像の表示中にエラーが発生しました。")
                 return
 
             meta = metadata.get(file_id, {})
@@ -5407,7 +5413,8 @@ def page_folder_ai():
                     suggested = [s.strip() for s in resp_text.strip().split(",") if s.strip()]
                     st.session_state["ai_suggested_folders"] = suggested
                 except Exception as e:
-                    st.error(f"フォルダ提案に失敗しました: {e}")
+                    _log.error(f"フォルダ提案失敗: {e}")
+                    st.error("フォルダ提案に失敗しました。")
 
         if "ai_suggested_folders" in st.session_state:
             suggested = st.session_state["ai_suggested_folders"]
@@ -6122,7 +6129,8 @@ def page_image_library():
         try:
             image_bytes = download_image(service, file_id)
         except Exception as e:
-            st.error(f"画像の表示中にエラーが発生しました: {e}")
+            _log.error(f"画像表示エラー: {e}")
+            st.error("画像の表示中にエラーが発生しました。")
             return
 
         meta = metadata.get(file_id, {})
@@ -7028,7 +7036,8 @@ def page_import_analyze():
                                 suggested = [s.strip() for s in resp_text.strip().split(",") if s.strip()]
                                 st.session_state["imp_ai_suggested_folders"] = suggested
                             except Exception as e:
-                                st.error(f"フォルダ提案に失敗しました: {e}")
+                                _log.error(f"フォルダ提案失敗: {e}")
+                    st.error("フォルダ提案に失敗しました。")
 
                     if "imp_ai_suggested_folders" in st.session_state:
                         suggested = st.session_state["imp_ai_suggested_folders"]
@@ -7200,7 +7209,8 @@ def page_import_analyze():
                 try:
                     image_bytes = download_image(service, current_fid)
                 except Exception as e:
-                    st.error(f"画像の読み込みに失敗: {e}")
+                    _log.error(f"画像読み込み失敗: {e}")
+                    st.error("画像の読み込みに失敗しました。")
                     return
 
                 rev_col_img, rev_col_info = st.columns([1, 1])
@@ -8596,7 +8606,8 @@ def _page_weight_management_inner():
                             else:
                                 st.warning("APIキー未設定")
                         except Exception as e:
-                            st.error(f"エラー: {e}")
+                            _log.error(f"AI再計算エラー: {e}")
+                            st.error("処理中にエラーが発生しました。")
 
             # 画像アップロード
             with st.form("wm_food_form", clear_on_submit=True):
