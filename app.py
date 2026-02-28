@@ -3218,7 +3218,7 @@ def display_kb_response_with_images(
             title = meta.get("title", "不明")
             with cols[idx % 3]:
                 try:
-                    img_bytes = download_image(service, fid)
+                    img_bytes = download_thumbnail(service, fid)
                     st.image(img_bytes, caption=f"📷 {title}", width="stretch")
                 except Exception:
                     st.caption(f"📷 {title}（読込失敗）")
@@ -3358,7 +3358,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             keywords = meta.get("keywords", [])
             with col:
                 try:
-                    img_bytes = download_image(service, fid)
+                    img_bytes = download_thumbnail(service, fid)
                     st.image(img_bytes, width="stretch")
                 except Exception:
                     st.markdown(
