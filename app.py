@@ -8109,8 +8109,9 @@ def page_weight_management():
                             recalc = _recalc_calories(
                                 [{"name": add_name.strip(), "quantity": add_qty}], _ak
                             )
-                            if recalc and len(recalc) > 0 and recalc[0] > 0:
-                                item_entry["calories"] = recalc[0]
+                            if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
+                                item_entry["calories"] = recalc[0]["calories"]
+                                item_entry["nutrients"] = recalc[0].get("nutrients", {})
                     day_data.setdefault("items", []).append(item_entry)
                     all_items = _get_day_items(day_data)
                     day_data["total_calories"] = sum(it.get("calories", 0) for it in all_items)
