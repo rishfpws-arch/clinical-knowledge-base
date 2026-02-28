@@ -1762,6 +1762,21 @@ def download_image(_service, file_id: str) -> bytes:
             raise
 
 
+@st.cache_data(ttl=600, show_spinner=False, max_entries=200)
+def download_thumbnail(_service, file_id: str, max_px: int = 300) -> bytes:
+    """サムネイル用に軽量化した画像を返す（最大300px, JPEG 70%）。"""
+    raw = download_image(_service, file_id)
+    if not raw:
+        return raw
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img.thumbnail((max_px, max_px))
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, format="JPEG", quality=70, optimize=True)
+        return buf.getvalue()
+    except Exception:
+        return raw  # リサイズ失敗時はフル画像を返す
+
 
 # ---------------------------------------------------------------------------
 # Gemini AI (REST API 直接呼び出し)
