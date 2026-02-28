@@ -1870,9 +1870,31 @@
           "image_id": "wm_9758a1c023f2",
           "image_ext": "jpg",
           "drive_file_id": "17MWNmg7fEHjo0vFCPmiPSCUlONT-if08"
+        },
+        {
+          "id": "item_868cc6916857",
+          "name": "高級ジャムパン（イチゴ）",
+          "quantity": "ふつう",
+          "calories": 330,
+          "nutrients": {
+            "protein": 6.5,
+            "fat": 12.0,
+            "carbs": 47.0,
+            "fiber": 1.5,
+            "salt": 0.7,
+            "calcium": 30.0,
+            "iron": 0.5,
+            "vitamin_a": 30.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_da032bf3eddf",
+          "image_ext": "jpg",
+          "drive_file_id": "1B-zr5naclT1PKJAzZ97du7wdwfiEYHKs"
         }
       ],
-      "total_calories": 1495,
+      "total_calories": 1825,
       "weight": 75.4,
       "weight_recorded_at": "2026-02-28T14:46:02.256324"
     }
