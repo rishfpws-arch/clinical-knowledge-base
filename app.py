@@ -1337,16 +1337,17 @@ def load_food_processed() -> dict:
 def save_food_processed(data: dict) -> None:
     """処理済み食事画像IDの辞書を保存する。Sheets + ローカル。"""
     _set_cache("_cache_food_processed", data)
+    sheets_ok = False
     sh = get_sheets_client()
     if sh is not None:
         try:
-            _write_json_to_sheet(sh, "food_processed", data)
+            sheets_ok = _write_json_to_sheet(sh, "food_processed", data)
         except Exception:
             try:
                 st.session_state.pop("_sheets_conn", None)
                 sh2 = _new_sheets_connection()
                 if sh2 is not None:
-                    _write_json_to_sheet(sh2, "food_processed", data)
+                    sheets_ok = _write_json_to_sheet(sh2, "food_processed", data)
             except Exception:
                 pass
     try:
@@ -1354,6 +1355,9 @@ def save_food_processed(data: dict) -> None:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
+    # --- 同期ステータス記録 ---
+    _record_sync_status("food_processed", sheets_ok, count=len(data),
+                        error=st.session_state.pop("_save_error_detail", "") if not sheets_ok else "")
 
 
 def get_gemini_api_key() -> str | None:
