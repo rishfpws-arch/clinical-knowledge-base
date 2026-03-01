@@ -584,7 +584,29 @@ JSON等のフォーマットは不要です。読み取ったテキストのみ�
 # ---------------------------------------------------------------------------
 _SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
 _SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data", "food_processed"]
-_CACHE_TTL = 120  # 秒（save時はキャッシュ直接更新するのでTTLは再取得間隔のみ影響）
+_CACHE_TTL = 300  # 5分（save時はキャッシュ直接更新するため再取得間隔のみ影響）
+
+_file_write_lock = threading.Lock()
+
+
+def _atomic_json_write(path: Path, data) -> bool:
+    """JSON をアトミックに書き込む（tmp → rename）。"""
+    tmp = path.with_suffix(".tmp")
+    try:
+        with _file_write_lock:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.flush()
+                _os.fsync(f.fileno())
+            tmp.replace(path)
+        return True
+    except Exception as e:
+        _log.warning(f"ファイル書き込み失敗: {path.name}: {e}")
+        try:
+            tmp.unlink(missing_ok=True)
+        except Exception:
+            pass
+        return False
 
 
 def _new_sheets_connection():
