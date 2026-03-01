@@ -304,6 +304,38 @@ def _clear_auth_storage() -> None:
     )
 
 
+def _save_auth_to_file(username: str, token: str) -> None:
+    """認証状態をファイルに保存する（サーバーサイド永続化）。"""
+    try:
+        _AUTH_STATE_PATH.write_text(
+            json.dumps({"user": username, "token": token}),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+def _load_auth_from_file() -> tuple[str, str] | None:
+    """ファイルから認証状態を読み込む。"""
+    try:
+        if _AUTH_STATE_PATH.exists():
+            data = json.loads(_AUTH_STATE_PATH.read_text(encoding="utf-8"))
+            u, t = data.get("user", ""), data.get("token", "")
+            if u and t:
+                return (u, t)
+    except Exception:
+        pass
+    return None
+
+
+def _clear_auth_file() -> None:
+    """ログアウト時に認証状態ファイルを削除する。"""
+    try:
+        _AUTH_STATE_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
 # 画像解析プロンプト
 ANALYSIS_PROMPT = """あなたは臨床経験豊富な専門医レベルの医療アシスタントです。
 この画像を解析し、医師が臨床現場ですぐに活用できる形で、以下のJSON形式で出力してください。
