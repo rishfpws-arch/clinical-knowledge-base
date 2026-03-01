@@ -852,11 +852,7 @@ def save_metadata(metadata: dict) -> bool:
         err = f"{type(e).__name__}: {e}"
         _log.error(f"[save_metadata] 例外: {err}")
         st.session_state["_save_error_detail"] = err
-    try:
-        with open(METADATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(metadata, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(METADATA_PATH, metadata)
     _sync_err = ""
     if not sheets_ok and sh is not None:
         # 次回 rerun で再試行するためペンディングデータを保持
