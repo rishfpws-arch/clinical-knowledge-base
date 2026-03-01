@@ -6510,28 +6510,30 @@ def _auto_push_loop():
     while True:
         time.sleep(_AUTO_PUSH_INTERVAL)
         try:
-            # 変更があるかチェック
-            result = subprocess.run(
-                ["git", "status", "--porcelain"] + target_files,
-                cwd=repo_dir, capture_output=True, text=True, timeout=15,
-            )
-            if not result.stdout.strip():
-                continue  # 変更なし
+            # ファイル書き込みとの競合を防止（status/add/commit はロック内）
+            with _file_write_lock:
+                # 変更があるかチェック
+                result = subprocess.run(
+                    ["git", "status", "--porcelain"] + target_files,
+                    cwd=repo_dir, capture_output=True, text=True, timeout=15,
+                )
+                if not result.stdout.strip():
+                    continue  # 変更なし
 
-            # git add
-            subprocess.run(
-                ["git", "add"] + target_files,
-                cwd=repo_dir, capture_output=True, text=True, timeout=15,
-            )
+                # git add
+                subprocess.run(
+                    ["git", "add"] + target_files,
+                    cwd=repo_dir, capture_output=True, text=True, timeout=15,
+                )
 
-            # git commit
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            subprocess.run(
-                ["git", "commit", "-m", f"auto: {timestamp}"],
-                cwd=repo_dir, capture_output=True, text=True, timeout=30,
-            )
+                # git commit
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                subprocess.run(
+                    ["git", "commit", "-m", f"auto: {timestamp}"],
+                    cwd=repo_dir, capture_output=True, text=True, timeout=30,
+                )
 
-            # git push
+            # git push はロック外（長時間かかるため）
             subprocess.run(
                 ["git", "push", "origin", "main"],
                 cwd=repo_dir, capture_output=True, text=True, timeout=60,
