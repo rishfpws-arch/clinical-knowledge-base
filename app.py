@@ -1026,8 +1026,7 @@ def _force_sync_sheets_to_local() -> dict:
     try:
         data = _read_json_from_sheet(sh, "metadata")
         if data and isinstance(data, dict):
-            with open(METADATA_PATH, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            _atomic_json_write(METADATA_PATH, data)
             _set_cache("_cache_metadata", data)
             results["metadata"] = {"success": True, "count": len(data)}
         else:
@@ -1039,8 +1038,7 @@ def _force_sync_sheets_to_local() -> dict:
     try:
         data = _read_json_from_sheet(sh, "weight_data")
         if data and isinstance(data, dict):
-            with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            _atomic_json_write(WEIGHT_DATA_PATH, data)
             _set_cache("_cache_weight_data", data)
             results["weight_data"] = {"success": True, "count": len(data)}
         else:
@@ -1052,8 +1050,7 @@ def _force_sync_sheets_to_local() -> dict:
     try:
         data = _read_json_from_sheet(sh, "food_processed")
         if data and isinstance(data, dict):
-            with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            _atomic_json_write(FOOD_IMAGES_PROCESSED_PATH, data)
             _set_cache("_cache_food_processed", data)
             results["food_processed"] = {"success": True, "count": len(data)}
         else:
