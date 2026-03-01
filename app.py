@@ -1706,11 +1706,7 @@ def load_food_processed() -> dict:
         data = {}
 
     _set_cache(ck, data)
-    try:
-        with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(FOOD_IMAGES_PROCESSED_PATH, data)
     return data
 
 
@@ -1730,11 +1726,7 @@ def save_food_processed(data: dict) -> None:
                     sheets_ok = _write_json_to_sheet(sh2, "food_processed", data)
             except Exception:
                 pass
-    try:
-        with open(FOOD_IMAGES_PROCESSED_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+    _atomic_json_write(FOOD_IMAGES_PROCESSED_PATH, data)
     # --- 同期ステータス記録 ---
     _sync_err = st.session_state.pop("_save_error_detail", "") if not sheets_ok else ""
     _record_sync_status("food_processed", sheets_ok, count=len(data), error=_sync_err)
