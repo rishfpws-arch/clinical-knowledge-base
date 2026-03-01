@@ -7066,14 +7066,7 @@ def page_image_library():
         move_count = len(selected_ids)
         with st.container():
             _dest_label = dest_folder or "未選択"
-            st.markdown(
-                f'<div style="background:linear-gradient(135deg,#1a2a4a,#1a1a2a);'
-                f'border:1px solid #2980b9;border-radius:10px;padding:14px 18px;'
-                f'margin:8px 0;text-align:center;">'
-                f'<span style="color:#3498db;font-size:1.1em;font-weight:600;">'
-                f'📂 {move_count} 件選択中 → {_dest_label}</span></div>',
-                unsafe_allow_html=True,
-            )
+            st.info(f"📂 {move_count} 件選択中 → {_dest_label}")
             if st.button(
                 f"📁 選択した {move_count} 件を「{_dest_label}」に移動",
                 type="primary", key="lib_move_run",
