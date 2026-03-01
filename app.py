@@ -1499,11 +1499,7 @@ def load_weight_data() -> dict:
         data = default
 
     _set_cache(ck, data)
-    try:
-        with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(WEIGHT_DATA_PATH, data)
     return data
 
 
