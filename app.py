@@ -179,7 +179,19 @@ def _check_auth() -> bool:
     except (KeyError, FileNotFoundError):
         return True  # 認証設定なし → フリーアクセス
 
-    # URLのquery paramにtokenがあれば自動ログイン
+    # (1) ファイルベースの認証復元（プライマリ）
+    file_auth = _load_auth_from_file()
+    if file_auth:
+        f_user, f_token = file_auth
+        if f_user in auth_users:
+            expected = _make_auth_token(f_user, auth_users[f_user])
+            if f_token == expected:
+                st.session_state["authenticated"] = True
+                st.session_state["auth_user"] = f_user
+                return True
+        _clear_auth_file()  # 無効トークン → 削除
+
+    # (2) URLのquery paramにtokenがあれば自動ログイン
     token = st.query_params.get("token")
     if token:
         for uname, stored_hash in auth_users.items():
@@ -188,6 +200,7 @@ def _check_auth() -> bool:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = uname
                 _save_token_to_storage(uname, expected_token)
+                _save_auth_to_file(uname, expected_token)
                 # URLからトークンを即削除（履歴・ログへの漏洩防止）
                 try:
                     del st.query_params["token"]
@@ -195,7 +208,7 @@ def _check_auth() -> bool:
                     pass
                 return True
 
-    # localStorageからトークンを復元（tokenパラメータがない場合）
+    # (3) localStorageからトークンを復元（フォールバック）
     if not token:
         _inject_auto_login_script()
 
