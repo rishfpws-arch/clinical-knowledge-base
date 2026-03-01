@@ -818,11 +818,7 @@ def load_metadata() -> dict:
 
     _set_cache(ck, data)
     # ローカルファイルも同期更新
-    try:
-        with open(METADATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(METADATA_PATH, data)
     return data
 
 
