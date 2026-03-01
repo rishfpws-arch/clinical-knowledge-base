@@ -1211,11 +1211,7 @@ def load_ignore_list() -> set[str]:
         if data is not None:
             ids = set(data.get("ids", []) if isinstance(data, dict) else data)
             _set_cache(ck, ids)
-            try:
-                with open(IGNORE_LIST_PATH, "w", encoding="utf-8") as f:
-                    json.dump({"ids": sorted(ids)}, f, ensure_ascii=False, indent=2)
-            except IOError:
-                pass
+            _atomic_json_write(IGNORE_LIST_PATH, {"ids": sorted(ids)})
             return ids
     if IGNORE_LIST_PATH.exists():
         try:
