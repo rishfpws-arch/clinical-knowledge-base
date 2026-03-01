@@ -7029,14 +7029,7 @@ def page_image_library():
     if _cur_mode == "delete":
         del_count = len(selected_ids)
         with st.container():
-            st.markdown(
-                f'<div style="background:linear-gradient(135deg,#4a1a1a,#2a1a1a);'
-                f'border:1px solid #c0392b;border-radius:10px;padding:14px 18px;'
-                f'margin:8px 0;text-align:center;">'
-                f'<span style="color:#e74c3c;font-size:1.1em;font-weight:600;">'
-                f'🗑️ {del_count} 件選択中</span></div>',
-                unsafe_allow_html=True,
-            )
+            st.warning(f"🗑️ {del_count} 件選択中")
             if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
                 if st.button(
                     f"🗑️ 選択した {del_count} 件をゴミ箱へ",
