@@ -3669,21 +3669,24 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             st.session_state["pending_question"] = home_query
             st.rerun()
 
-        # 検索例ヒント（メタデータから動的生成）
+        # 検索例ヒント（メタデータから動的生成、session_stateでキャッシュ）
         st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
-        _all_kws: list[str] = []
-        for _m in metadata.values():
-            _all_kws.extend(_m.get("keywords", []))
-        _unique_kws = list(set(_all_kws))
-        if len(_unique_kws) >= 3:
-            random.shuffle(_unique_kws)
-            _hints = _unique_kws[:3]
-        else:
-            _hints = ["心電図の読み方", "抗菌薬の選択", "画像診断のポイント"]
+        if "_home_hints" not in st.session_state:
+            _all_kws: list[str] = []
+            for _m in metadata.values():
+                _all_kws.extend(_m.get("keywords", []))
+            _unique_kws = list(set(_all_kws))
+            if len(_unique_kws) >= 3:
+                random.shuffle(_unique_kws)
+                st.session_state["_home_hints"] = _unique_kws[:3]
+            else:
+                st.session_state["_home_hints"] = ["心電図の読み方", "抗菌薬の選択", "画像診断のポイント"]
+        _hints = st.session_state["_home_hints"]
         hint_cols = st.columns(3)
-        for hc, hint in zip(hint_cols, _hints):
+        for i, (hc, hint) in enumerate(zip(hint_cols, _hints)):
             with hc:
-                if st.button(hint, key=f"home_hint_{hint}", use_container_width=True):
+                if st.button(hint, key=f"home_hint_{i}", use_container_width=True):
+                    st.session_state.pop("_home_hints", None)  # 次回は新しいヒント
                     st.session_state["pending_question"] = hint
                     st.rerun()
 
