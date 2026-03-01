@@ -3412,9 +3412,10 @@ def generate_search_suggestions(
     if hit_count <= 1:
         return [], hit_count
 
-    # 該当エントリの要約をプロンプトに含める（最大15件）
+    # 該当エントリのタイトル・キーワード・要約をプロンプトに含める（最大15件）
     entries_text = "\n".join(
-        f"- {m.get('title', '不明')}: {', '.join(m.get('keywords', [])[:5])}"
+        f"- {m.get('title', '不明')} [{', '.join(m.get('keywords', [])[:5])}]: "
+        f"{m.get('summary', '')[:80]}"
         for m in hits[:15]
     )
     prompt = CHAT_SUGGEST_PROMPT.format(keyword=keyword, entries=entries_text)
