@@ -3695,17 +3695,14 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
 
     st.sidebar.markdown("---")
 
-    # --- 知識ベース情報 ---
-    st.sidebar.header("📚 知識ベース情報")
+    # --- 知識ベース情報（1行にまとめる） ---
     knowledge_count = len(metadata)
     reviewed_count = sum(
         1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
     )
-    st.sidebar.write(f"📚 全知識: **{knowledge_count}** 件")
-    st.sidebar.write(f"✅ 確認済み: **{reviewed_count}** 件")
+    st.sidebar.caption(f"📚 {knowledge_count} 件 ｜ ✅ {reviewed_count} 件確認済み")
 
     # --- 全文検索（OCRテキスト検索） ---
-    st.sidebar.markdown("---")
     st.sidebar.header("🔎 全文検索")
     ocr_query = st.sidebar.text_input(
         "画像内テキストで検索",
