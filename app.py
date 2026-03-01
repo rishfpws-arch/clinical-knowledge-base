@@ -1519,11 +1519,7 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
                     sheets_ok = _write_json_to_sheet(sh2, "weight_data", weight_data)
             except Exception:
                 pass
-    try:
-        with open(WEIGHT_DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(weight_data, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(WEIGHT_DATA_PATH, weight_data)
     _sync_err = ""
     if not sheets_ok and sh is not None:
         st.session_state["_pending_weight_data"] = weight_data
