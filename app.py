@@ -3628,8 +3628,6 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
     # 中央寄せの余白
     st.markdown("")
     st.markdown("")
-    st.markdown("")
-    st.markdown("")
 
     # 名言をランダム選択
     quote_text, quote_author = random.choice(QUOTES)
