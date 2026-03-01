@@ -8831,6 +8831,21 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
         st.markdown("".join(micro_html_parts), unsafe_allow_html=True)
 
 
+def _load_food_image_bytes(img: dict) -> bytes | None:
+    """食事画像のバイトデータを取得する（ローカル or Drive）。"""
+    img_path = WEIGHT_UPLOADS_DIR / f"{img['id']}.{img['ext']}"
+    if img_path.exists():
+        return img_path.read_bytes()
+    if img.get("drive_file_id"):
+        try:
+            service = get_drive_service()
+            if service:
+                return download_image(service, img["drive_file_id"])
+        except Exception:
+            pass
+    return None
+
+
 def _render_food_thumbnails(day_data: dict):
     """当日の食事画像をサムネイルギャラリーとして表示する。
     ローカルにファイルがない場合は drive_file_id 経由で Google Drive から取得。"""
@@ -8854,6 +8869,51 @@ def _render_food_thumbnails(day_data: dict):
     if not images_info:
         return
 
+    # --- 拡大表示モード ---
+    _enlarged_id = st.session_state.get("_food_enlarged_id")
+    if _enlarged_id:
+        # 対象画像を探す
+        target = next((im for im in images_info if im["id"] == _enlarged_id), None)
+        if target:
+            _fc1, _fc2, _fc3 = st.columns([2, 2, 6])
+            with _fc1:
+                if st.button("✖ 閉じる", key="food_enlarge_close"):
+                    st.session_state.pop("_food_enlarged_id", None)
+                    st.rerun()
+            with _fc2:
+                # 前後ナビゲーション
+                idx = next((i for i, im in enumerate(images_info) if im["id"] == _enlarged_id), 0)
+                nav_label = f"{idx + 1} / {len(images_info)}"
+                st.caption(nav_label)
+            img_bytes = _load_food_image_bytes(target)
+            if img_bytes:
+                st.markdown(
+                    f"<p style='text-align:center; font-size:16px; margin:4px 0 8px;'>"
+                    f"🍽️ {target['meal_label']}</p>",
+                    unsafe_allow_html=True,
+                )
+                st.image(img_bytes, use_container_width=True)
+            else:
+                st.warning("画像の読み込みに失敗しました。")
+            # 前・次ボタン
+            if len(images_info) > 1:
+                _np1, _np2, _np3 = st.columns([1, 1, 3])
+                with _np1:
+                    if idx > 0:
+                        if st.button("◀ 前", key="food_enlarge_prev"):
+                            st.session_state["_food_enlarged_id"] = images_info[idx - 1]["id"]
+                            st.rerun()
+                with _np2:
+                    if idx < len(images_info) - 1:
+                        if st.button("次 ▶", key="food_enlarge_next"):
+                            st.session_state["_food_enlarged_id"] = images_info[idx + 1]["id"]
+                            st.rerun()
+            return  # 拡大表示中はサムネイルを表示しない
+
+        # 対象が見つからない場合はリセット
+        st.session_state.pop("_food_enlarged_id", None)
+
+    # --- サムネイルグリッド ---
     st.markdown("### 📸 食事の写真")
     cols_per_row = 4
     for row_start in range(0, len(images_info), cols_per_row):
@@ -8881,6 +8941,10 @@ def _render_food_thumbnails(day_data: dict):
                 else:
                     # 画像なし — プレースホルダー
                     st.caption(f"🖼️ {img['meal_label']}")
+                # 拡大ボタン
+                if st.button("🔍", key=f"food_enlarge_{img['id']}", use_container_width=True):
+                    st.session_state["_food_enlarged_id"] = img["id"]
+                    st.rerun()
 
 
 def _render_meal_groups(day_data: dict, weight_data: dict):
