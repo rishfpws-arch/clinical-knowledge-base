@@ -6950,14 +6950,6 @@ def page_image_library():
             horizontal=True,
         )
     elif _cur_mode == "move":
-        st.markdown(
-            '<div style="background:linear-gradient(135deg,#1a2a4a,#1a1a2a);'
-            'border:1px solid #2980b9;border-radius:10px;padding:12px 16px;'
-            'margin:4px 0 12px;">'
-            '<span style="color:#3498db;font-weight:600;font-size:0.95em;">'
-            '📂 移動モード</span></div>',
-            unsafe_allow_html=True,
-        )
         dest_folder = st.selectbox(
             "移動先フォルダ",
             folders,
