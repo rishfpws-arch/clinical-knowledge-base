@@ -7161,14 +7161,7 @@ def page_import_analyze():
         and is_patient_data(metadata[img["id"]])
     ]
 
-    # --- サイドバー: 統計 ---
-    st.sidebar.header("📊 処理状況")
-    st.sidebar.write(f"📄 未解析: **{len(unanalyzed)}** 件")
-    st.sidebar.write(f"📝 未確認: **{len(unreviewed)}** 件")
-    st.sidebar.write(f"✅ 確認済み: **{len(reviewed)}** 件")
-    if patient_data_images:
-        st.sidebar.write(f"🏥 患者データ: **{len(patient_data_images)}** 件")
-    st.sidebar.write(f"合計: **{len(images)}** 件")
+    # --- サイドバー: 進捗のみ（詳細はメインエリアに表示） ---
     if images:
         done_count = len(reviewed)
         progress = done_count / len(images)
