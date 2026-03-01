@@ -1419,11 +1419,7 @@ def save_chat_sessions(sessions: dict) -> None:
     sh = get_sheets_client()
     if sh is not None:
         sheets_ok = _write_json_to_sheet(sh, "chat_sessions", {"sessions": sessions})
-    try:
-        with open(CHAT_SESSIONS_PATH, "w", encoding="utf-8") as f:
-            json.dump({"sessions": sessions}, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(CHAT_SESSIONS_PATH, {"sessions": sessions})
     if not sheets_ok and sh is not None:
         st.session_state["_pending_chat_sessions"] = sessions
     elif sheets_ok:
