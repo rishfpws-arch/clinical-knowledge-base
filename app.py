@@ -1190,11 +1190,7 @@ def save_trash(items: list) -> None:
     sh = get_sheets_client()
     if sh is not None:
         sheets_ok = _write_json_to_sheet(sh, "trash", {"items": items})
-    try:
-        with open(TRASH_PATH, "w", encoding="utf-8") as f:
-            json.dump({"items": items}, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(TRASH_PATH, {"items": items})
     if not sheets_ok and sh is not None:
         st.session_state["_pending_trash"] = items
     elif sheets_ok:
