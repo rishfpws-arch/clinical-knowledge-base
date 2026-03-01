@@ -1358,11 +1358,7 @@ def save_folders(folders: list[str]) -> None:
     sh = get_sheets_client()
     if sh is not None:
         sheets_ok = _write_json_to_sheet(sh, "folders", {"folders": folders})
-    try:
-        with open(FOLDERS_PATH, "w", encoding="utf-8") as f:
-            json.dump({"folders": folders}, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(FOLDERS_PATH, {"folders": folders})
     if not sheets_ok and sh is not None:
         st.session_state["_pending_folders"] = folders
     elif sheets_ok:
