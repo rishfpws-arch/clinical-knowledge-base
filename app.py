@@ -6943,14 +6943,6 @@ def page_image_library():
     dest_folder = None
     del_method = None
     if _cur_mode == "delete":
-        st.markdown(
-            '<div style="background:linear-gradient(135deg,#4a1a1a,#2a1a1a);'
-            'border:1px solid #c0392b;border-radius:10px;padding:12px 16px;'
-            'margin:4px 0 12px;">'
-            '<span style="color:#e74c3c;font-weight:600;font-size:0.95em;">'
-            '🗑️ 削除モード</span></div>',
-            unsafe_allow_html=True,
-        )
         del_method = st.radio(
             "削除方法",
             ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
