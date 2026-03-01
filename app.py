@@ -253,8 +253,9 @@ def _check_auth() -> bool:
                     st.session_state["authenticated"] = True
                     st.session_state["auth_user"] = username
                     auth_token = _make_auth_token(username, pw_hash)
-                    # URLにトークンを設定しない（localStorage のみに保存）
+                    # localStorage + ファイルにトークンを保存
                     _save_token_to_storage(username, auth_token)
+                    _save_auth_to_file(username, auth_token)
                     st.rerun()
                 else:
                     st.session_state["_login_fail_count"] = fail_count + 1
