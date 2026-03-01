@@ -1903,17 +1903,17 @@
         {
           "id": "item_9a9e51fb31dc",
           "name": "菓子パン",
-          "quantity": "ふつう",
-          "calories": 350,
+          "quantity": "半量",
+          "calories": 175,
           "nutrients": {
-            "protein": 7.0,
-            "fat": 15.0,
-            "carbs": 45.0,
-            "fiber": 2.0,
-            "salt": 0.5,
-            "calcium": 50.0,
-            "iron": 1.0,
-            "vitamin_a": 50.0,
+            "protein": 3.5,
+            "fat": 7.5,
+            "carbs": 22.5,
+            "fiber": 1.0,
+            "salt": 0.2,
+            "calcium": 25.0,
+            "iron": 0.5,
+            "vitamin_a": 25.0,
             "vitamin_c": 0.0,
             "vitamin_d": 0.0
           },
@@ -1925,17 +1925,17 @@
         {
           "id": "item_acf0b46b61d9",
           "name": "クリームパン",
-          "quantity": "ふつう",
-          "calories": 250,
+          "quantity": "半量",
+          "calories": 125,
           "nutrients": {
-            "protein": 6.0,
-            "fat": 10.0,
-            "carbs": 35.0,
-            "fiber": 1.0,
-            "salt": 0.5,
-            "calcium": 50.0,
-            "iron": 0.5,
-            "vitamin_a": 50.0,
+            "protein": 3.0,
+            "fat": 5.0,
+            "carbs": 17.5,
+            "fiber": 0.5,
+            "salt": 0.2,
+            "calcium": 25.0,
+            "iron": 0.2,
+            "vitamin_a": 25.0,
             "vitamin_c": 0.0,
             "vitamin_d": 0.0
           },
@@ -1947,17 +1947,17 @@
         {
           "id": "item_e11f652e68d1",
           "name": "ガーリックバターパン",
-          "quantity": "ふつう",
-          "calories": 350,
+          "quantity": "半量",
+          "calories": 175,
           "nutrients": {
-            "protein": 8.0,
-            "fat": 15.0,
-            "carbs": 45.0,
-            "fiber": 2.0,
-            "salt": 1.5,
-            "calcium": 50.0,
-            "iron": 1.0,
-            "vitamin_a": 50.0,
+            "protein": 4.0,
+            "fat": 7.5,
+            "carbs": 22.5,
+            "fiber": 1.0,
+            "salt": 0.8,
+            "calcium": 25.0,
+            "iron": 0.5,
+            "vitamin_a": 25.0,
             "vitamin_c": 0.0,
             "vitamin_d": 0.0
           },
@@ -1967,7 +1967,7 @@
           "drive_file_id": "1skhaEE5TeXPM4dR4RVFxF15I2EjveeJb"
         }
       ],
-      "total_calories": 950
+      "total_calories": 475
     }
   }
 }
