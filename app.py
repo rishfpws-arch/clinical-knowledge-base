@@ -1232,11 +1232,7 @@ def save_ignore_list(ids: set[str]) -> None:
     sh = get_sheets_client()
     if sh is not None:
         _write_json_to_sheet(sh, "ignore_list", {"ids": sorted(ids)})
-    try:
-        with open(IGNORE_LIST_PATH, "w", encoding="utf-8") as f:
-            json.dump({"ids": sorted(ids)}, f, ensure_ascii=False, indent=2)
-    except IOError:
-        pass
+    _atomic_json_write(IGNORE_LIST_PATH, {"ids": sorted(ids)})
 
 
 def add_to_ignore_list(file_ids: list[str]) -> None:
