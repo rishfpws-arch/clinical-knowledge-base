@@ -1536,7 +1536,8 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
     elif sheets_ok:
         st.session_state.pop("_pending_weight_data", None)
     # --- 同期ステータス記録 ---
-    _record_sync_status("weight_data", sheets_ok, count=len(weight_data), error=_sync_err)
+    _record_sync_status("weight_data", sheets_ok, count=len(weight_data),
+                        error=_sync_err, attempted=(sh is not None))
     return sheets_ok
 
 
