@@ -4770,9 +4770,15 @@ def page_batch_analyze():
             # ===============================================================
             st.subheader("📝 個別編集")
 
+            # 表示件数・並び順
+            pd_per_page, pd_sort_order = _render_display_options(
+                "batch_patient_page", "batch_patient_per_page", "batch_patient_sort_order"
+            )
+            patient_data_images = _sort_images(patient_data_images, pd_sort_order, metadata)
+
             # ページネーション
             page_items, current_page, total_pages = _paginate(
-                patient_data_images, "batch_patient_page"
+                patient_data_images, "batch_patient_page", per_page=pd_per_page
             )
             _render_pagination_controls(
                 "batch_patient_page", current_page, total_pages, len(patient_data_images)
@@ -4783,8 +4789,8 @@ def page_batch_analyze():
                 fid = img["id"]
                 meta = metadata.get(fid, {})
                 fname = img.get("name", fid)
-                # ページ内の通し番号（全体の番号）
-                global_idx = (current_page - 1) * IMAGES_PER_PAGE + idx + 1
+                # ページ内の通し番号（全体の番号）— 0始まりページ用に修正
+                global_idx = current_page * pd_per_page + idx + 1
                 status_icon = "✅" if meta.get("status") == STATUS_REVIEWED else "✏️"
                 kw_preview = ", ".join(meta.get("keywords", [])[:3])
                 if kw_preview:
