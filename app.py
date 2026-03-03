@@ -1734,7 +1734,8 @@ def save_food_processed(data: dict) -> None:
     _atomic_json_write(FOOD_IMAGES_PROCESSED_PATH, data)
     # --- 同期ステータス記録 ---
     _sync_err = st.session_state.pop("_save_error_detail", "") if not sheets_ok else ""
-    _record_sync_status("food_processed", sheets_ok, count=len(data), error=_sync_err)
+    _record_sync_status("food_processed", sheets_ok, count=len(data),
+                        error=_sync_err, attempted=(sh is not None))
 
 
 def get_gemini_api_key() -> str | None:
