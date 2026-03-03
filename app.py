@@ -3518,7 +3518,7 @@ def display_referenced_images(
         with st.expander(f"🖼️ {title}  (ID: {fid[:12]}...)", expanded=False):
             try:
                 image_bytes = download_image(service, fid)
-                st.image(image_bytes, width="stretch")
+                st.image(image_bytes, use_container_width=True)
 
                 if meta.get("summary"):
                     st.caption(meta["summary"])
@@ -3580,7 +3580,7 @@ def display_kb_response_with_images(
             with cols[idx % n_cols]:
                 try:
                     img_bytes = download_image(service, fid)
-                    st.image(img_bytes, caption=f"{badge} {title}", width="stretch")
+                    st.image(img_bytes, caption=f"{badge} {title}", use_container_width=True)
                 except Exception:
                     st.caption(f"{badge} {title}（読込失敗）")
                 # 患者データの場合のみ所見を表示
@@ -3975,7 +3975,7 @@ def page_image_manager():
         # --- 横並びレイアウト: 画像（左）+ 情報サマリー（右） ---
         col_img, col_info = st.columns([1, 1])
         with col_img:
-            st.image(image_bytes, width="stretch")
+            st.image(image_bytes, use_container_width=True)
 
         with col_info:
             # タイトル
@@ -4117,7 +4117,7 @@ def page_image_manager():
                     # サムネイル表示
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -4143,7 +4143,7 @@ def page_image_manager():
                     # 削除モード
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -4326,7 +4326,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -4410,7 +4410,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -4498,7 +4498,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -4722,7 +4722,7 @@ def page_batch_analyze():
                     with col_img:
                         try:
                             img_bytes = download_thumbnail(service, fid)
-                            st.image(img_bytes, width="stretch")
+                            st.image(img_bytes, use_container_width=True)
                         except Exception:
                             st.caption("（画像を読み込めません）")
                             img_bytes = None
@@ -4824,7 +4824,7 @@ def page_batch_analyze():
         # --- 横並びレイアウト: 画像（左）+ 要約（右） ---
         rev_col_img, rev_col_info = st.columns([1, 1])
         with rev_col_img:
-            st.image(image_bytes, width="stretch")
+            st.image(image_bytes, use_container_width=True)
         with rev_col_info:
             title = current_meta.get("title", current_img.get("name", "不明"))
             st.subheader(title)
@@ -4917,7 +4917,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -5012,7 +5012,7 @@ def page_batch_analyze():
                 with cols[idx % 4]:
                     thumb = download_thumbnail(service, fid)
                     if thumb:
-                        st.image(thumb, width="stretch")
+                        st.image(thumb, use_container_width=True)
                     else:
                         st.markdown(
                             f"<div style='height:100px;background:#2a2a3a;display:flex;"
@@ -5096,7 +5096,7 @@ def page_batch_analyze():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -5670,7 +5670,7 @@ def page_folder_manual():
             with cols[col_idx]:
                 try:
                     thumb_bytes = download_thumbnail(service, fid)
-                    st.image(thumb_bytes, width="stretch")
+                    st.image(thumb_bytes, use_container_width=True)
                 except Exception:
                     st.markdown(
                         '<div style="background:#333;border-radius:8px;'
@@ -5796,7 +5796,7 @@ def page_folder_ai():
             # --- 横並びレイアウト: 画像（左）+ 情報サマリー（右） ---
             col_img, col_info = st.columns([1, 1])
             with col_img:
-                st.image(image_bytes, width="stretch")
+                st.image(image_bytes, use_container_width=True)
 
             with col_info:
                 title = meta.get("title", detail_file["name"])
@@ -5899,7 +5899,7 @@ def page_folder_ai():
                 with cols[col_idx]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         st.markdown(
                             '<div style="background:#333;border-radius:8px;'
@@ -6217,7 +6217,7 @@ def page_folder_ai():
                 with cols[idx % 4]:
                     try:
                         thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, width="stretch")
+                        st.image(thumb_bytes, use_container_width=True)
                     except Exception:
                         pass
                     st.caption(title)
@@ -6518,7 +6518,7 @@ def page_chat():
             _prev_bytes = download_image(service, _ocr_preview_fid)
             if _prev_bytes:
                 if _img_only:
-                    st.image(_prev_bytes, width="stretch")
+                    st.image(_prev_bytes, use_container_width=True)
                 else:
                     render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
         except Exception:
@@ -6878,7 +6878,7 @@ def page_image_library():
             # --- 通常の横並びレイアウト ---
             col_img, col_info = st.columns([1, 1])
             with col_img:
-                st.image(image_bytes, width="stretch")
+                st.image(image_bytes, use_container_width=True)
             with col_info:
                 title = meta.get("title", selected_file["name"])
                 st.subheader(title)
@@ -7046,7 +7046,7 @@ def page_image_library():
             with cols[col_idx]:
                 try:
                     thumb_bytes = download_thumbnail(service, fid)
-                    st.image(thumb_bytes, width="stretch")
+                    st.image(thumb_bytes, use_container_width=True)
                 except Exception:
                     st.markdown(
                         '<div style="background:#333;border-radius:8px;'
@@ -7280,7 +7280,7 @@ def page_import_analyze():
                     with cols[col_idx]:
                         try:
                             thumb_bytes = download_thumbnail(service, fid)
-                            st.image(thumb_bytes, width="stretch")
+                            st.image(thumb_bytes, use_container_width=True)
                         except Exception:
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
@@ -7365,7 +7365,7 @@ def page_import_analyze():
                         # サムネイル
                         try:
                             thumb = download_image(service, fid)
-                            st.image(thumb, width="stretch")
+                            st.image(thumb, use_container_width=True)
                         except Exception:
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
@@ -7505,7 +7505,7 @@ def page_import_analyze():
                     with detail_col_img:
                         try:
                             detail_bytes = download_image(service, sel_fid)
-                            st.image(detail_bytes, width="stretch")
+                            st.image(detail_bytes, use_container_width=True)
                         except Exception:
                             st.caption("（画像を読み込めません）")
 
@@ -7615,7 +7615,7 @@ def page_import_analyze():
                             with cols[col_idx]:
                                 try:
                                     thumb_bytes = download_thumbnail(service, fid)
-                                    st.image(thumb_bytes, width="stretch")
+                                    st.image(thumb_bytes, use_container_width=True)
                                 except Exception:
                                     st.markdown(
                                         '<div style="background:#333;border-radius:8px;'
@@ -7690,7 +7690,7 @@ def page_import_analyze():
                             with cols[col_idx]:
                                 try:
                                     thumb_bytes = download_thumbnail(service, fid)
-                                    st.image(thumb_bytes, width="stretch")
+                                    st.image(thumb_bytes, use_container_width=True)
                                 except Exception:
                                     st.markdown(
                                         '<div style="background:#333;border-radius:8px;'
@@ -7962,7 +7962,7 @@ def page_import_analyze():
 
                 rev_col_img, rev_col_info = st.columns([1, 1])
                 with rev_col_img:
-                    st.image(image_bytes, width="stretch")
+                    st.image(image_bytes, use_container_width=True)
                 with rev_col_info:
                     title = current_meta.get("title", current_img.get("name", "不明"))
                     st.subheader(title)
@@ -8041,7 +8041,7 @@ def page_import_analyze():
                         with cols[col_idx]:
                             try:
                                 thumb_bytes = download_thumbnail(service, fid)
-                                st.image(thumb_bytes, width="stretch")
+                                st.image(thumb_bytes, use_container_width=True)
                             except Exception:
                                 st.markdown(
                                     '<div style="background:#333;border-radius:8px;'
@@ -8127,7 +8127,7 @@ def page_import_analyze():
                     with cols[idx % 4]:
                         thumb = download_thumbnail(service, fid)
                         if thumb:
-                            st.image(thumb, width="stretch")
+                            st.image(thumb, use_container_width=True)
                         else:
                             st.markdown(
                                 f"<div style='height:100px;background:#2a2a3a;display:flex;"
@@ -8341,7 +8341,7 @@ def page_settings_all():
                     with cols[col_idx]:
                         try:
                             thumb_bytes = download_thumbnail(service, fid)
-                            st.image(thumb_bytes, width="stretch")
+                            st.image(thumb_bytes, use_container_width=True)
                         except Exception:
                             st.markdown(
                                 '<div style="background:#333;border-radius:8px;'
@@ -8900,7 +8900,7 @@ def _render_food_thumbnails(day_data: dict):
                     f"🍽️ {target['meal_label']}</p>",
                     unsafe_allow_html=True,
                 )
-                st.image(img_bytes, width="stretch")
+                st.image(img_bytes, use_container_width=True)
             else:
                 st.warning("画像の読み込みに失敗しました。")
             # 前・次ボタン
