@@ -869,7 +869,8 @@ def save_metadata(metadata: dict) -> bool:
         # 成功したらペンディングをクリア
         st.session_state.pop("_pending_metadata", None)
     # --- 同期ステータス記録 ---
-    _record_sync_status("metadata", sheets_ok, count=len(metadata), error=_sync_err)
+    _record_sync_status("metadata", sheets_ok, count=len(metadata),
+                        error=_sync_err, attempted=(sh is not None))
     return sheets_ok
 
 
