@@ -228,7 +228,7 @@ def _check_auth() -> bool:
         with st.form("login_form"):
             username = st.text_input("ユーザー名", placeholder="ユーザー名を入力")
             password = st.text_input("パスワード", type="password", placeholder="パスワードを入力")
-            submitted = st.form_submit_button("🔐 ログイン", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("🔐 ログイン", type="primary", width="stretch")
 
         if submitted:
             if not username or not password:
@@ -3493,7 +3493,7 @@ def display_kb_response_with_images(
                 if st.button(
                     "🔍 拡大表示",
                     key=f"kb_detail_{fid}{key_suffix}",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     st.session_state["lib_selected_id"] = fid
                     st.session_state["lib_enlarged_view"] = True
@@ -3626,7 +3626,7 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
                 label_visibility="collapsed",
             )
             home_search_clicked = st.form_submit_button(
-                "🔍 検索する", type="primary", use_container_width=True,
+                "🔍 検索する", type="primary", width="stretch",
             )
         if home_search_clicked and home_query:
             st.session_state["pending_question"] = home_query
@@ -3695,7 +3695,7 @@ def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
                 if st.sidebar.button(
                     _label,
                     key=f"ocr_hit_{fid}",
-                    use_container_width=True,
+                    width="stretch",
                     type="primary" if _is_viewing else "secondary",
                 ):
                     st.session_state["_ocr_preview_id"] = fid
@@ -4493,7 +4493,7 @@ def page_batch_analyze():
                         key="pd_bulk_titles",
                     )
                     if st.button("💾 タイトルを一括保存", key="pd_bulk_title_save",
-                                 type="primary", use_container_width=True):
+                                 type="primary", width="stretch"):
                         saved_count = 0
                         for line in bulk_titles_text.strip().split("\n"):
                             line = line.strip()
@@ -4545,7 +4545,7 @@ def page_batch_analyze():
                         f"🤖 一括AIキーワード生成（{no_kw_count if ai_target == 'キーワード未設定のみ' else all_count} 件）",
                         key="pd_bulk_ai_kw",
                         type="primary",
-                        use_container_width=True,
+                        width="stretch",
                     ):
                         if not api_key:
                             st.warning("Gemini API キーが必要です。")
@@ -4650,7 +4650,7 @@ def page_batch_analyze():
                                 key=f"pd_kw_{fid}_{current_page}",
                             )
                             submitted = st.form_submit_button(
-                                "💾 保存", type="primary", use_container_width=True,
+                                "💾 保存", type="primary", width="stretch",
                             )
                             if submitted:
                                 kw_list = [
@@ -6372,12 +6372,12 @@ def page_chat():
         _sg_cols = st.columns(min(len(_suggestions) + 1, 5))
         for i, sg in enumerate(_suggestions):
             with _sg_cols[i]:
-                if st.button(sg, key=f"_sg_{i}", use_container_width=True):
+                if st.button(sg, key=f"_sg_{i}", width="stretch"):
                     st.session_state.pop("_search_suggestions", None)
                     focused_query = f"{_kw} について、{sg}"
                     handle_chat_submit(focused_query, sessions, metadata, api_key)
         with _sg_cols[len(_suggestions)]:
-            if st.button("📋 すべて表示", key="_sg_all", use_container_width=True):
+            if st.button("📋 すべて表示", key="_sg_all", width="stretch"):
                 st.session_state.pop("_search_suggestions", None)
                 handle_chat_submit(_kw, sessions, metadata, api_key)
         return  # サジェスト表示中は他を描画しない
@@ -6875,9 +6875,9 @@ def page_image_library():
     with mode_c1:
         if _cur_mode == "browse":
             st.button("🔍 閲覧", key="lib_mode_browse", type="primary",
-                      use_container_width=True, disabled=True)
+                      width="stretch", disabled=True)
         else:
-            if st.button("🔍 閲覧", key="lib_mode_browse", use_container_width=True):
+            if st.button("🔍 閲覧", key="lib_mode_browse", width="stretch"):
                 st.session_state["lib_mode"] = "browse"
                 for img in filtered_images:
                     st.session_state.pop(f"lib_sel_{img['id']}", None)
@@ -6885,17 +6885,17 @@ def page_image_library():
     with mode_c2:
         if _cur_mode == "delete":
             st.button("🗑️ 削除", key="lib_mode_delete", type="primary",
-                      use_container_width=True, disabled=True)
+                      width="stretch", disabled=True)
         else:
-            if st.button("🗑️ 削除", key="lib_mode_delete", use_container_width=True):
+            if st.button("🗑️ 削除", key="lib_mode_delete", width="stretch"):
                 st.session_state["lib_mode"] = "delete"
                 st.rerun()
     with mode_c3:
         if _cur_mode == "move":
             st.button("📂 移動", key="lib_mode_move", type="primary",
-                      use_container_width=True, disabled=True)
+                      width="stretch", disabled=True)
         else:
-            if st.button("📂 移動", key="lib_mode_move", use_container_width=True):
+            if st.button("📂 移動", key="lib_mode_move", width="stretch"):
                 st.session_state["lib_mode"] = "move"
                 st.rerun()
 
@@ -6996,7 +6996,7 @@ def page_image_library():
                 if st.button(
                     f"🗑️ 選択した {del_count} 件をゴミ箱へ",
                     type="primary", key="lib_del_trash_run",
-                    disabled=(del_count == 0), use_container_width=True,
+                    disabled=(del_count == 0), width="stretch",
                 ):
                     moved = move_to_trash(selected_ids, metadata)
                     for fid in selected_ids:
@@ -7009,7 +7009,7 @@ def page_image_library():
                 if st.button(
                     f"🔄 選択した {del_count} 件のメタデータを削除",
                     type="primary", key="lib_del_meta_run",
-                    disabled=(del_count == 0), use_container_width=True,
+                    disabled=(del_count == 0), width="stretch",
                 ):
                     removed = 0
                     for fid in selected_ids:
@@ -7032,7 +7032,7 @@ def page_image_library():
             if st.button(
                 f"📁 選択した {move_count} 件を「{_dest_label}」に移動",
                 type="primary", key="lib_move_run",
-                disabled=(move_count == 0), use_container_width=True,
+                disabled=(move_count == 0), width="stretch",
             ):
                 for fid in selected_ids:
                     if fid in metadata:
@@ -7304,7 +7304,7 @@ def page_import_analyze():
             btn_c1, btn_c2 = st.columns(2)
             with btn_c1:
                 if st.button("💾 タイトルを一括保存", key="pd_save_titles",
-                             use_container_width=True):
+                             width="stretch"):
                     saved = _save_all_patient_titles(patient_data_images, metadata)
                     if saved > 0:
                         save_metadata(metadata)
@@ -7323,7 +7323,7 @@ def page_import_analyze():
                 if st.button(
                     f"💾 保存 & 🤖 AI一括タグ付け（{selected_count} 件）",
                     key="pd_save_and_ai", type="primary",
-                    use_container_width=True,
+                    width="stretch",
                     disabled=(selected_count == 0),
                 ):
                     # まずタイトルを保存
@@ -7431,7 +7431,7 @@ def page_import_analyze():
                                 key=f"pd_det_kw_{sel_fid}",
                             )
                             submitted = st.form_submit_button(
-                                "💾 保存", type="primary", use_container_width=True,
+                                "💾 保存", type="primary", width="stretch",
                             )
                             if submitted:
                                 kw_list = [
@@ -8130,7 +8130,7 @@ def page_settings_all():
         st.markdown("#### 🔄 強制同期")
         sync_c1, sync_c2 = st.columns(2)
         with sync_c1:
-            if st.button("🔄 Local → Sheets に強制同期", key="force_sync_l2s", type="primary", use_container_width=True):
+            if st.button("🔄 Local → Sheets に強制同期", key="force_sync_l2s", type="primary", width="stretch"):
                 with st.spinner("Sheets へ同期中..."):
                     results = _force_sync_local_to_sheets()
                 if "error" in results:
@@ -8150,7 +8150,7 @@ def page_settings_all():
                 st.session_state["_sync_health_ts"] = 0
                 st.rerun()
         with sync_c2:
-            if st.button("📥 Sheets → Local に復元", key="force_sync_s2l", use_container_width=True):
+            if st.button("📥 Sheets → Local に復元", key="force_sync_s2l", width="stretch"):
                 with st.spinner("ローカルに復元中..."):
                     results = _force_sync_sheets_to_local()
                 if "error" in results:
@@ -8318,7 +8318,7 @@ def page_settings_all():
         auth_user = st.session_state.get("auth_user")
         if auth_user:
             st.write(f"ログイン中: **{auth_user}**")
-            if st.button("🚪 ログアウト", key="sys_logout", use_container_width=True):
+            if st.button("🚪 ログアウト", key="sys_logout", width="stretch"):
                 # localStorage のトークンをクリア
                 _clear_auth_storage()
                 # 認証ファイルを削除
@@ -8414,7 +8414,7 @@ def _render_date_navigation():
 
     col_prev, col_date, col_next, col_today = st.columns([1, 4, 1, 1.5])
     with col_prev:
-        if st.button("◀", key="wm_prev_day", use_container_width=True):
+        if st.button("◀", key="wm_prev_day", width="stretch"):
             st.session_state["wm_selected_date"] = sel - timedelta(days=1)
             st.rerun()
     with col_date:
@@ -8423,12 +8423,12 @@ def _render_date_navigation():
             unsafe_allow_html=True,
         )
     with col_next:
-        if st.button("▶", key="wm_next_day", use_container_width=True):
+        if st.button("▶", key="wm_next_day", width="stretch"):
             st.session_state["wm_selected_date"] = sel + timedelta(days=1)
             st.rerun()
     with col_today:
         if sel != date.today():
-            if st.button("今日", key="wm_today_btn", use_container_width=True):
+            if st.button("今日", key="wm_today_btn", width="stretch"):
                 st.session_state["wm_selected_date"] = date.today()
                 st.rerun()
 
@@ -8843,7 +8843,7 @@ def _render_food_thumbnails(day_data: dict):
                     # 画像なし — プレースホルダー
                     st.caption(f"🖼️ {img['meal_label']}")
                 # 拡大ボタン
-                if st.button("🔍", key=f"food_enlarge_{img['id']}", use_container_width=True):
+                if st.button("🔍", key=f"food_enlarge_{img['id']}", width="stretch"):
                     st.session_state["_food_enlarged_id"] = img["id"]
                     st.rerun()
 
@@ -8970,7 +8970,7 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
             with ec4:
                 st.markdown(f"現在: **{cal} kcal**")
                 st.caption("💡 品目名を変更するとAIが自動再計算、量の変更は即時反映します")
-            edit_submitted = st.form_submit_button("💾 保存", use_container_width=True)
+            edit_submitted = st.form_submit_button("💾 保存", width="stretch")
         if edit_submitted:
             final_name = new_name.strip() or name
             final_qty = new_qty
@@ -9820,7 +9820,7 @@ def main():
             st.rerun()
 
     # ─── サイドバー: 患者データ快速アクセス ───
-    if st.sidebar.button("🏥 患者データ", key="sidebar_patient_data", use_container_width=True):
+    if st.sidebar.button("🏥 患者データ", key="sidebar_patient_data", width="stretch"):
         st.session_state["active_tab"] = TAB_NAMES[1]  # 📸 画像ライブラリ
         st.session_state["lib_folder_filter"] = PATIENT_DATA_FOLDER
         st.rerun()
