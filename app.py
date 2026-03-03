@@ -8096,6 +8096,9 @@ def page_settings_all():
 
         _DATA_LABELS = {"metadata": "📋 メタデータ", "weight_data": "⚖️ 体重データ", "food_processed": "🍽️ 食事処理済み"}
 
+        _is_sheets_connected = st.session_state.get("_sheets_connected", None)
+        if _is_sheets_connected is False:
+            st.warning("📡 Google Sheets に接続されていません。secrets に `spreadsheet_id` と `gcp_service_account` を設定してください。データはローカルに保存されています。")
         if health:
             st.markdown("#### 📊 同期ステータス")
             for dtype, label in _DATA_LABELS.items():
@@ -8119,7 +8122,13 @@ def page_settings_all():
                         st.metric("差異", f"⚠️ {diff}件", delta=f"Sheetsが{abs(diff)}件多い", delta_color="inverse")
                 with sc4:
                     if s:
-                        icon = "✅" if s.get("success") else "❌"
+                        attempted = s.get("attempted", True)
+                        if not attempted:
+                            icon = "⏸️"  # 未試行
+                        elif s.get("success"):
+                            icon = "✅"
+                        else:
+                            icon = "❌"
                         ts = s.get("timestamp", "")
                         if ts:
                             try:
@@ -8131,7 +8140,7 @@ def page_settings_all():
                         st.metric("最終同期", f"{icon} {ts_short}")
                     else:
                         st.metric("最終同期", "--- 未実行")
-        else:
+        elif _is_sheets_connected is None:
             st.info("同期ヘルスチェックはまだ実行されていません。ページ再読み込みで自動実行されます。")
 
         st.markdown("---")
