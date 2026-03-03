@@ -971,6 +971,92 @@ def _check_sync_health():
         _log.info(f"[sync_health] 差異検出: {health}")
 
 
+_AUTO_SYNC_COOLDOWN = 600  # 10分
+
+
+def _auto_resolve_sync_diff():
+    """ヘルスチェックで差異が検出された場合、ローカルとSheetsを自動マージする。
+    双方にしかないデータを統合し、競合はローカル優先。クールダウン付き。"""
+    health = st.session_state.get("_sync_health", {})
+    total_diff = sum(abs(v.get("diff", 0)) for v in health.values())
+    if total_diff == 0:
+        return
+
+    # クールダウンチェック
+    last_auto = st.session_state.get("_auto_sync_ts", 0)
+    if time.time() - last_auto < _AUTO_SYNC_COOLDOWN:
+        return
+
+    sh = get_sheets_client()
+    if sh is None:
+        return
+
+    st.session_state["_auto_sync_ts"] = time.time()
+    _log.info(f"[auto_sync] 差異自動マージ開始 (total_diff={total_diff})")
+
+    _SYNC_TARGETS = [
+        ("metadata", METADATA_PATH, "_cache_metadata"),
+        ("weight_data", WEIGHT_DATA_PATH, "_cache_weight_data"),
+        ("food_processed", FOOD_IMAGES_PROCESSED_PATH, "_cache_food_processed"),
+    ]
+
+    synced_types = []
+    for dtype, path, cache_key in _SYNC_TARGETS:
+        h = health.get(dtype, {})
+        if h.get("diff", 0) == 0 and not h.get("error"):
+            continue  # 差異なし — スキップ
+        try:
+            # ローカルデータ読み込み
+            local_data = {}
+            if path.exists():
+                with open(path, "r", encoding="utf-8") as f:
+                    local_data = json.load(f)
+
+            # Sheetsデータ読み込み
+            sheets_data = _read_json_from_sheet(sh, dtype)
+            if not isinstance(sheets_data, dict):
+                sheets_data = {}
+
+            # マージ: Sheets をベースに、ローカルで上書き（ローカル優先）
+            merged = dict(sheets_data)
+            for k, v in local_data.items():
+                merged[k] = v
+
+            merged_count = len(merged)
+            local_count = len(local_data)
+            sheets_count = len(sheets_data)
+            new_from_sheets = merged_count - local_count
+            new_from_local = merged_count - sheets_count
+
+            # 変化がある場合のみ書き込み
+            if merged_count != local_count:
+                _atomic_json_write(path, merged)
+                _set_cache(cache_key, merged)
+                _log.info(f"[auto_sync] {dtype}: ローカル更新 "
+                          f"({local_count}→{merged_count}, Sheetsから+{new_from_sheets})")
+
+            if merged_count != sheets_count:
+                ok = _write_json_to_sheet(sh, dtype, merged)
+                if ok:
+                    _record_sync_status(dtype, True, count=merged_count, attempted=True)
+                    _log.info(f"[auto_sync] {dtype}: Sheets更新 "
+                              f"({sheets_count}→{merged_count}, ローカルから+{new_from_local})")
+                else:
+                    _record_sync_status(dtype, False, count=merged_count,
+                                        error="auto_sync write failed", attempted=True)
+                    _log.warning(f"[auto_sync] {dtype}: Sheets書き込み失敗")
+                time.sleep(1)  # API rate limit 対策
+
+            synced_types.append(dtype)
+        except Exception as e:
+            _log.warning(f"[auto_sync] {dtype} マージ失敗: {type(e).__name__}: {e}")
+
+    if synced_types:
+        # ヘルスチェックを即再実行して差異表示を更新
+        st.session_state["_sync_health_ts"] = 0
+        _log.info(f"[auto_sync] 完了: {', '.join(synced_types)}")
+
+
 def _force_sync_local_to_sheets() -> dict:
     """ローカルの全データ（metadata, weight_data, food_processed）を
     Sheetsに一括書き込みする。結果を返す。"""
