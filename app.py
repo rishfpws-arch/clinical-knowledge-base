@@ -9956,8 +9956,11 @@ def main():
     _sync_health = st.session_state.get("_sync_health", {})
     _sync_status = st.session_state.get("_sync_status", {})
     if _sheets_connected is False:
-        # Sheets 未接続（設定不備 or 接続失敗）— エラーではなく情報表示
-        st.sidebar.caption("📡 Sheets未接続（ローカル保存中）")
+        # Sheets 未接続（設定不備 or 接続失敗）— エラー詳細も表示
+        _sh_err = st.session_state.get("_sheets_error", "")
+        st.sidebar.caption(f"📡 Sheets未接続（ローカル保存中）")
+        if _sh_err:
+            st.sidebar.caption(f"⚠️ {_sh_err}")
     elif _sync_health or _sync_status:
         # attempted=True かつ success=False のもののみ「同期失敗」
         failed_types = [
