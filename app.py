@@ -4624,7 +4624,7 @@ def page_batch_analyze():
                     with col_img:
                         try:
                             img_bytes = download_thumbnail(service, fid)
-                            st.image(img_bytes, use_container_width=True)
+                            st.image(img_bytes, width="stretch")
                         except Exception:
                             st.caption("（画像を読み込めません）")
                             img_bytes = None
@@ -4914,7 +4914,7 @@ def page_batch_analyze():
                 with cols[idx % 4]:
                     thumb = download_thumbnail(service, fid)
                     if thumb:
-                        st.image(thumb, use_container_width=True)
+                        st.image(thumb, width="stretch")
                     else:
                         st.markdown(
                             f"<div style='height:100px;background:#2a2a3a;display:flex;"
@@ -6420,7 +6420,7 @@ def page_chat():
             _prev_bytes = download_image(service, _ocr_preview_fid)
             if _prev_bytes:
                 if _img_only:
-                    st.image(_prev_bytes, use_container_width=True)
+                    st.image(_prev_bytes, width="stretch")
                 else:
                     render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
         except Exception:
@@ -8029,7 +8029,7 @@ def page_import_analyze():
                     with cols[idx % 4]:
                         thumb = download_thumbnail(service, fid)
                         if thumb:
-                            st.image(thumb, use_container_width=True)
+                            st.image(thumb, width="stretch")
                         else:
                             st.markdown(
                                 f"<div style='height:100px;background:#2a2a3a;display:flex;"
@@ -8793,7 +8793,7 @@ def _render_food_thumbnails(day_data: dict):
                     f"🍽️ {target['meal_label']}</p>",
                     unsafe_allow_html=True,
                 )
-                st.image(img_bytes, use_container_width=True)
+                st.image(img_bytes, width="stretch")
             else:
                 st.warning("画像の読み込みに失敗しました。")
             # 前・次ボタン
