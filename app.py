@@ -906,6 +906,8 @@ def _check_sync_health():
         # Sheets 未接続 — ヘルスチェック不要（差異表示しない）
         st.session_state["_sync_health"] = {}
         st.session_state["_sheets_connected"] = False
+        st.session_state["_sheets_error"] = st.session_state.get(
+            "_save_error_detail", "不明")
         return
 
     st.session_state["_sheets_connected"] = True
