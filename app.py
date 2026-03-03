@@ -6861,13 +6861,6 @@ def page_image_library():
         download_image.clear()
         st.rerun()
 
-    # 表示件数・並び順
-    st.sidebar.markdown("---")
-    with st.sidebar:
-        lib_per_page, lib_sort_order = _render_display_options(
-            "lib_grid_page", "lib_per_page", "lib_sort_order"
-        )
-
     # --- フィルタ適用 ---
     filtered_images = filter_images_by_keyword(
         images, search_keyword, metadata, include_ocr=lib_ocr_toggle,
