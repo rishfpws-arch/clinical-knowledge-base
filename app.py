@@ -3237,6 +3237,81 @@ def _render_pagination_controls(page_key: str, current: int, total_pages: int, t
 
 
 # ---------------------------------------------------------------------------
+# UI部品: 表示件数・ソート選択
+# ---------------------------------------------------------------------------
+_SORT_OPTIONS = ["新しい順", "古い順", "タイトル順"]
+
+
+def _render_display_options(
+    page_key: str, per_page_key: str, sort_key: str
+) -> tuple[int, str]:
+    """表示件数と並び順の selectbox を横並びで描画し、(per_page, sort_order) を返す。
+
+    件数 or 並び順が変更された場合はページ番号を 0 にリセットする。
+    """
+    col_pp, col_so = st.columns(2)
+    with col_pp:
+        per_page = st.selectbox(
+            "表示件数",
+            PER_PAGE_OPTIONS,
+            index=PER_PAGE_OPTIONS.index(
+                st.session_state.get(per_page_key, IMAGES_PER_PAGE)
+            ),
+            key=per_page_key,
+        )
+    with col_so:
+        sort_order = st.selectbox(
+            "並び順",
+            _SORT_OPTIONS,
+            index=_SORT_OPTIONS.index(
+                st.session_state.get(sort_key, _SORT_OPTIONS[0])
+            ),
+            key=sort_key,
+        )
+
+    # 前回値と比較してページリセット
+    prev_pp_key = f"_prev_{per_page_key}"
+    prev_so_key = f"_prev_{sort_key}"
+    prev_pp = st.session_state.get(prev_pp_key)
+    prev_so = st.session_state.get(prev_so_key)
+
+    if prev_pp is not None and prev_pp != per_page:
+        st.session_state[page_key] = 0
+    if prev_so is not None and prev_so != sort_order:
+        st.session_state[page_key] = 0
+
+    st.session_state[prev_pp_key] = per_page
+    st.session_state[prev_so_key] = sort_order
+
+    return per_page, sort_order
+
+
+def _sort_images(
+    images: list, sort_order: str, metadata: dict
+) -> list:
+    """画像リストを指定の並び順でソートして返す（元リストは変更しない）。
+
+    - "新しい順": modifiedTime 降順（デフォルト）
+    - "古い順"  : modifiedTime 昇順
+    - "タイトル順": metadata[id]["title"] の五十音順
+    modifiedTime が無い画像は末尾に配置。
+    """
+    if sort_order == "タイトル順":
+        def _title_key(img):
+            m = metadata.get(img["id"], {})
+            return m.get("title", img.get("name", ""))
+        return sorted(images, key=_title_key)
+
+    reverse = sort_order != "古い順"
+
+    def _time_key(img):
+        t = img.get("modifiedTime", "")
+        return t if t else ("" if reverse else "9999")
+
+    return sorted(images, key=_time_key, reverse=reverse)
+
+
+# ---------------------------------------------------------------------------
 # UI部品: 編集フォーム
 # ---------------------------------------------------------------------------
 def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
@@ -6780,6 +6855,13 @@ def page_image_library():
         download_image.clear()
         st.rerun()
 
+    # 表示件数・並び順
+    st.sidebar.markdown("---")
+    with st.sidebar:
+        lib_per_page, lib_sort_order = _render_display_options(
+            "lib_grid_page", "lib_per_page", "lib_sort_order"
+        )
+
     # --- フィルタ適用 ---
     filtered_images = filter_images_by_keyword(
         images, search_keyword, metadata, include_ocr=lib_ocr_toggle,
@@ -7028,8 +7110,11 @@ def page_image_library():
             if st.button("🔄 全解除", key="lib_sel_none"):
                 _set_batch_checkbox("_lib_sel_flag", False)
 
-    # ページネーション
-    page_items, cur_page, total_pages = _paginate(filtered_images, "lib_grid_page")
+    # ソート適用 → ページネーション
+    filtered_images = _sort_images(filtered_images, lib_sort_order, metadata)
+    page_items, cur_page, total_pages = _paginate(
+        filtered_images, "lib_grid_page", per_page=lib_per_page
+    )
     _render_pagination_controls("lib_grid_page", cur_page, total_pages, len(filtered_images))
 
     # グリッド表示
