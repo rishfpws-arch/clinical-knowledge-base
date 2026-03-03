@@ -77,6 +77,7 @@ _LOGIN_COOLDOWN_SECONDS = 60  # クールダウン秒数
 DEFAULT_FOLDER = "未分類"
 PATIENT_DATA_FOLDER = "患者データ"
 IMAGES_PER_PAGE = 10  # グリッド表示で1ページに表示する画像数
+PER_PAGE_OPTIONS = [10, 20, 30]  # 表示件数の選択肢
 
 # ステータス定数
 STATUS_AUTO = "auto_generated"
