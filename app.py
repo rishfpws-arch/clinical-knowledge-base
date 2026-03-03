@@ -895,14 +895,21 @@ _SYNC_HEALTH_INTERVAL = 300  # 5分
 
 def _check_sync_health():
     """ローカルとSheetsの件数を比較し、差異を session_state に記録する。
-    5分間隔でのみ実行。"""
+    5分間隔でのみ実行。Sheets 未接続時はスキップ。"""
     last_check = st.session_state.get("_sync_health_ts", 0)
     if time.time() - last_check < _SYNC_HEALTH_INTERVAL:
         return
     st.session_state["_sync_health_ts"] = time.time()
 
-    health = {}
     sh = get_sheets_client()
+    if sh is None:
+        # Sheets 未接続 — ヘルスチェック不要（差異表示しない）
+        st.session_state["_sync_health"] = {}
+        st.session_state["_sheets_connected"] = False
+        return
+
+    st.session_state["_sheets_connected"] = True
+    health = {}
 
     # メタデータ
     try:
@@ -911,10 +918,9 @@ def _check_sync_health():
             with open(METADATA_PATH, "r", encoding="utf-8") as f:
                 local_meta = json.load(f)
         sheets_meta_count = 0
-        if sh is not None:
-            sheets_data = _read_json_from_sheet(sh, "metadata")
-            if sheets_data and isinstance(sheets_data, dict):
-                sheets_meta_count = len(sheets_data)
+        sheets_data = _read_json_from_sheet(sh, "metadata")
+        if sheets_data and isinstance(sheets_data, dict):
+            sheets_meta_count = len(sheets_data)
         health["metadata"] = {
             "local": len(local_meta), "sheets": sheets_meta_count,
             "diff": len(local_meta) - sheets_meta_count,
@@ -930,10 +936,9 @@ def _check_sync_health():
             with open(WEIGHT_DATA_PATH, "r", encoding="utf-8") as f:
                 local_wt = json.load(f)
         sheets_wt_count = 0
-        if sh is not None:
-            sheets_wt = _read_json_from_sheet(sh, "weight_data")
-            if sheets_wt and isinstance(sheets_wt, dict):
-                sheets_wt_count = len(sheets_wt)
+        sheets_wt = _read_json_from_sheet(sh, "weight_data")
+        if sheets_wt and isinstance(sheets_wt, dict):
+            sheets_wt_count = len(sheets_wt)
         health["weight_data"] = {
             "local": len(local_wt), "sheets": sheets_wt_count,
             "diff": len(local_wt) - sheets_wt_count,
@@ -949,10 +954,9 @@ def _check_sync_health():
             with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
                 local_fp = json.load(f)
         sheets_fp_count = 0
-        if sh is not None:
-            sheets_fp = _read_json_from_sheet(sh, "food_processed")
-            if sheets_fp and isinstance(sheets_fp, dict):
-                sheets_fp_count = len(sheets_fp)
+        sheets_fp = _read_json_from_sheet(sh, "food_processed")
+        if sheets_fp and isinstance(sheets_fp, dict):
+            sheets_fp_count = len(sheets_fp)
         health["food_processed"] = {
             "local": len(local_fp), "sheets": sheets_fp_count,
             "diff": len(local_fp) - sheets_fp_count,
