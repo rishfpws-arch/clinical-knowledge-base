@@ -7109,6 +7109,11 @@ def page_image_library():
             if st.button("🔄 全解除", key="lib_sel_none"):
                 _set_batch_checkbox("_lib_sel_flag", False)
 
+    # 表示件数・並び順（メイン画面）
+    lib_per_page, lib_sort_order = _render_display_options(
+        "lib_grid_page", "lib_per_page", "lib_sort_order"
+    )
+
     # ソート適用 → ページネーション
     filtered_images = _sort_images(filtered_images, lib_sort_order, metadata)
     page_items, cur_page, total_pages = _paginate(
