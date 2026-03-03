@@ -9945,8 +9945,9 @@ def main():
     # ─── 前回失敗した Sheets 書き込みを再試行 ───
     _retry_pending_saves()
 
-    # ─── 同期ヘルスチェック（5分間隔） ───
+    # ─── 同期ヘルスチェック（5分間隔）＋差異自動マージ ───
     _check_sync_health()
+    _auto_resolve_sync_diff()
 
     # ─── サイドバー: 同期ステータス ───
     _sheets_connected = st.session_state.get("_sheets_connected", None)
