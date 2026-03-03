@@ -873,13 +873,16 @@ def save_metadata(metadata: dict) -> bool:
     return sheets_ok
 
 
-def _record_sync_status(data_type: str, success: bool, count: int = 0, error: str = ""):
-    """各データタイプの Sheets 同期ステータスを session_state に記録する。"""
+def _record_sync_status(data_type: str, success: bool, count: int = 0,
+                        error: str = "", attempted: bool = True):
+    """各データタイプの Sheets 同期ステータスを session_state に記録する。
+    attempted=False は Sheets 未接続のため同期を試みなかったことを示す。"""
     key = "_sync_status"
     if key not in st.session_state:
         st.session_state[key] = {}
     st.session_state[key][data_type] = {
         "success": success,
+        "attempted": attempted,
         "count": count,
         "error": error,
         "timestamp": datetime.now().isoformat(),
