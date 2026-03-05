@@ -516,14 +516,14 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 質問者は初期研修医〜後期研修医レベルの若手医師です。
 一般人向けの噛み砕いた説明は一切不要です。
 
-以下の【保存された知識】のみに基づいて回答してください。
+以下の【保存された知識】と、あなたの医学知識の両方を活用して回答してください。
 
 ## 回答フォーマット（厳守）
-回答は必ず**箇条書き**で要点のみを簡潔に書いてください。
-冗長な文章は禁止です。各項目は具体的な所見・数値・薬剤名を含む1〜2文にしてください。
 
-### 該当する知識が複数ある場合
-項目ごとにセクションを分け、各セクション内を箇条書きで記載。
+### セクション1: 要点（箇条書き）
+保存された知識に該当がある場合、項目ごとにセクションを分け箇条書きで記載。
+各項目は具体的な所見・数値・薬剤名を含む1〜2文にしてください。
+根拠となる「ID」を必ず明記（例: [ID: xxxxx]）
 
 **出力例:**
 ## 項目名A [ID: xxxxx]
@@ -531,46 +531,32 @@ CHAT_SYSTEM_PROMPT = """あなたは臨床経験20年以上の指導医です。
 - **診断**: 最も考えられる診断、鑑別
 - **対応**: 追加検査・治療方針
 
-## 項目名B [ID: yyyyy]
-- **所見**: ...
-- **診断**: ...
-- **対応**: ...
+### セクション2: 解説
+要点を踏まえた簡潔な解説文を2〜4文で記載。
+臨床的意義や注意点を簡潔にまとめる。
 
-### 該当する知識が1つの場合
-以下の項目で箇条書き：
-- **所見**: 画像所見の要点
-- **診断**: 診断名と根拠
-- **鑑別**: 除外すべき疾患
-- **対応**: 次のアクション（検査・治療・コンサルト）
-- **注意**: ピットフォールやRed flags
+### セクション3: 参考文献
+質問テーマに関連する代表的な医学論文・ガイドラインを3〜5件引用。
+形式: Author et al., "Paper Title", Journal, Year
+
+最後に以下の注記を必ず付記:
+※AI生成の引用です。正確性を確認してください
 
 ### 該当する知識がない場合
-「保存された知識にはありません」とだけ答えてください。
+保存された知識に該当がなくても、セクション2（解説）とセクション3（参考文献）は
+あなたの医学知識から回答してください。
+その場合、セクション1の代わりに「保存された知識には該当がありません」と記載。
 
 ## ルール
-1. 根拠となる「ID」を必ず明記（例: [ID: xxxxx]）
+1. 保存された知識を参照する場合、根拠となる「ID」を必ず明記（例: [ID: xxxxx]）
 2. 専門用語をそのまま使用し英語略語を併記（例: AVN、DWI）
 3. 画像の要約・キーワードに含まれる具体的所見・数値をそのまま反映
 4. 類義語・関連疾患・同一臓器系も広く検索
-5. 地の文（段落）は書かない。箇条書きのみ。
+5. セクション1は箇条書きのみ。セクション2は簡潔な文章。
+6. セクション3の前に「---」区切り線を入れる
 
 【保存された知識】
 {knowledge_context}
-"""
-
-CHAT_SUGGEST_PROMPT = """あなたは臨床知識データベースの検索アシスタントです。
-ユーザーが「{keyword}」で検索しました。
-以下の該当エントリに**実際に含まれている内容だけ**を元に、切り口を最大4個提案してください。
-
-## ルール
-1. 提案は**以下のエントリに書かれている内容の範囲内**に限定する。エントリに無い知識は絶対に提案しない
-2. 各エントリのタイトル・要約・キーワードを確認し、実在するテーマだけを選ぶ
-3. 各提案は15文字以内の簡潔なラベル
-4. **必ずJSON配列のみ**を返す。他のテキストは一切不要
-5. 例: ["ST上昇の心電図所見", "不整脈の鑑別"]
-
-## 該当エントリ:
-{entries}
 """
 
 OCR_EXTRACT_PROMPT = """画像内に表示されているすべてのテキストを正確に読み取り、
@@ -2002,7 +1988,7 @@ def download_image(_service, file_id: str) -> bytes:
 
 
 @st.cache_data(ttl=600, show_spinner=False, max_entries=200)
-def download_thumbnail(_service, file_id: str, max_px: int = 300) -> bytes:
+def download_thumbnail(_service, file_id: str, max_px: int = 400) -> bytes:
     """サムネイル用に軽量化した画像を返す（最大300px, JPEG 70%）。"""
     raw = download_image(_service, file_id)
     if not raw:
@@ -3136,19 +3122,42 @@ def render_enlarged_view(image_bytes: bytes, meta: dict, title: str) -> None:
         kw_html = f"<div style='margin-top:12px;'>{''.join(tags)}</div>"
 
     full_html = f"""
-    <div style="display:flex;gap:16px;width:100%;height:750px;
-                font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-                background:#1a1a2e;border-radius:12px;padding:12px;
-                box-sizing:border-box;">
-        <div style="flex:0 0 65%;display:flex;align-items:center;
-                    justify-content:center;background:#111;
-                    border-radius:8px;overflow:hidden;">
+    <style>
+      .enlarged-container {{
+        display: flex; gap: 16px; width: 100%;
+        min-height: 750px;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #1a1a2e; border-radius: 12px; padding: 12px;
+        box-sizing: border-box;
+      }}
+      .enlarged-image {{
+        flex: 0 0 65%; display: flex; align-items: center;
+        justify-content: center; background: #111;
+        border-radius: 8px; overflow: hidden;
+      }}
+      .enlarged-info {{
+        flex: 1; overflow-y: auto; padding: 16px;
+        background: #2a2a3a; border-radius: 8px; color: #e0e0e0;
+      }}
+      @media (max-width: 768px) {{
+        .enlarged-container {{
+          flex-direction: column; min-height: auto;
+        }}
+        .enlarged-image {{
+          flex: none; width: 100%; max-height: 50vh;
+        }}
+        .enlarged-info {{
+          flex: none; width: 100%;
+        }}
+      }}
+    </style>
+    <div class="enlarged-container">
+        <div class="enlarged-image">
             <img src="{data_uri}"
                  style="max-width:100%;max-height:100%;object-fit:contain;"
                  alt="{escaped_title}" />
         </div>
-        <div style="flex:1;overflow-y:auto;padding:16px;
-                    background:#2a2a3a;border-radius:8px;color:#e0e0e0;">
+        <div class="enlarged-info">
             <h2 style="margin:0 0 8px;font-size:1.3em;color:#fff;">
                 {escaped_title}
             </h2>
@@ -3162,7 +3171,7 @@ def render_enlarged_view(image_bytes: bytes, meta: dict, title: str) -> None:
         </div>
     </div>
     """
-    components.html(full_html, height=780, scrolling=False)
+    components.html(full_html, height=800, scrolling=True)
 
 
 # ---------------------------------------------------------------------------
@@ -3525,53 +3534,6 @@ def generate_chat_response(
         return f"回答の生成中にエラーが発生しました: {e}"
 
 
-def generate_search_suggestions(
-    keyword: str, metadata: dict, api_key: str,
-) -> tuple[list[str], int]:
-    """キーワードに該当するエントリが多い場合、切り口のサジェストを生成する。
-    Returns: (suggestions_list, hit_count)
-    """
-    # 該当エントリを抽出（title / summary / keywords + ocr_text でヒット判定）
-    kw_lower = keyword.lower()
-    hits: list[dict] = []
-    for fid, meta in metadata.items():
-        title = meta.get("title", "").lower()
-        summary = meta.get("summary", "").lower()
-        kws = [k.lower() for k in meta.get("keywords", [])]
-        ocr = meta.get("ocr_text", "").lower()
-        if (kw_lower in title or kw_lower in summary
-                or any(kw_lower in k for k in kws)
-                or kw_lower in ocr):
-            hits.append(meta)
-
-    hit_count = len(hits)
-    _log.info(f"サジェスト検索: keyword='{keyword}', hit_count={hit_count}")
-    if hit_count <= 1:
-        return [], hit_count
-
-    # 該当エントリのタイトル・キーワード・要約をプロンプトに含める（最大15件）
-    entries_text = "\n".join(
-        f"- {m.get('title', '不明')} [{', '.join(m.get('keywords', [])[:5])}]: "
-        f"{m.get('summary', '')[:80]}"
-        for m in hits[:15]
-    )
-    prompt = CHAT_SUGGEST_PROMPT.format(keyword=keyword, entries=entries_text)
-    try:
-        raw = _gemini_generate(api_key, [{"text": prompt}]).strip()
-        _log.info(f"サジェスト生成 raw response: {raw[:200]}")
-        # JSON配列をパース（```json...``` ラッパーも除去）
-        raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$", "", raw)
-        suggestions = json.loads(raw)
-        if isinstance(suggestions, list) and all(isinstance(s, str) for s in suggestions):
-            _log.info(f"サジェスト生成成功: {suggestions[:4]}")
-            return suggestions[:4], hit_count
-        _log.warning(f"サジェスト生成: 不正なフォーマット: {type(suggestions)}")
-    except Exception as e:
-        _log.warning(f"サジェスト生成失敗: {e} | raw={raw[:200] if 'raw' in dir() else 'N/A'}")
-    return [], hit_count
-
-
 # ---------------------------------------------------------------------------
 # チャット機能: 参照画像の表示
 # ---------------------------------------------------------------------------
@@ -3606,9 +3568,7 @@ def display_kb_response_with_images(
     text: str, metadata: dict, service,
     key_suffix: str = "", search_keyword: str = "",
 ) -> None:
-    """参照画像をまとめて上部に表示し、本文中のIDはタイトル名に置換する。
-    search_keyword が指定されている場合、Gemini参照が3枚未満なら全文検索で補完する。
-    """
+    """AI回答を 箇条書き→解説→関連画像→参考文献 の順で表示する。"""
     if not text:
         return
 
@@ -3624,7 +3584,6 @@ def display_kb_response_with_images(
             found_ids.append(fid)
 
     # --- 全文検索補完: 3枚未満ならキーワードマッチで画像を追加 ---
-    _gemini_count = len(found_ids)  # Geminiが参照した枚数
     if len(found_ids) < 3 and search_keyword:
         kw_lower = search_keyword.lower()
         for fid, meta in metadata.items():
@@ -3642,11 +3601,37 @@ def display_kb_response_with_images(
                 if len(found_ids) >= 5:
                     break
 
-    # --- 上部: 参照画像をまとめてグリッド表示（最大5枚） ---
+    # --- テキストを参考文献セクションで分割 ---
+    main_text = text
+    ref_text = ""
+    # 「---」の後に参考文献がある場合を検出
+    parts = re.split(r"\n---\n", text, maxsplit=1)
+    if len(parts) == 2:
+        main_text = parts[0]
+        ref_text = parts[1]
+
+    # --- 1. 箇条書き要点 + 解説文（IDをタイトル名に置換） ---
+    display_text = main_text
+    for fid in found_ids:
+        meta_item = metadata.get(fid, {})
+        title_name = meta_item.get("title", fid[:12])
+        display_text = display_text.replace(
+            f"[ID: {fid}]", f"**[{title_name}]**"
+        )
+    # 残存する未マッチIDもクリーンアップ
+    display_text = re.sub(pattern, "", display_text)
+    display_text = re.sub(r"[\(（]\s*[\)）]", "", display_text)
+    display_text = display_text.strip()
+    if display_text:
+        st.markdown(display_text)
+
+    # --- 2. 関連画像グリッド ---
     if found_ids:
+        st.markdown("---")
+        st.markdown("**📎 関連画像:**")
         display_ids = found_ids[:5]
         extra_count = len(found_ids) - 5
-        n_cols = min(len(display_ids), 5)
+        n_cols = min(len(display_ids), 3)
         cols = st.columns(n_cols)
         for idx, fid in enumerate(display_ids):
             meta = metadata[fid]
@@ -3659,11 +3644,6 @@ def display_kb_response_with_images(
                     st.image(img_bytes, caption=f"{badge} {title}", use_container_width=True)
                 except Exception:
                     st.caption(f"{badge} {title}（読込失敗）")
-                # 患者データの場合のみ所見を表示
-                if _pd:
-                    summary_text = meta.get("summary", "").strip()
-                    if summary_text:
-                        st.caption(f"📋 {summary_text[:80]}{'…' if len(summary_text) > 80 else ''}")
                 if st.button(
                     "🔍 拡大表示",
                     key=f"kb_detail_{fid}{key_suffix}",
@@ -3676,29 +3656,11 @@ def display_kb_response_with_images(
                     st.rerun()
         if extra_count > 0:
             st.caption(f"📎 他 {extra_count}件の関連画像あり（画像ライブラリで検索）")
-        st.markdown("---")
 
-    # --- 下部: テキスト表示 ---
-    if found_ids:
-        # 画像がある場合 → 患者データの所見のみ表示
-        patient_findings: list[str] = []
-        for fid in found_ids:
-            meta = metadata[fid]
-            if is_patient_data(meta):
-                summary = meta.get("summary", "").strip()
-                title = meta.get("title", "不明")
-                if summary:
-                    patient_findings.append(f"**🏥 {title}**: {summary}")
-        if patient_findings:
-            st.markdown("\n\n".join(patient_findings))
-    else:
-        # 画像が見つからない場合 → AI回答テキストをフォールバック表示
-        clean_text = text
-        clean_text = re.sub(pattern, "", clean_text)
-        clean_text = re.sub(r"[\(（]\s*[\)）]", "", clean_text)
-        clean_text = clean_text.strip()
-        if clean_text:
-            st.markdown(clean_text)
+    # --- 3. 参考文献 ---
+    if ref_text.strip():
+        st.markdown("---")
+        st.markdown(ref_text.strip())
 
 
 # ---------------------------------------------------------------------------
@@ -4048,41 +4010,38 @@ def page_image_manager():
 
         meta = metadata.get(file_id, {})
 
-        # --- 横並びレイアウト: 画像（左）+ 情報サマリー（右） ---
-        col_img, col_info = st.columns([1, 1])
-        with col_img:
-            st.image(image_bytes, use_container_width=True)
+        # --- 縦並びレイアウト（モバイル対応）: 画像上 + 情報下 ---
+        st.image(image_bytes, use_container_width=True)
 
-        with col_info:
-            # タイトル
-            title = meta.get("title", selected_file["name"])
-            st.subheader(title)
-            # 患者データバッジ
-            if is_patient_data(meta):
-                st.markdown(
-                    '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
-                    'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
-                    unsafe_allow_html=True,
-                )
-            # ステータス
-            if file_id in metadata and not is_patient_data(meta):
-                s = get_status(meta)
-                if s == STATUS_REVIEWED:
-                    st.success("✅ 確認済み")
-                else:
-                    st.warning("📝 未確認")
-            # 要約/検査所見
-            _sl = get_summary_label(meta)
-            summary_text = meta.get("summary", "")
-            if summary_text:
-                st.markdown(f"**{_sl}:**")
-                render_summary(summary_text)
-            elif is_patient_data(meta):
-                st.info("検査所見が未入力です。編集から入力してください。")
-            # キーワード
-            keywords = meta.get("keywords", [])
-            if keywords:
-                render_keyword_tags(keywords)
+        # タイトル
+        title = meta.get("title", selected_file["name"])
+        st.subheader(title)
+        # 患者データバッジ
+        if is_patient_data(meta):
+            st.markdown(
+                '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
+                'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
+                unsafe_allow_html=True,
+            )
+        # ステータス
+        if file_id in metadata and not is_patient_data(meta):
+            s = get_status(meta)
+            if s == STATUS_REVIEWED:
+                st.success("✅ 確認済み")
+            else:
+                st.warning("📝 未確認")
+        # 要約/検査所見
+        _sl = get_summary_label(meta)
+        summary_text = meta.get("summary", "")
+        if summary_text:
+            st.markdown(f"**{_sl}:**")
+            render_summary(summary_text)
+        elif is_patient_data(meta):
+            st.info("検査所見が未入力です。編集から入力してください。")
+        # キーワード
+        keywords = meta.get("keywords", [])
+        if keywords:
+            render_keyword_tags(keywords)
 
         # --- 編集フォーム（折りたたみ） ---
         if file_id in metadata:
@@ -4800,18 +4759,16 @@ def page_batch_analyze():
                     f"{global_idx}. {meta.get('title', fname)} {status_icon}{kw_preview}",
                     expanded=False,
                 ):
-                    col_img, col_form = st.columns([1, 2])
-                    with col_img:
-                        try:
-                            img_bytes = download_thumbnail(service, fid)
-                            st.image(img_bytes, use_container_width=True)
-                        except Exception:
-                            st.caption("（画像を読み込めません）")
-                            img_bytes = None
+                    # 画像（上）
+                    try:
+                        img_bytes = download_thumbnail(service, fid, max_px=500)
+                        st.image(img_bytes, use_container_width=True)
+                    except Exception:
+                        st.caption("（画像を読み込めません）")
+                        img_bytes = None
 
-                    with col_form:
-                        # --- 編集フォーム ---
-                        with st.form(key=f"pd_edit_{fid}_{current_page}"):
+                    # 編集フォーム（下）
+                    with st.form(key=f"pd_edit_{fid}_{current_page}"):
                             new_title = st.text_input(
                                 "📌 タイトル",
                                 value=meta.get("title", fname),
@@ -6351,11 +6308,8 @@ def page_chat():
         )
         return
 
-    # --- ホーム画面判定（メッセージなし＆サジェストなし → ホーム画面を表示）---
-    _is_home = (
-        not st.session_state["chat_messages"]
-        and not st.session_state.get("_search_suggestions")
-    )
+    # --- ホーム画面判定（メッセージなし → ホーム画面を表示）---
+    _is_home = not st.session_state["chat_messages"]
 
     # --- 入力欄（会話中のみ上部に表示 / ホーム画面では非表示）---
     user_input = ""
@@ -6512,55 +6466,14 @@ def page_chat():
             "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
         )
 
-    # 質問例クリック / ホーム検索からの送信処理（サジェストフローを通す）
+    # 質問例クリック / ホーム検索からの送信処理（直接回答）
     pending = st.session_state.pop("pending_question", None)
     if pending:
-        with st.spinner("知識ベースを検索中..."):
-            suggestions, hit_count = generate_search_suggestions(
-                pending, metadata, api_key,
-            )
-        if suggestions:
-            st.session_state["_search_suggestions"] = suggestions
-            st.session_state["_search_keyword"] = pending
-            st.session_state["_search_hit_count"] = hit_count
-            st.rerun()
-        else:
-            # サジェスト生成できず → 直接回答（全文検索補完あり）
-            handle_chat_submit(pending, sessions, metadata, api_key)
+        handle_chat_submit(pending, sessions, metadata, api_key)
 
-    # 送信処理 — 2段階スマート検索
+    # 送信処理 — 直接回答
     if send_clicked and user_input:
-        with st.spinner("知識ベースを検索中..."):
-            suggestions, hit_count = generate_search_suggestions(
-                user_input, metadata, api_key,
-            )
-        if suggestions:
-            st.session_state["_search_suggestions"] = suggestions
-            st.session_state["_search_keyword"] = user_input
-            st.session_state["_search_hit_count"] = hit_count
-            st.rerun()
-        else:
-            # 2件以下 or サジェスト生成失敗 → 直接回答
-            handle_chat_submit(user_input, sessions, metadata, api_key)
-
-    # --- サジェスト選択肢の表示 ---
-    _suggestions = st.session_state.get("_search_suggestions")
-    if _suggestions:
-        _kw = st.session_state.get("_search_keyword", "")
-        _hc = st.session_state.get("_search_hit_count", 0)
-        st.info(f"🔍「{_kw}」に関連する知識が **{_hc}件** あります。何について知りたいですか？")
-        _sg_cols = st.columns(min(len(_suggestions) + 1, 5))
-        for i, sg in enumerate(_suggestions):
-            with _sg_cols[i]:
-                if st.button(sg, key=f"_sg_{i}", width="stretch"):
-                    st.session_state.pop("_search_suggestions", None)
-                    focused_query = f"{_kw} について、{sg}"
-                    handle_chat_submit(focused_query, sessions, metadata, api_key)
-        with _sg_cols[len(_suggestions)]:
-            if st.button("📋 すべて表示", key="_sg_all", width="stretch"):
-                st.session_state.pop("_search_suggestions", None)
-                handle_chat_submit(_kw, sessions, metadata, api_key)
-        return  # サジェスト表示中は他を描画しない
+        handle_chat_submit(user_input, sessions, metadata, api_key)
 
     # --- 全文検索プレビュー表示 ---
     _ocr_preview_fid = st.session_state.get("_ocr_preview_id")
