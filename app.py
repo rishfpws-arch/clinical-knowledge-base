@@ -8348,6 +8348,8 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
         ):
             for x in day_data.get("items", []):
                 if x.get("id") in selected_ids:
+                    if x.get("quantity") == "半量":
+                        continue  # 既に半量 → スキップ
                     x["calories"] = max(1, round(x.get("calories", 0) / 2))
                     nuts = x.get("nutrients", {})
                     for nk in list(nuts.keys()):
@@ -8381,12 +8383,13 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
     cb, c1, c2, c3, c4 = st.columns([0.35, 4.15, 1.8, 0.5, 0.5])
 
     with cb:
-        if item_id:
+        if item_id and qty != "半量":
             st.checkbox("", value=False, key=f"wm_half_{item_id}",
                          label_visibility="collapsed")
     with c1:
+        half_badge = ' <span style="background:#FFE0B2;color:#E65100;padding:1px 5px;border-radius:3px;font-size:11px;">½済</span>' if qty == "半量" else ""
         st.markdown(
-            f'**{name}** <span style="color:#999; font-size:13px;">({qty})</span>',
+            f'**{name}**{half_badge} <span style="color:#999; font-size:13px;">({qty})</span>',
             unsafe_allow_html=True,
         )
     with c2:
