@@ -3389,217 +3389,87 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# チャット機能: コンテキスト生成
+# 検索機能: 全文検索結果表示
 # ---------------------------------------------------------------------------
-def build_knowledge_context(metadata: dict) -> str:
-    """metadata.json の全データをテキスト化し、チャット用コンテキストを作成する。
-
-    各エントリを「---」で区切り、ID・タイトル・要約・キーワードを明記する。
+def display_search_results(keyword: str, metadata: dict, service) -> None:
+    """全文検索（OCR+タイトル+キーワード+タグ）の結果をサムネイル一覧で表示する。
+    画像ライブラリと患者データを分けて表示。
     """
-    if not metadata:
-        return "（保存された知識はまだありません）"
-
-    entries = []
-    for file_id, meta in metadata.items():
-        title = meta.get("title", "不明")
-        summary_label = get_summary_label(meta)
-        summary = meta.get("summary", "") or "未入力"
-        keywords = ", ".join(meta.get("keywords", []))
-        s = get_status(meta)
-        status = "確認済み" if s == STATUS_REVIEWED else "未確認"
-        source_note = "（患者データ）" if is_patient_data(meta) else ""
-
-        ocr_text = meta.get("ocr_text", "").strip()
-        ocr_line = f"\nOCRテキスト: {ocr_text}" if ocr_text else ""
-
-        entry = (
-            f"ID: {file_id}\n"
-            f"タイトル: {title}{source_note}\n"
-            f"{summary_label}: {summary}\n"
-            f"キーワード: {keywords}\n"
-            f"ステータス: {status}"
-            f"{ocr_line}"
-        )
-        entries.append(entry)
-
-    return "\n---\n".join(entries)
-
-
-# ---------------------------------------------------------------------------
-# チャット機能: 回答からIDを抽出
-# ---------------------------------------------------------------------------
-def extract_file_ids(text: str, metadata: dict) -> list[str]:
-    """AI回答テキストから [ID: xxx] パターンでファイルIDを抽出する。
-
-    metadata に存在するIDのみ返す。
-    """
-    # [ID: xxxxx] パターンをすべて抽出
-    pattern = r"\[ID:\s*([^\]]+)\]"
-    matches = re.findall(pattern, text)
-
-    # メタデータに存在するIDだけをフィルタリング
-    valid_ids = []
-    for match in matches:
-        match = match.strip()
-        if match in metadata:
-            valid_ids.append(match)
-
-    # 重複を除去して順序を保持
-    seen = set()
-    unique_ids = []
-    for fid in valid_ids:
-        if fid not in seen:
-            seen.add(fid)
-            unique_ids.append(fid)
-
-    return unique_ids
-
-
-# ---------------------------------------------------------------------------
-# チャット機能: Gemini で回答生成
-# ---------------------------------------------------------------------------
-def generate_chat_response(
-    user_message: str, metadata: dict, api_key: str, chat_history: list[dict]
-) -> str:
-    """ユーザーの質問に対して、蓄積された知識をもとにGeminiで回答を生成する。"""
-    try:
-        # コンテキスト（知識）を生成
-        knowledge_context = build_knowledge_context(metadata)
-        system_prompt = CHAT_SYSTEM_PROMPT.format(
-            knowledge_context=knowledge_context
-        )
-
-        # 会話履歴を構築（直近10往復まで）
-        contents = [system_prompt]
-        recent_history = chat_history[-20:]  # 直近20メッセージ（10往復）
-        for msg in recent_history:
-            role_label = "ユーザー" if msg["role"] == "user" else "アシスタント"
-            contents.append(f"{role_label}: {msg['content']}")
-
-        # 今回のユーザー質問
-        contents.append(f"ユーザー: {user_message}")
-
-        # Gemini に送信
-        full_prompt = "\n\n".join(contents)
-        return _gemini_generate(api_key, [{"text": full_prompt}]).strip()
-
-    except Exception as e:
-        return f"回答の生成中にエラーが発生しました: {e}"
-
-
-# ---------------------------------------------------------------------------
-# チャット機能: 参照画像の表示
-# ---------------------------------------------------------------------------
-def display_referenced_images(
-    file_ids: list[str], metadata: dict, service
-) -> None:
-    """回答で参照されたIDの画像をコンパクトに表示する。
-
-    サムネイル表示 + 「拡大表示」ボタンで全幅表示に切り替え可能。
-    """
-    if not file_ids:
+    if not keyword or not keyword.strip():
         return
 
-    st.markdown("**📎 参照元の画像:**")
+    kw_lower = keyword.strip().lower()
 
-    for fid in file_ids:
-        meta = metadata.get(fid, {})
-        title = meta.get("title", "不明")
+    # --- メタデータ全件を全文検索 ---
+    lib_hits: list[tuple[str, dict]] = []
+    pd_hits: list[tuple[str, dict]] = []
 
-        with st.expander(f"🖼️ {title}  (ID: {fid[:12]}...)", expanded=False):
-            try:
-                image_bytes = download_image(service, fid)
-                st.image(image_bytes, use_container_width=True)
+    for fid, meta in metadata.items():
+        title = meta.get("title", "").lower()
+        summary = meta.get("summary", "").lower()
+        kws = [k.lower() for k in meta.get("keywords", [])]
+        ocr = meta.get("ocr_text", "").lower()
+        folder = meta.get("folder", "").lower()
 
-                if meta.get("summary"):
-                    st.caption(meta["summary"])
-            except Exception:
-                st.warning(f"画像を読み込めませんでした (ID: {fid})")
+        if (kw_lower in title or kw_lower in summary
+                or any(kw_lower in k for k in kws)
+                or kw_lower in ocr or kw_lower in folder):
+            if is_patient_data(meta):
+                pd_hits.append((fid, meta))
+            else:
+                lib_hits.append((fid, meta))
 
+    total = len(lib_hits) + len(pd_hits)
 
-def display_kb_response_with_images(
-    text: str, metadata: dict, service,
-    key_suffix: str = "", search_keyword: str = "",
-) -> None:
-    """AI回答を 箇条書き→解説→関連画像→参考文献 の順で表示する。"""
-    if not text:
+    st.markdown(
+        f"### 🔍「{keyword}」の検索結果（全 {total} 件）"
+    )
+
+    if total == 0:
+        st.info("該当する画像が見つかりませんでした。別のキーワードで検索してください。")
         return
 
-    pattern = r"\[ID:\s*([^\]]+)\]"
+    # --- 画像ライブラリ ---
+    if lib_hits:
+        st.markdown(f"**📷 画像ライブラリ（{len(lib_hits)}件）**")
+        _render_search_grid(lib_hits, service, "lib")
 
-    # --- ID抽出（順序保持・重複除去） ---
-    found_ids: list[str] = []
-    seen: set[str] = set()
-    for m in re.finditer(pattern, text):
-        fid = m.group(1).strip()
-        if fid not in seen and fid in metadata:
-            seen.add(fid)
-            found_ids.append(fid)
+    # --- 患者データ ---
+    if pd_hits:
+        if lib_hits:
+            st.markdown("---")
+        st.markdown(f"**🏥 患者データ（{len(pd_hits)}件）**")
+        _render_search_grid(pd_hits, service, "pd")
 
-    # --- 全文検索補完: 3枚未満ならキーワードマッチで画像を追加 ---
-    if len(found_ids) < 3 and search_keyword:
-        kw_lower = search_keyword.lower()
-        for fid, meta in metadata.items():
-            if fid in seen:
-                continue
-            title = meta.get("title", "").lower()
-            summary = meta.get("summary", "").lower()
-            kws = [k.lower() for k in meta.get("keywords", [])]
-            ocr = meta.get("ocr_text", "").lower()
-            if (kw_lower in title or kw_lower in summary
-                    or any(kw_lower in k for k in kws)
-                    or kw_lower in ocr):
-                found_ids.append(fid)
-                seen.add(fid)
-                if len(found_ids) >= 5:
-                    break
 
-    # --- テキストを参考文献セクションで分割 ---
-    main_text = text
-    ref_text = ""
-    # 「---」の後に参考文献がある場合を検出
-    parts = re.split(r"\n---\n", text, maxsplit=1)
-    if len(parts) == 2:
-        main_text = parts[0]
-        ref_text = parts[1]
-
-    # --- 1. 箇条書き要点 + 解説文（IDをタイトル名に置換） ---
-    display_text = main_text
-    for fid in found_ids:
-        meta_item = metadata.get(fid, {})
-        title_name = meta_item.get("title", fid[:12])
-        display_text = display_text.replace(
-            f"[ID: {fid}]", f"**[{title_name}]**"
-        )
-    # 残存する未マッチIDもクリーンアップ
-    display_text = re.sub(pattern, "", display_text)
-    display_text = re.sub(r"[\(（]\s*[\)）]", "", display_text)
-    display_text = display_text.strip()
-    if display_text:
-        st.markdown(display_text)
-
-    # --- 2. 関連画像グリッド ---
-    if found_ids:
-        st.markdown("---")
-        st.markdown("**📎 関連画像:**")
-        display_ids = found_ids[:5]
-        extra_count = len(found_ids) - 5
-        n_cols = min(len(display_ids), 3)
-        cols = st.columns(n_cols)
-        for idx, fid in enumerate(display_ids):
-            meta = metadata[fid]
+def _render_search_grid(
+    hits: list[tuple[str, dict]], service, prefix: str,
+) -> None:
+    """検索ヒットをサムネイルグリッド（3列）で表示する。"""
+    cols_per_row = 3
+    for row_start in range(0, len(hits), cols_per_row):
+        cols = st.columns(cols_per_row)
+        for col_idx in range(cols_per_row):
+            idx = row_start + col_idx
+            if idx >= len(hits):
+                break
+            fid, meta = hits[idx]
             title = meta.get("title", "不明")
-            _pd = is_patient_data(meta)
-            badge = "🏥" if _pd else "📷"
-            with cols[idx % n_cols]:
+            with cols[col_idx]:
                 try:
-                    img_bytes = download_image(service, fid)
-                    st.image(img_bytes, caption=f"{badge} {title}", use_container_width=True)
+                    thumb = download_thumbnail(service, fid)
+                    st.image(thumb, use_container_width=True)
                 except Exception:
-                    st.caption(f"{badge} {title}（読込失敗）")
+                    st.markdown(
+                        '<div style="background:#333;border-radius:8px;'
+                        'height:80px;display:flex;align-items:center;'
+                        'justify-content:center;color:#b0b0b0;">🖼️</div>',
+                        unsafe_allow_html=True,
+                    )
+                st.caption(title)
                 if st.button(
-                    "🔍 拡大表示",
-                    key=f"kb_detail_{fid}{key_suffix}",
+                    "🔍 詳細",
+                    key=f"search_{prefix}_{fid}",
                     width="stretch",
                 ):
                     st.session_state["lib_selected_id"] = fid
@@ -3607,98 +3477,29 @@ def display_kb_response_with_images(
                     st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
                     st.session_state["active_tab"] = "📸 画像ライブラリ"
                     st.rerun()
-        if extra_count > 0:
-            st.caption(f"📎 他 {extra_count}件の関連画像あり（画像ライブラリで検索）")
-
-    # --- 3. 参考文献 ---
-    if ref_text.strip():
-        st.markdown("---")
-        st.markdown(ref_text.strip())
 
 
 # ---------------------------------------------------------------------------
-# チャット機能: セッション送信処理
+# 検索機能: ホーム画面
 # ---------------------------------------------------------------------------
-def handle_chat_submit(
-    user_input: str,
-    sessions: dict,
-    metadata: dict,
-    api_key: str,
-) -> None:
-    """質問の送信を処理し、セッションを作成または更新する。"""
-    active_id = st.session_state.get("active_session_id")
-
-    # アクティブなセッションがなければ新規作成
-    if active_id is None:
-        active_id = str(uuid.uuid4())
-        title = user_input[:30] + ("..." if len(user_input) > 30 else "")
-        sessions[active_id] = {
-            "id": active_id,
-            "title": title,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
-            "messages": [],
-        }
-        st.session_state["active_session_id"] = active_id
-
-    # ユーザーメッセージを追加
-    st.session_state["chat_messages"].append(
-        {"role": "user", "content": user_input}
-    )
-
-    # AI回答を生成（知識ベースのみ）
-    with st.spinner("知識ベースを検索中..."):
-        history = st.session_state["chat_messages"][:-1]
-        kb_response = generate_chat_response(
-            user_input, metadata, api_key, history
-        )
-        ref_ids = extract_file_ids(kb_response, metadata)
-
-    # アシスタントメッセージを追加
-    st.session_state["chat_messages"].append(
-        {
-            "role": "assistant",
-            "content": kb_response,
-            "ref_ids": ref_ids,
-        }
-    )
-
-    # ファイルに永続化
-    sessions[active_id]["messages"] = st.session_state["chat_messages"].copy()
-    sessions[active_id]["updated_at"] = datetime.now().isoformat()
-    save_chat_sessions(sessions)
-
-    st.rerun()
-
-
-# ---------------------------------------------------------------------------
-# チャット機能: ホーム画面
-# ---------------------------------------------------------------------------
-def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
-    """アクティブな会話がないときにホーム画面を表示する（ChatGPT/Gemini風）。"""
-
-    # 中央寄せの余白
+def render_home_screen(knowledge_count: int) -> None:
+    """検索前のホーム画面を表示する。"""
     st.markdown("")
     st.markdown("")
 
-    # 名言をランダム選択
     quote_text, quote_author = random.choice(QUOTES)
 
-    # 中央カラムでレイアウト
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        # 🧸 アイコン
         st.markdown(
             "<h1 style='text-align:center; font-size:64px; margin-bottom:4px;'>🧸</h1>",
             unsafe_allow_html=True,
         )
-        # アプリ名
         st.markdown(
             "<h2 style='text-align:center; color:#e0e0e0; font-weight:300; "
             "letter-spacing:4px; margin:0 0 16px;'>Clinica</h2>",
             unsafe_allow_html=True,
         )
-        # 名言
         st.markdown(
             f"<p style='text-align:center; color:#b0b0b0; font-size:13px; "
             f"font-style:italic; line-height:1.6; margin-bottom:24px;'>"
@@ -3707,21 +3508,6 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
             unsafe_allow_html=True,
         )
 
-        # 検索フォーム
-        with st.form(key="home_search_form", clear_on_submit=True):
-            home_query = st.text_input(
-                "検索",
-                placeholder="臨床知識を検索...",
-                label_visibility="collapsed",
-            )
-            home_search_clicked = st.form_submit_button(
-                "🔍 検索する", type="primary", width="stretch",
-            )
-        if home_search_clicked and home_query:
-            st.session_state["pending_question"] = home_query
-            st.rerun()
-
-    # 知識件数バッジ
     st.markdown("")
     st.markdown(
         f"<p style='text-align:center;'>"
@@ -3730,121 +3516,6 @@ def render_home_screen(knowledge_count: int, metadata: dict, service) -> None:
         f"📚 {knowledge_count}件 の知識を収録</span></p>",
         unsafe_allow_html=True,
     )
-
-
-# ---------------------------------------------------------------------------
-# チャット機能: サイドバー
-# ---------------------------------------------------------------------------
-def render_chat_sidebar(sessions: dict, metadata: dict) -> None:
-    """チャットタブ用のサイドバー（セッション一覧 + 知識ベース情報）。"""
-    # --- 新しい会話ボタン ---
-    if st.sidebar.button(
-        "➕ 新しい会話", type="primary", width="stretch"
-    ):
-        st.session_state["active_session_id"] = None
-        st.session_state["chat_messages"] = []
-        st.rerun()
-
-    st.sidebar.markdown("---")
-
-    # --- 知識ベース情報（1行にまとめる） ---
-    knowledge_count = len(metadata)
-    reviewed_count = sum(
-        1 for m in metadata.values() if get_status(m) == STATUS_REVIEWED
-    )
-    st.sidebar.caption(f"📚 {knowledge_count} 件 ｜ ✅ {reviewed_count} 件確認済み")
-
-    # --- 全文検索（OCRテキスト検索） ---
-    st.sidebar.header("🔎 全文検索")
-    ocr_query = st.sidebar.text_input(
-        "画像内テキストで検索",
-        placeholder="画像内の文字列を検索...",
-        key="chat_ocr_search",
-    )
-    if ocr_query:
-        q_lower = ocr_query.lower()
-        ocr_hits: list[tuple[str, dict]] = []
-        for fid, meta in metadata.items():
-            ocr_text = meta.get("ocr_text", "").lower()
-            title = meta.get("title", "").lower()
-            summary = meta.get("summary", "").lower()
-            kws = [k.lower() for k in meta.get("keywords", [])]
-            if (q_lower in ocr_text or q_lower in title
-                    or q_lower in summary
-                    or any(q_lower in k for k in kws)):
-                ocr_hits.append((fid, meta))
-        _cur_preview = st.session_state.get("_ocr_preview_id")
-        if ocr_hits:
-            st.sidebar.success(f"**{len(ocr_hits)}** 件ヒット")
-            for idx, (fid, meta) in enumerate(ocr_hits[:20]):
-                title = meta.get("title", "不明")
-                _pd = "🏥 " if meta.get("source") == SOURCE_PATIENT_DATA else ""
-                _is_viewing = (fid == _cur_preview)
-                _label = f"{'▶ ' if _is_viewing else ''}{_pd}{title}"
-                if st.sidebar.button(
-                    _label,
-                    key=f"ocr_hit_{fid}",
-                    width="stretch",
-                    type="primary" if _is_viewing else "secondary",
-                ):
-                    st.session_state["_ocr_preview_id"] = fid
-                    st.rerun()
-            if len(ocr_hits) > 20:
-                st.sidebar.caption(f"他 {len(ocr_hits) - 20} 件…")
-        else:
-            st.sidebar.warning("該当なし")
-    else:
-        # 検索クエリが空になったらプレビューをクリア
-        st.session_state.pop("_ocr_preview_id", None)
-
-    # --- 過去の会話一覧 ---
-    sorted_sessions = sorted(
-        sessions.values(),
-        key=lambda s: s.get("updated_at", ""),
-        reverse=True,
-    )
-
-    if sorted_sessions:
-        st.sidebar.markdown("---")
-        st.sidebar.header("💬 過去の会話")
-
-        active_id = st.session_state.get("active_session_id")
-
-        for session in sorted_sessions:
-            sid = session["id"]
-            title = session["title"]
-            is_active = active_id == sid
-            relative = format_relative_time(session.get("updated_at", ""))
-
-            # アクティブなセッションはハイライト
-            if is_active:
-                label = f"▶ {title}"
-            else:
-                label = f"　{title}"
-
-            if st.sidebar.button(
-                label,
-                key=f"session_{sid}",
-                width="stretch",
-                type="primary" if is_active else "secondary",
-            ):
-                st.session_state["active_session_id"] = sid
-                st.session_state["chat_messages"] = session["messages"].copy()
-                st.rerun()
-
-            if relative:
-                st.sidebar.caption(f"　　{relative}")
-
-    # --- アクティブなセッションの削除ボタン ---
-    active_id = st.session_state.get("active_session_id")
-    if active_id and active_id in sessions:
-        st.sidebar.markdown("---")
-        if st.sidebar.button("🗑️ この会話を削除", width="stretch"):
-            del sessions[active_id]
-            save_chat_sessions(sessions)
-            st.session_state["active_session_id"] = None
-            st.session_state["chat_messages"] = []
-            st.rerun()
 
 
 # ===========================================================================
