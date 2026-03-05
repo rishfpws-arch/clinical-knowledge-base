@@ -2189,6 +2189,91 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
     return "  \n".join(comments)
 
 
+def _generate_onepoint_advice(
+    records: dict, goals: dict, selected_date, api_key: str | None,
+) -> str:
+    """過去7日間のデータからワンポイントアドバイスを生成する。"""
+    from datetime import timedelta
+
+    # 過去7日間のデータを収集
+    past_days: list[dict] = []
+    for i in range(7):
+        d = selected_date - timedelta(days=i)
+        dk = d.strftime("%Y-%m-%d")
+        if dk in records and records[dk].get("items"):
+            past_days.append(records[dk])
+
+    if len(past_days) < 2:
+        return "📊 まだデータが不足しています（2日以上の記録が必要です）。\n\n食事を記録していくと、ここにパーソナルなアドバイスが表示されます。"
+
+    # 平均カロリー計算
+    avg_cal = round(sum(d.get("total_calories", 0) for d in past_days) / len(past_days))
+    target_cal = goals.get("daily_calorie_target", 0) or "未設定"
+
+    # 平均栄養素計算
+    nutrient_sums: dict[str, float] = {}
+    for day in past_days:
+        day_nuts = _aggregate_day_nutrients(day)
+        for k, v in day_nuts.items():
+            nutrient_sums[k] = nutrient_sums.get(k, 0) + v
+    nutrient_avgs = {k: round(v / len(past_days), 1) for k, v in nutrient_sums.items()}
+
+    # 不足・過剰の判定
+    deficient: list[str] = []
+    excess: list[str] = []
+    for nut_key, nut_info in DEFAULT_NUTRIENT_TARGETS.items():
+        avg_val = nutrient_avgs.get(nut_key, 0)
+        target = nut_info.get("target")
+        upper = nut_info.get("upper")
+        label = nut_info.get("label", nut_key)
+        if target and avg_val < target * 0.6:
+            deficient.append(f"{label}（平均{avg_val}/{target}{nut_info.get('unit', '')}）")
+        if upper and avg_val > upper:
+            excess.append(f"{label}（平均{avg_val}/{upper}{nut_info.get('unit', '')}）")
+
+    # 最近の食品名を収集
+    food_names: list[str] = []
+    seen_names: set[str] = set()
+    for day in past_days:
+        for item in _get_day_items(day):
+            n = item.get("name", "")
+            if n and n not in seen_names:
+                seen_names.add(n)
+                food_names.append(n)
+            if len(food_names) >= 15:
+                break
+
+    deficient_str = "、".join(deficient) if deficient else "特になし"
+    excess_str = "、".join(excess) if excess else "特になし"
+    recent_str = "、".join(food_names[:10])
+
+    # Gemini でアドバイス生成
+    if api_key:
+        try:
+            prompt = ONEPOINT_ADVICE_PROMPT.format(
+                days=len(past_days),
+                avg_cal=avg_cal,
+                target_cal=target_cal,
+                deficient=deficient_str,
+                excess=excess_str,
+                recent_foods=recent_str,
+            )
+            result = _gemini_generate(api_key, [{"text": prompt}])
+            return result.strip()
+        except Exception:
+            pass  # フォールバック
+
+    # ルールベースのフォールバック
+    lines = [f"📊 過去{len(past_days)}日間の平均: **{avg_cal} kcal/日**"]
+    if deficient:
+        lines.append(f"⚠️ 不足気味: {deficient_str}")
+    if excess:
+        lines.append(f"⚠️ 過剰気味: {excess_str}")
+    if not deficient and not excess:
+        lines.append("👍 栄養バランスは概ね良好です。")
+    return "  \n".join(lines)
+
+
 def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
     """画像のEXIFから撮影日時を取得する。"""
     try:
@@ -8830,6 +8915,22 @@ def _page_weight_management_inner():
         # ====== AIコメント ======
         comment = _generate_weight_comment(day_data, goals)
         st.info(comment)
+
+        # ====== ワンポイントアドバイス ======
+        advice_cache_key = f"wm_advice_{date_key}"
+        with st.expander("💡 ワンポイントアドバイス", expanded=False):
+            adv_c1, adv_c2 = st.columns([5, 1])
+            with adv_c2:
+                if st.button("🔄", key="wm_advice_refresh", help="アドバイスを更新"):
+                    st.session_state.pop(advice_cache_key, None)
+                    st.rerun()
+            if advice_cache_key not in st.session_state:
+                with st.spinner("アドバイスを生成中..."):
+                    advice = _generate_onepoint_advice(
+                        records, goals, selected_date, api_key,
+                    )
+                st.session_state[advice_cache_key] = advice
+            st.markdown(st.session_state[advice_cache_key])
 
         # ====== 栄養バランス ======
         _render_nutrient_dashboard(day_data, goals, weight_data, date_key)
