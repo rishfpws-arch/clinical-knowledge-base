@@ -475,6 +475,19 @@ JSON以外のテキストは一切含めないでください。
 - 推定が困難な栄養素は0とする
 - 日本食品標準成分表の値を参考に推定すること"""
 
+ONEPOINT_ADVICE_PROMPT = """あなたは管理栄養士です。以下のデータに基づいて短いワンポイントアドバイスを日本語で作成してください。
+
+過去{days}日間のデータ:
+- 平均摂取カロリー: {avg_cal} kcal（目標: {target_cal} kcal）
+- 不足している栄養素: {deficient}
+- 過剰な栄養素: {excess}
+- 最近よく食べている食品: {recent_foods}
+
+以下の形式で簡潔に回答してください（合計200文字以内）:
+📊 総評（1文）
+🍽️ おすすめの食品・料理（2-3品、具体的に）
+👍 良い点（1文）"""
+
 # ---------------------------------------------------------------------------
 # 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
 # target = 推奨量/目安量, upper = 耐容上限量 (None = 設定なし)
@@ -8423,19 +8436,39 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
                 new_meal_label = st.selectbox("食事タイプ", meal_labels, index=current_idx)
                 new_meal_type = meal_options[meal_labels.index(new_meal_label)]
             with ec4:
-                st.markdown(f"現在: **{cal} kcal**")
-                st.caption("💡 品目名を変更するとAIが自動再計算、量の変更は即時反映します")
+                new_cal = st.number_input(
+                    "カロリー (kcal)", min_value=0, max_value=9999,
+                    value=int(cal), step=1, key=f"wm_edit_cal_{item_id}",
+                )
+                st.caption("💡 カロリー直接変更可。品目名変更時はAI再計算（手動変更時はスキップ）")
             edit_submitted = st.form_submit_button("💾 保存", width="stretch")
         if edit_submitted:
             final_name = new_name.strip() or name
             final_qty = new_qty
-            # 品目名 or 量が変わったら再計算
+            cal_manually_changed = (new_cal != cal)
             name_changed = final_name != name
             qty_changed = final_qty != qty
-            final_cal = cal
+            final_cal = new_cal if cal_manually_changed else cal
             _recalc_nuts = {}
 
-            if name_changed or qty_changed:
+            if cal_manually_changed:
+                # カロリー手動変更 → その値を使用、AI再計算しない
+                if cal > 0:
+                    ratio = new_cal / cal
+                    existing_nuts = item.get("nutrients", {})
+                    _recalc_nuts = {
+                        nk: round(nv * ratio, 1)
+                        for nk, nv in existing_nuts.items()
+                        if isinstance(nv, (int, float))
+                    }
+                elif new_cal == 0:
+                    # 0 kcal → 栄養素も全て0に
+                    _recalc_nuts = {
+                        nk: 0.0
+                        for nk, nv in item.get("nutrients", {}).items()
+                        if isinstance(nv, (int, float))
+                    }
+            elif name_changed or qty_changed:
                 # 量の倍率マップ（API不要のローカル計算用）
                 _QTY_SCALE = {"半量": 0.5, "少なめ": 0.6, "ふつう": 1.0, "多め": 1.5}
                 old_scale = _QTY_SCALE.get(qty)
