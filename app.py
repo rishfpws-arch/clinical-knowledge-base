@@ -5890,323 +5890,41 @@ def page_folder_ai():
 # ページ: チャット検索 (Q&A)
 # ===========================================================================
 def page_chat():
-    """チャット検索ページ — 蓄積された知識に対して自然言語で質問する。"""
-    api_key = get_gemini_api_key()
+    """検索ページ — 全文検索でヒットした画像をサムネイル一覧で表示する。"""
     metadata = load_metadata()
     service = get_drive_service()
-    sessions = load_chat_sessions()
     knowledge_count = len(metadata)
 
-    # --- session_state 初期化 ---
-    if "active_session_id" not in st.session_state:
-        st.session_state["active_session_id"] = None
-    if "chat_messages" not in st.session_state:
-        st.session_state["chat_messages"] = []
-
-    # --- 既存の未保存メッセージがあればセッションに移行 ---
-    if (
-        st.session_state["chat_messages"]
-        and st.session_state["active_session_id"] is None
-    ):
-        new_id = str(uuid.uuid4())
-        first_msg = st.session_state["chat_messages"][0]
-        title = first_msg.get("content", "以前の会話")[:30]
-        sessions[new_id] = {
-            "id": new_id,
-            "title": title,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
-            "messages": st.session_state["chat_messages"].copy(),
-        }
-        save_chat_sessions(sessions)
-        st.session_state["active_session_id"] = new_id
-
-    # --- サイドバー ---
-    render_chat_sidebar(sessions, metadata)
-
-    # --- メイン画面 ---
-    if not api_key:
-        st.warning(
-            "チャット機能を使用するには `GOOGLE_API_KEY` を "
-            "`.streamlit/secrets.toml` に設定してください。"
+    # --- 検索バー（常に上部に表示） ---
+    with st.form(key="search_form", clear_on_submit=True):
+        search_query = st.text_input(
+            "検索",
+            placeholder="キーワードで画像を検索...",
+            label_visibility="collapsed",
         )
-        return
-
-    # --- ホーム画面判定（メッセージなし → ホーム画面を表示）---
-    _is_home = not st.session_state["chat_messages"]
-
-    # --- 入力欄（会話中のみ上部に表示 / ホーム画面では非表示）---
-    user_input = ""
-    send_clicked = False
-    if not _is_home:
-        with st.form(key="chat_form", clear_on_submit=True):
-            user_input = st.text_input(
-                "質問を入力",
-                placeholder="臨床知識について質問してください...",
-                label_visibility="collapsed",
-            )
-            send_clicked = st.form_submit_button("🔍 検索する", type="primary")
-
-    # --- 📷 画像取り込み（会話中のみ表示）---
-    if not _is_home:
-      with st.expander("📷 画像を取り込む", expanded=False):
-        # pib() と file_uploader をタブで分離（モバイル互換性のため）
-        upload_tab1, upload_tab2 = st.tabs(["📁 ファイル選択", "📋 クリップボード（PC）"])
-
-        img_bytes = None
-        img_name = "image.png"
-
-        with upload_tab1:
-            uploaded_file = st.file_uploader(
-                "画像ファイルを選択",
-                type=["png", "jpg", "jpeg"],
-                key="chat_image_upload",
-                label_visibility="collapsed",
-            )
-            if uploaded_file is not None:
-                img_bytes = uploaded_file.getvalue()
-                if len(img_bytes) > _MAX_UPLOAD_BYTES:
-                    st.error(f"ファイルサイズが上限（{_MAX_UPLOAD_BYTES // (1024*1024)}MB）を超えています。")
-                    img_bytes = None
-                else:
-                    img_name = uploaded_file.name
-
-        with upload_tab2:
-            try:
-                from streamlit_paste_button import paste_image_button as pib
-                st.caption("スクショをコピーしてボタンで貼り付け:")
-                paste_result = pib(
-                    label="📋 クリップボードから画像を貼り付け",
-                    text_color="#5b8def",
-                    background_color="transparent",
-                    hover_background_color="rgba(91,139,239,0.1)",
-                )
-                if paste_result and paste_result.image_data is not None:
-                    buf = io.BytesIO()
-                    paste_result.image_data.save(buf, format="PNG")
-                    img_bytes = buf.getvalue()
-                    img_name = f"paste_{datetime.now().strftime('%H%M%S')}.png"
-            except Exception:
-                st.caption("📋 クリップボード貼り付けはPC版でのみ利用可能です")
-
-        if img_bytes:
-            # 既に取り込み済みの画像がある場合は詳細表示
-            last_upload_id = st.session_state.get("last_upload_id")
-            if last_upload_id and last_upload_id in metadata:
-                meta = metadata[last_upload_id]
-                st.success("✅ 取り込み完了！")
-                col_img, col_info = st.columns([1, 2])
-                with col_img:
-                    try:
-                        saved_bytes = download_image(service, last_upload_id)
-                        st.image(saved_bytes, width=250)
-                    except Exception:
-                        st.image(img_bytes, width=250)
-                with col_info:
-                    st.markdown(f"### {meta.get('title', '不明')}")
-                    status = get_status(meta)
-                    if status == STATUS_REVIEWED:
-                        st.markdown("✅ **確認済み**")
-                    else:
-                        st.markdown("📝 **未確認**")
-                    kw = meta.get("keywords", [])
-                    if kw:
-                        st.markdown(" ".join(f"`{k}`" for k in kw))
-                # 要約（箇条書き）
-                render_summary(meta.get("summary", ""))
-                # アクションボタン
-                btn_c1, btn_c2, btn_c3 = st.columns(3)
-                with btn_c1:
-                    if status != STATUS_REVIEWED:
-                        if st.button("✅ レビュー認証", key="upload_review", type="primary", width="stretch"):
-                            existing = metadata.get(last_upload_id, {})
-                            existing["status"] = STATUS_REVIEWED
-                            metadata[last_upload_id] = existing
-                            save_metadata(metadata)
-                            st.rerun()
-                    else:
-                        st.button("✅ 認証済み", key="upload_reviewed", disabled=True, width="stretch")
-                with btn_c2:
-                    if st.button("📝 詳細編集", key="upload_detail", width="stretch"):
-                        st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
-                        st.session_state["active_tab"] = "📸 画像ライブラリ"
-                        st.session_state["lib_selected_id"] = last_upload_id
-                        st.session_state.pop("last_upload_id", None)
-                        st.rerun()
-                with btn_c3:
-                    if st.button("🗑️ 削除", key="upload_delete", width="stretch"):
-                        move_to_trash([last_upload_id], metadata)
-                        # ローカル画像ファイルも削除
-                        for ext in ("png", "jpg", "jpeg"):
-                            p = UPLOADS_DIR / f"{last_upload_id}.{ext}"
-                            if p.exists():
-                                p.unlink()
-                        st.session_state.pop("last_upload_id", None)
-                        st.success("🗑️ ゴミ箱に移動しました")
-                        st.rerun()
-                # 新しい画像を取り込むボタン
-                if st.button("📷 別の画像を取り込む", key="upload_another"):
-                    st.session_state.pop("last_upload_id", None)
-                    st.rerun()
-            else:
-                # 未取り込み：プレビューと取り込みボタン
-                col_preview, col_action = st.columns([1, 1])
-                with col_preview:
-                    st.image(img_bytes, width=300, caption=img_name)
-                with col_action:
-                    st.markdown(f"**サイズ:** {len(img_bytes) / 1024:.0f} KB")
-                    if not api_key:
-                        st.warning("AI解析には `GOOGLE_API_KEY` の設定が必要です。")
-                    else:
-                        if st.button(
-                            "🤖 AI解析して知識ベースに取り込む",
-                            key="btn_upload_analyze",
-                            type="primary",
-                            width="stretch",
-                        ):
-                            with st.spinner("AI解析中..."):
-                                result = analyze_image_with_gemini(img_bytes, api_key)
-                            if result:
-                                # ローカルに画像を保存
-                                UPLOADS_DIR.mkdir(exist_ok=True)
-                                file_id = f"upload_{uuid.uuid4().hex[:12]}"
-                                ext = img_name.rsplit(".", 1)[-1].lower() if "." in img_name else "png"
-                                if ext not in ("jpg", "jpeg", "png"):
-                                    ext = "png"
-                                save_path = UPLOADS_DIR / f"{file_id}.{ext}"
-                                save_path.write_bytes(img_bytes)
-                                # メタデータに保存
-                                result["folder"] = DEFAULT_FOLDER
-                                result["source"] = "upload"
-                                metadata[file_id] = result
-                                save_metadata(metadata)
-                                st.session_state["last_upload_id"] = file_id
-                                st.balloons()
-                                st.rerun()
-
-    if knowledge_count == 0 and _is_home:
-        st.info(
-            "まだ知識が登録されていません。\n\n"
-            "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
+        search_clicked = st.form_submit_button(
+            "🔍 検索する", type="primary", width="stretch",
         )
 
-    # 質問例クリック / ホーム検索からの送信処理（直接回答）
+    # --- 検索実行 ---
     pending = st.session_state.pop("pending_question", None)
-    if pending:
-        handle_chat_submit(pending, sessions, metadata, api_key)
+    if search_clicked and search_query:
+        st.session_state["_search_query"] = search_query
+    elif pending:
+        st.session_state["_search_query"] = pending
 
-    # 送信処理 — 直接回答
-    if send_clicked and user_input:
-        handle_chat_submit(user_input, sessions, metadata, api_key)
-
-    # --- 全文検索プレビュー表示 ---
-    _ocr_preview_fid = st.session_state.get("_ocr_preview_id")
-    if _ocr_preview_fid and _ocr_preview_fid in metadata:
-        _prev_meta = metadata[_ocr_preview_fid]
-        _prev_title = _prev_meta.get("title", "不明")
-
-        # 閉じるボタン + ライブラリ遷移 + 画像のみトグル
-        _img_only = st.session_state.get("_ocr_image_only", False)
-        _pc1, _pc2, _pc3, _pc4 = st.columns([2, 2, 2, 4])
-        with _pc1:
-            if st.button("✖ 閉じる", key="ocr_preview_close"):
-                st.session_state.pop("_ocr_preview_id", None)
-                st.session_state.pop("_ocr_image_only", None)
-                st.rerun()
-        with _pc2:
-            if st.button("📸 ライブラリで開く", key="ocr_preview_open_lib"):
-                st.session_state["active_tab"] = "📸 画像ライブラリ"
-                st.session_state["lib_selected_id"] = _ocr_preview_fid
-                st.session_state["lib_enlarged_view"] = True
-                st.session_state["lib_back_tab"] = "💬 チャット"
-                st.session_state.pop("_ocr_preview_id", None)
-                st.session_state.pop("_ocr_image_only", None)
-                st.rerun()
-        with _pc3:
-            if _img_only:
-                if st.button("📋 所見も表示", key="ocr_toggle_info"):
-                    st.session_state["_ocr_image_only"] = False
-                    st.rerun()
-            else:
-                if st.button("🖼️ 画像のみ", key="ocr_toggle_img"):
-                    st.session_state["_ocr_image_only"] = True
-                    st.rerun()
-
-        # 表示
-        try:
-            _prev_bytes = download_image(service, _ocr_preview_fid)
-            if _prev_bytes:
-                if _img_only:
-                    st.image(_prev_bytes, use_container_width=True)
-                else:
-                    render_enlarged_view(_prev_bytes, _prev_meta, _prev_title)
-        except Exception:
-            st.error("画像の読み込みに失敗しました。")
-        return  # プレビュー表示中は他を描画しない
-
-    # --- 表示エリア ---
-    if not st.session_state["chat_messages"]:
-        render_home_screen(knowledge_count, metadata, service)
-        return
-
-    # --- 最新の回答を表示 ---
-    messages = st.session_state["chat_messages"]
-
-    latest_q = None
-    latest_a = None
-    for msg in reversed(messages):
-        if msg["role"] == "assistant" and latest_a is None:
-            latest_a = msg
-        elif msg["role"] == "user" and latest_q is None:
-            latest_q = msg
-        if latest_q and latest_a:
-            break
-
-    if latest_q:
-        st.markdown(
-            f"<p style='background:#1a3a5c; border-radius:12px; "
-            f"padding:12px 18px; color:#e0e0e0; font-size:15px;'>"
-            f"💬 {html.escape(latest_q['content'])}</p>",
-            unsafe_allow_html=True,
-        )
-
-    if latest_a:
-        _search_kw = latest_q.get("content", "") if latest_q else ""
-        display_kb_response_with_images(
-            latest_a.get("content", ""), metadata, service,
-            search_keyword=_search_kw,
-        )
-
-    # --- 過去の履歴（折りたたみ） ---
-    past_pairs = []
-    i = 0
-    while i < len(messages) - 2:
-        if (
-            messages[i]["role"] == "user"
-            and i + 1 < len(messages)
-            and messages[i + 1]["role"] == "assistant"
-        ):
-            past_pairs.append((messages[i], messages[i + 1]))
-            i += 2
+    # --- 表示 ---
+    active_query = st.session_state.get("_search_query", "")
+    if active_query:
+        display_search_results(active_query, metadata, service)
+    else:
+        if knowledge_count == 0:
+            st.info(
+                "まだ知識が登録されていません。\n\n"
+                "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
+            )
         else:
-            i += 1
-
-    if past_pairs:
-        st.markdown("---")
-        with st.expander(f"📜 過去の質問履歴（{len(past_pairs)}件）", expanded=False):
-            for hist_idx, (q_msg, a_msg) in enumerate(reversed(past_pairs)):
-                st.markdown(
-                    f"<p style='background:#1a3a5c; border-radius:10px; "
-                    f"padding:10px 14px; color:#e0e0e0; font-size:14px;'>"
-                    f"💬 {html.escape(q_msg['content'])}</p>",
-                    unsafe_allow_html=True,
-                )
-                display_kb_response_with_images(
-                    a_msg.get("content", ""), metadata, service,
-                    key_suffix=f"_hist{hist_idx}",
-                    search_keyword=q_msg.get("content", ""),
-                )
-                st.markdown("---")
+            render_home_screen(knowledge_count)
 
 
 # ===========================================================================
