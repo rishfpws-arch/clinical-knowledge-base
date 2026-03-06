@@ -8948,24 +8948,78 @@ def _page_weight_management_inner():
         # ====== 食事の写真 ======
         _render_food_thumbnails(day_data)
 
-        # ====== 体重入力 ======
+        # ====== 体重入力（±ボタン式） ======
         st.markdown("### ⚖️ 体重を入力")
-        default_wt = day_data.get("weight") or 0.0
-        with st.form(key=f"wm_weight_form_{date_key}"):
-            input_weight = st.number_input(
-                "体重 (kg)", min_value=0.0, max_value=300.0,
-                value=float(default_wt), step=0.1, format="%.1f",
-            )
-            weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
-        if weight_submitted:
-            if input_weight > 0:
-                day_data["weight"] = round(input_weight, 1)
-                day_data["weight_recorded_at"] = datetime.now().isoformat()
-                save_weight_data(weight_data)
-                st.toast(f"✅ 体重 {input_weight} kg を記録しました")
+
+        # ベースライン: 当日の体重 → 直近記録 → 60.0
+        _wt_temp_key = f"wm_weight_temp_{date_key}"
+        if _wt_temp_key not in st.session_state:
+            _base_wt = day_data.get("weight")
+            if not _base_wt:
+                for _dk in sorted(records.keys(), reverse=True):
+                    _w = records[_dk].get("weight")
+                    if _w:
+                        _base_wt = _w
+                        break
+            st.session_state[_wt_temp_key] = _base_wt or 60.0
+
+        _cur_wt = st.session_state[_wt_temp_key]
+
+        # ±ボタン行
+        _wc1, _wc2, _wc3, _wc4, _wc5 = st.columns([1, 1, 2, 1, 1])
+        with _wc1:
+            if st.button("▼0.5", key=f"wm_wt_m5_{date_key}", use_container_width=True):
+                st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.5), 1)
                 st.rerun()
-            else:
-                st.warning("0 より大きい値を入力してください。")
+        with _wc2:
+            if st.button("▼0.1", key=f"wm_wt_m1_{date_key}", use_container_width=True):
+                st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.1), 1)
+                st.rerun()
+        with _wc3:
+            _wt_color = "#4CAF50" if day_data.get("weight") else "#FF9800"
+            st.markdown(
+                f"<div style='text-align:center;font-size:44px;font-weight:bold;"
+                f"color:{_wt_color};line-height:1.2;'>"
+                f"{_cur_wt:.1f}"
+                f"<span style='font-size:18px;color:#b0b0b0;'> kg</span></div>",
+                unsafe_allow_html=True,
+            )
+        with _wc4:
+            if st.button("▲0.1", key=f"wm_wt_p1_{date_key}", use_container_width=True):
+                st.session_state[_wt_temp_key] = round(_cur_wt + 0.1, 1)
+                st.rerun()
+        with _wc5:
+            if st.button("▲0.5", key=f"wm_wt_p5_{date_key}", use_container_width=True):
+                st.session_state[_wt_temp_key] = round(_cur_wt + 0.5, 1)
+                st.rerun()
+
+        # 記録ボタン
+        if st.button("💾 記録する", key=f"wm_wt_save_{date_key}",
+                      type="primary", use_container_width=True):
+            day_data["weight"] = round(_cur_wt, 1)
+            day_data["weight_recorded_at"] = datetime.now().isoformat()
+            save_weight_data(weight_data)
+            st.toast(f"✅ 体重 {_cur_wt} kg を記録しました")
+            st.rerun()
+
+        # 直接入力（折りたたみ）
+        with st.expander("⌨️ 数値を直接入力"):
+            with st.form(key=f"wm_weight_form_{date_key}"):
+                input_weight = st.number_input(
+                    "体重 (kg)", min_value=0.0, max_value=300.0,
+                    value=float(_cur_wt), step=0.1, format="%.1f",
+                )
+                weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
+            if weight_submitted:
+                if input_weight > 0:
+                    day_data["weight"] = round(input_weight, 1)
+                    day_data["weight_recorded_at"] = datetime.now().isoformat()
+                    save_weight_data(weight_data)
+                    st.session_state[_wt_temp_key] = round(input_weight, 1)
+                    st.toast(f"✅ 体重 {input_weight} kg を記録しました")
+                    st.rerun()
+                else:
+                    st.warning("0 より大きい値を入力してください。")
 
         # ====== AIコメント ======
         comment = _generate_weight_comment(day_data, goals)
