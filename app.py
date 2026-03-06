@@ -6077,7 +6077,7 @@ def page_chat():
                 "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
             )
         else:
-            render_home_screen(knowledge_count)
+            render_home_screen(knowledge_count, metadata, service)
 
 
 # ===========================================================================
