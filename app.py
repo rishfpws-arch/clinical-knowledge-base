@@ -3639,8 +3639,8 @@ def render_home_screen(knowledge_count: int, metadata: dict | None = None,
         pc1, pc2, pc3 = st.columns([1, 2, 1])
         with pc2:
             try:
-                thumb = download_thumbnail(service, fid)
-                st.image(thumb, use_container_width=True)
+                pickup_img = download_image(service, fid)
+                st.image(pickup_img, use_container_width=True)
             except Exception:
                 st.markdown(
                     '<div style="background:#333;border-radius:8px;'
