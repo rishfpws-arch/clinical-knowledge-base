@@ -3580,8 +3580,9 @@ def _render_search_grid(
 # ---------------------------------------------------------------------------
 # 検索機能: ホーム画面
 # ---------------------------------------------------------------------------
-def render_home_screen(knowledge_count: int) -> None:
-    """検索前のホーム画面を表示する。"""
+def render_home_screen(knowledge_count: int, metadata: dict | None = None,
+                       service=None) -> None:
+    """検索前のホーム画面を表示する。ランダム画像ピックアップ付き。"""
     st.markdown("")
     st.markdown("")
 
@@ -3614,6 +3615,60 @@ def render_home_screen(knowledge_count: int) -> None:
         f"📚 {knowledge_count}件 の知識を収録</span></p>",
         unsafe_allow_html=True,
     )
+
+    # --- ランダムピックアップ画像 ---
+    if metadata and service and len(metadata) > 0:
+        # セッション中は同じ画像を表示（リロードで変わる）
+        pick_key = "_home_pickup_id"
+        fid = st.session_state.get(pick_key)
+        if fid is None or fid not in metadata:
+            fid = random.choice(list(metadata.keys()))
+            st.session_state[pick_key] = fid
+
+        meta = metadata[fid]
+        title = meta.get("title", "不明")
+        badge = "🏥 患者データ" if is_patient_data(meta) else "📷 画像ライブラリ"
+        kws = meta.get("keywords", [])
+
+        st.markdown("---")
+        st.markdown(
+            "<p style='text-align:center; color:#b0b0b0; font-size:13px; "
+            "margin-bottom:8px;'>📌 ピックアップ</p>",
+            unsafe_allow_html=True,
+        )
+        pc1, pc2, pc3 = st.columns([1, 2, 1])
+        with pc2:
+            try:
+                thumb = download_thumbnail(service, fid)
+                st.image(thumb, use_container_width=True)
+            except Exception:
+                st.markdown(
+                    '<div style="background:#333;border-radius:8px;'
+                    'height:120px;display:flex;align-items:center;'
+                    'justify-content:center;color:#b0b0b0;font-size:32px;">🖼️</div>',
+                    unsafe_allow_html=True,
+                )
+            st.markdown(
+                f"<p style='text-align:center; margin:4px 0 2px;'>"
+                f"<b>{title}</b></p>"
+                f"<p style='text-align:center; color:#999; font-size:12px; margin:0;'>"
+                f"{badge}</p>",
+                unsafe_allow_html=True,
+            )
+            if kws:
+                kw_html = " ".join(
+                    f"<code style='font-size:11px;'>{k}</code>" for k in kws[:5]
+                )
+                st.markdown(
+                    f"<p style='text-align:center; margin-top:4px;'>{kw_html}</p>",
+                    unsafe_allow_html=True,
+                )
+            if st.button("🔍 詳細を見る", key="home_pickup_detail", use_container_width=True):
+                st.session_state["lib_selected_id"] = fid
+                st.session_state["lib_enlarged_view"] = True
+                st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
+                st.session_state["active_tab"] = "📸 画像ライブラリ"
+                st.rerun()
 
 
 # ===========================================================================
