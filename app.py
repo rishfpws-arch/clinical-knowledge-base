@@ -9598,7 +9598,7 @@ def main():
     )
 
     # アクティブタブの管理（5タブ構成）
-    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "⚖️ 体重管理", "⚙️ 設定"]
+    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "🍽️ 食事記録", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
     # 旧タブ名からのマイグレーション
