@@ -3472,9 +3472,18 @@
     "source": "patient_data"
   },
   "1DsQ5GKYz4DD9c79bmvsNbAWvp3hLjJ9F": {
-    "title": "PXL_20260311_023557009.jpg",
-    "summary": "",
-    "keywords": [],
+    "title": "内側側副靭帯損傷",
+    "summary": "膝関節痛訴えあり、中年女性、MRI STIR像で内側側副靭帯に高信号あり、リハビリ、投薬治療となった",
+    "keywords": [
+      "内側側副靭帯損傷",
+      "膝関節",
+      "MRI",
+      "T2強調",
+      "靭帯断裂",
+      "内側半月板損傷",
+      "スポーツ外傷",
+      "膝関節痛"
+    ],
     "status": "reviewed",
     "folder": "患者データ",
     "source": "patient_data"
