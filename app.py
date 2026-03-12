@@ -8544,11 +8544,28 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
     if dup_count > 0:
         st.warning(f"⚠️ 重複品目が {dup_count} 件検出されました")
         if st.button("🔄 重複品目を自動削除", key="wm_dedup_btn", type="primary"):
+            # Undo 用に削除前のスナップショットを保存
+            import copy
+            st.session_state["_dedup_backup"] = copy.deepcopy(list(day_data.get("items", [])))
             removed = _dedup_day_items(day_data)
             if removed > 0:
                 save_weight_data(weight_data)
-                st.success(f"✅ {removed} 件の重複品目を削除しました")
+                st.session_state["_dedup_removed_count"] = removed
                 st.rerun()
+
+    # Undo ボタン（直前の重複削除を元に戻す）
+    _backup = st.session_state.get("_dedup_backup")
+    _removed_n = st.session_state.get("_dedup_removed_count", 0)
+    if _backup and _removed_n > 0:
+        st.success(f"✅ {_removed_n} 件の重複品目を削除しました")
+        if st.button("↩️ 元に戻す", key="wm_dedup_undo"):
+            day_data["items"] = _backup
+            day_data["total_calories"] = sum(x.get("calories", 0) for x in _get_day_items(day_data))
+            save_weight_data(weight_data)
+            st.session_state.pop("_dedup_backup", None)
+            st.session_state.pop("_dedup_removed_count", None)
+            st.success("↩️ 復元しました")
+            st.rerun()
 
     groups = _group_items_by_meal(current_items)
 
@@ -8609,6 +8626,39 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
                 st.session_state.pop(f"wm_half_{sid}", None)
             st.toast(f"½ {len(selected_ids)} 品目を半量にしました")
             st.rerun()
+
+    # --- 画像再スキャンで復元 ---
+    with st.expander("🔄 画像を再スキャンして復元"):
+        st.caption("品目を誤って削除した場合、元の画像からAI解析をやり直して復元できます。")
+        fids_in_day = {it.get("drive_file_id") for it in current_items if it.get("drive_file_id")}
+        if fids_in_day:
+            if st.button("🔄 この日の食事画像を再スキャン", key="wm_rescan_day"):
+                processed = load_food_processed()
+                reset_count = 0
+                for fid in fids_in_day:
+                    if fid in processed:
+                        del processed[fid]
+                        reset_count += 1
+                if reset_count > 0:
+                    save_food_processed(processed)
+                # 既存品目を全削除して再取り込み
+                day_data["items"] = []
+                day_data["total_calories"] = 0
+                save_weight_data(weight_data)
+                try:
+                    service = get_drive_service()
+                    food_fid = get_food_folder_id()
+                    api_key = get_gemini_api_key()
+                    if service and food_fid and api_key:
+                        n = scan_food_images(service, food_fid, api_key, manual=True)
+                        st.success(f"✅ {n} 枚の画像を再スキャンしました")
+                    else:
+                        st.warning("⚠️ Drive/API設定を確認してください")
+                except Exception as e:
+                    st.error(f"⚠️ 再スキャンに失敗しました: {e}")
+                st.rerun()
+        else:
+            st.caption("この日にはDrive画像がリンクされた品目がありません。")
 
 
 def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
