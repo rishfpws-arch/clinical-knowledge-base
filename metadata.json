@@ -3498,9 +3498,18 @@
     "source": "patient_data"
   },
   "10gns1zb2fFEVw3UDYgJ9WlmOMDGrHnUK": {
-    "title": "PXL_20260311_025344040.jpg",
-    "summary": "",
-    "keywords": [],
+    "title": "内側半月板損傷",
+    "summary": "中年女性、膝関節痛訴えあり、MRIで内側半月板損傷の所見あり、保存的加療",
+    "keywords": [
+      "内側半月板損傷",
+      "膝関節",
+      "MRI",
+      "半月板信号異常",
+      "変形性膝関節症",
+      "前十字靭帯損傷",
+      "関節液貯留",
+      "滑膜炎"
+    ],
     "status": "reviewed",
     "folder": "患者データ",
     "source": "patient_data"
