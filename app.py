@@ -9050,6 +9050,9 @@ def _render_weight_history(records: dict, goals: dict):
                             f"　{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
                             f"　**{it.get('calories', 0)} kcal**"
                         )
+            if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
+                st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
+                st.rerun()
 
 
 def page_weight_management():
