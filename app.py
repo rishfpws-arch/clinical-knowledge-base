@@ -15,6 +15,7 @@ import os as _os
 _os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
 import base64
+import copy
 import hashlib
 import hmac
 import html
@@ -8545,7 +8546,6 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
         st.warning(f"⚠️ 重複品目が {dup_count} 件検出されました")
         if st.button("🔄 重複品目を自動削除", key="wm_dedup_btn", type="primary"):
             # Undo 用に削除前のスナップショットを保存
-            import copy
             st.session_state["_dedup_backup"] = copy.deepcopy(list(day_data.get("items", [])))
             removed = _dedup_day_items(day_data)
             if removed > 0:
