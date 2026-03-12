@@ -9272,6 +9272,10 @@ def _page_weight_management_inner():
 
                 if st.button("🤖 AIでカロリー解析", key="wm_food_ai"):
                     if api_key:
+                        st.markdown(
+                            f'<div class="loading-banner">🤖 AI解析中… {len(all_food_bytes)}枚の画像を処理しています</div>',
+                            unsafe_allow_html=True,
+                        )
                         with st.spinner(f"解析中...（{len(all_food_bytes)}枚）"):
                             images_list = [fb["bytes"] for fb in all_food_bytes]
                             result = analyze_food_images(images_list, api_key)
