@@ -2871,6 +2871,19 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
     Returns:
         処理した画像数
     """
+    # 排他ロック: 同時実行を防止
+    if st.session_state.get("_food_scan_running"):
+        return 0
+    st.session_state["_food_scan_running"] = True
+    try:
+        return _scan_food_images_inner(service, food_folder_id, api_key, manual)
+    finally:
+        st.session_state["_food_scan_running"] = False
+
+
+def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
+                            manual: bool = False) -> int:
+    """scan_food_images の内部実装。"""
     if not manual:
         # 自動スキャン: クールダウンチェック
         now = time.time()
@@ -2970,6 +2983,16 @@ def scan_food_images(service, food_folder_id: str, api_key: str,
             result = analyze_food_images([img_bytes], api_key)
             if result and "items" in result and result["items"]:
                 day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
+                # 重複防止: この画像が既に取り込み済みならスキップ
+                existing_fids = {x.get("drive_file_id") for x in day_data.get("items", [])}
+                if file_id in existing_fids:
+                    processed[file_id] = {
+                        "date": date_key,
+                        "file_name": file_name,
+                        "processed_at": datetime.now().isoformat(),
+                        "status": "ok",
+                    }
+                    continue
                 for it in result["items"]:
                     item_entry = {
                         "id": f"item_{uuid.uuid4().hex[:12]}",
@@ -8453,6 +8476,27 @@ def _render_food_thumbnails(day_data: dict):
                     st.rerun()
 
 
+def _dedup_day_items(day_data: dict) -> int:
+    """同じ drive_file_id を持つ品目ブロックの重複を除去する。最初のブロックだけ残す。
+    Returns: 除去した品目数。"""
+    items = day_data.get("items", [])
+    seen_fids: dict[str, bool] = {}
+    keep: list[dict] = []
+    removed = 0
+    for it in items:
+        fid = it.get("drive_file_id")
+        if fid and fid in seen_fids:
+            removed += 1
+            continue
+        if fid:
+            seen_fids[fid] = True
+        keep.append(it)
+    if removed > 0:
+        day_data["items"] = keep
+        day_data["total_calories"] = sum(x.get("calories", 0) for x in _get_day_items(day_data))
+    return removed
+
+
 def _render_meal_groups(day_data: dict, weight_data: dict):
     """食事タイプ別にグループ化して表示（MoneyForwardカテゴリ風）。"""
     current_items = _get_day_items(day_data)
@@ -8460,6 +8504,22 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
     if not current_items:
         st.caption("📋 この日の食事記録はまだありません。")
         return
+
+    # 重複チェック: 同じ drive_file_id が複数あれば警告 + 削除ボタン
+    fid_counts: dict[str, int] = {}
+    for it in current_items:
+        fid = it.get("drive_file_id")
+        if fid:
+            fid_counts[fid] = fid_counts.get(fid, 0) + 1
+    dup_count = sum(v - 1 for v in fid_counts.values() if v > 1)
+    if dup_count > 0:
+        st.warning(f"⚠️ 重複品目が {dup_count} 件検出されました")
+        if st.button("🔄 重複品目を自動削除", key="wm_dedup_btn", type="primary"):
+            removed = _dedup_day_items(day_data)
+            if removed > 0:
+                save_weight_data(weight_data)
+                st.success(f"✅ {removed} 件の重複品目を削除しました")
+                st.rerun()
 
     groups = _group_items_by_meal(current_items)
 
@@ -9577,7 +9637,8 @@ def main():
     )
     st.session_state["auto_scan_enabled"] = auto_scan_val
 
-    if st.sidebar.button("🔄 今すぐスキャン", key="manual_scan", width="stretch"):
+    _scan_busy = st.session_state.get("_food_scan_running", False)
+    if st.sidebar.button("🔄 今すぐスキャン", key="manual_scan", width="stretch", disabled=_scan_busy):
         st.session_state["manual_scan_running"] = True
         list_images.clear()
         st.rerun()
