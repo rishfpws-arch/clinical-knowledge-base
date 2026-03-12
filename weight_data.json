@@ -6067,19 +6067,19 @@
         {
           "id": "item_e103c33c38e0",
           "name": "ご飯",
-          "quantity": "ふつう",
-          "calories": 250,
+          "quantity": "半量",
+          "calories": 125,
           "nutrients": {
-            "protein": 4.5,
-            "fat": 0.8,
-            "carbs": 55.3,
-            "fiber": 0.3,
-            "salt": 0,
-            "calcium": 5,
-            "iron": 0.3,
-            "vitamin_a": 0,
-            "vitamin_c": 0,
-            "vitamin_d": 0
+            "protein": 2.2,
+            "fat": 0.4,
+            "carbs": 27.6,
+            "fiber": 0.1,
+            "salt": 0.0,
+            "calcium": 2.5,
+            "iron": 0.1,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
           },
           "meal_type": "breakfast",
           "image_id": "wm_66b026a3b1a2",
@@ -6219,7 +6219,7 @@
           "drive_file_id": "1nLdGRul8bSzmGApsCBdglsqKW1_fgK_s"
         }
       ],
-      "total_calories": 3453
+      "total_calories": 3328
     },
     "2026-03-10": {
       "items": [
