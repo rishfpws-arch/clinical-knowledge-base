@@ -8476,21 +8476,46 @@ def _render_food_thumbnails(day_data: dict):
                     st.rerun()
 
 
+def _count_first_block(items: list[dict], fid: str) -> int:
+    """指定 drive_file_id の最初の連続ブロックの品目数を返す。"""
+    count = 0
+    found = False
+    for it in items:
+        if it.get("drive_file_id") == fid:
+            found = True
+            count += 1
+        elif found:
+            break  # 連続ブロック終了
+    return count
+
+
 def _dedup_day_items(day_data: dict) -> int:
-    """同じ drive_file_id を持つ品目ブロックの重複を除去する。最初のブロックだけ残す。
+    """同じ drive_file_id を持つ品目ブロックの重複を除去する。
+    1枚の画像から複数品目が出るケースに対応: 最初のブロック（連続する品目群）だけ残す。
     Returns: 除去した品目数。"""
     items = day_data.get("items", [])
-    seen_fids: dict[str, bool] = {}
+    if not items:
+        return 0
+    # 各 fid の最初の連続ブロックサイズを計算
+    first_block: dict[str, int] = {}
+    for it in items:
+        fid = it.get("drive_file_id")
+        if fid and fid not in first_block:
+            first_block[fid] = _count_first_block(items, fid)
+    # 最初のブロック分だけ残す
+    seen_count: dict[str, int] = {}
     keep: list[dict] = []
     removed = 0
     for it in items:
         fid = it.get("drive_file_id")
-        if fid and fid in seen_fids:
-            removed += 1
+        if not fid:
+            keep.append(it)
             continue
-        if fid:
-            seen_fids[fid] = True
-        keep.append(it)
+        seen_count[fid] = seen_count.get(fid, 0) + 1
+        if seen_count[fid] <= first_block.get(fid, 1):
+            keep.append(it)
+        else:
+            removed += 1
     if removed > 0:
         day_data["items"] = keep
         day_data["total_calories"] = sum(x.get("calories", 0) for x in _get_day_items(day_data))
@@ -8505,13 +8530,17 @@ def _render_meal_groups(day_data: dict, weight_data: dict):
         st.caption("📋 この日の食事記録はまだありません。")
         return
 
-    # 重複チェック: 同じ drive_file_id が複数あれば警告 + 削除ボタン
+    # 重複チェック: 同じ画像から2回以上取り込まれたブロックを検出
     fid_counts: dict[str, int] = {}
     for it in current_items:
         fid = it.get("drive_file_id")
         if fid:
             fid_counts[fid] = fid_counts.get(fid, 0) + 1
-    dup_count = sum(v - 1 for v in fid_counts.values() if v > 1)
+    dup_count = 0
+    for fid, total in fid_counts.items():
+        block_size = _count_first_block(current_items, fid)
+        if total > block_size:
+            dup_count += total - block_size
     if dup_count > 0:
         st.warning(f"⚠️ 重複品目が {dup_count} 件検出されました")
         if st.button("🔄 重複品目を自動削除", key="wm_dedup_btn", type="primary"):
