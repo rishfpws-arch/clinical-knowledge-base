@@ -8034,12 +8034,11 @@ def _get_weight_trend(records: dict) -> str:
 
 
 def _render_date_navigation():
-    """MoneyForward風の日付ナビゲーション。◀ 前日 | 日付 | 翌日 ▶ | 今日"""
+    """MoneyForward風の日付ナビゲーション。◀ 前日 | カレンダー | 翌日 ▶ | 今日"""
     if "wm_selected_date" not in st.session_state:
         st.session_state["wm_selected_date"] = date.today()
 
     sel = st.session_state["wm_selected_date"]
-    weekday_ja = ["月", "火", "水", "木", "金", "土", "日"][sel.weekday()]
 
     col_prev, col_date, col_next, col_today = st.columns([1, 4, 1, 1.5])
     with col_prev:
@@ -8047,10 +8046,15 @@ def _render_date_navigation():
             st.session_state["wm_selected_date"] = sel - timedelta(days=1)
             st.rerun()
     with col_date:
-        st.markdown(
-            f"<div class='mf-date-display'>{sel.month}月{sel.day}日（{weekday_ja}）</div>",
-            unsafe_allow_html=True,
+        picked = st.date_input(
+            "日付を選択",
+            value=sel,
+            key="wm_date_picker",
+            label_visibility="collapsed",
         )
+        if picked != sel:
+            st.session_state["wm_selected_date"] = picked
+            st.rerun()
     with col_next:
         if st.button("▶", key="wm_next_day", width="stretch"):
             st.session_state["wm_selected_date"] = sel + timedelta(days=1)
