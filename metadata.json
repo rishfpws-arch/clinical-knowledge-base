@@ -3488,9 +3488,18 @@
     "source": "patient_data"
   },
   "1hci8-5sbJdjF7khWHTWB9ArOi9MEj5-v": {
-    "title": "aab40d1d-7ec1-4138-8a5f-189139a818bb~1.jpg",
-    "summary": "",
-    "keywords": [],
+    "title": "Mallet 骨折",
+    "summary": "中学生、末節骨骨片がDIP関節面の30%を超えており、手術適応あり、石黒法で手術となった",
+    "keywords": [
+      "Mallet骨折",
+      "DIP関節",
+      "末節骨",
+      "X線",
+      "骨折",
+      "手指",
+      "裂離骨折",
+      "腱損傷"
+    ],
     "status": "reviewed",
     "folder": "患者データ",
     "source": "patient_data"
