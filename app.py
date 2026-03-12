@@ -8011,6 +8011,17 @@ def _inject_wm_css():
         text-align: right; font-size: 16px; font-weight: bold;
         padding: 12px 14px; border-top: 2px solid #888; margin-top: 8px; color: #e0e0e0;
     }
+    .loading-banner {
+        background: linear-gradient(90deg, #FF6B35, #F7931E);
+        color: white; padding: 14px 20px; border-radius: 10px;
+        font-size: 17px; font-weight: bold; text-align: center;
+        animation: loading-pulse 1.5s ease-in-out infinite;
+        margin-bottom: 12px; box-shadow: 0 2px 12px rgba(255,107,53,0.3);
+    }
+    @keyframes loading-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.65; }
+    }
     </style>
     """, unsafe_allow_html=True)
 
