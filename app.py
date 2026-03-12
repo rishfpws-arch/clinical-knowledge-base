@@ -7704,7 +7704,7 @@ def page_settings_all():
         health = st.session_state.get("_sync_health", {})
         sync_status = st.session_state.get("_sync_status", {})
 
-        _DATA_LABELS = {"metadata": "📋 メタデータ", "weight_data": "⚖️ 体重データ", "food_processed": "🍽️ 食事処理済み"}
+        _DATA_LABELS = {"metadata": "📋 メタデータ", "weight_data": "🍽️ 食事記録データ", "food_processed": "🍽️ 食事処理済み"}
 
         _is_sheets_connected = st.session_state.get("_sheets_connected", None)
         if _is_sheets_connected is False:
