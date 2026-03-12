@@ -9744,6 +9744,10 @@ def main():
 
     # --- 手動スキャン（リアルタイム進捗表示） ---
     if st.session_state.pop("manual_scan_running", False):
+        st.markdown(
+            '<div class="loading-banner">🔄 スキャン中です… しばらくお待ちください</div>',
+            unsafe_allow_html=True,
+        )
         try:
             _scan_service = get_drive_service()
             _scan_folder_id = get_folder_id()
