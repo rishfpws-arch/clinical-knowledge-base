@@ -9736,7 +9736,8 @@ def main():
     st.session_state["auto_scan_enabled"] = auto_scan_val
 
     _scan_busy = st.session_state.get("_food_scan_running", False)
-    if st.sidebar.button("🔄 今すぐスキャン", key="manual_scan", width="stretch", disabled=_scan_busy):
+    _scan_label = "⏳ スキャン中..." if _scan_busy else "🔄 今すぐスキャン"
+    if st.sidebar.button(_scan_label, key="manual_scan", width="stretch", disabled=_scan_busy):
         st.session_state["manual_scan_running"] = True
         list_images.clear()
         st.rerun()
