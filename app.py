@@ -9053,14 +9053,14 @@ def page_weight_management():
     try:
         _page_weight_management_inner()
     except Exception as e:
-        _log.exception("体重管理ページでエラー")
-        st.error("体重管理ページでエラーが発生しました。ページを再読み込みしてください。")
+        _log.exception("食事記録ページでエラー")
+        st.error("食事記録ページでエラーが発生しました。ページを再読み込みしてください。")
 
 
 def _page_weight_management_inner():
     """体重管理ページ内部実装。"""
     _inject_wm_css()
-    st.markdown("## ⚖️ 体重管理")
+    st.markdown("## 🍽️ 食事記録")
 
     weight_data = load_weight_data()
     api_key = get_gemini_api_key()
@@ -9611,6 +9611,7 @@ def main():
         "🗂️ フォルダ設定": TAB_NAMES[4],
         "🗑️ ゴミ箱": TAB_NAMES[4],
         "⚙️ 設定": TAB_NAMES[4],
+        "⚖️ 体重管理": TAB_NAMES[3],
     }
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
