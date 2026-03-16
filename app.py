@@ -489,6 +489,14 @@ ONEPOINT_ADVICE_PROMPT = """あなたは管理栄養士です。以下のデー�
 🍽️ おすすめの食品・料理（2-3品、具体的に）
 👍 良い点（1文）"""
 
+HOME_ADVICE_PROMPT = """過去{days}日間の食事記録:
+- 平均摂取カロリー: {avg_cal} kcal（目標: {target_cal} kcal）
+- 不足している栄養素: {deficient}
+- 過剰な栄養素: {excess}
+- 最近よく食べている食品: {recent_foods}
+上記データから1行（50文字以内）で具体的な栄養アドバイスを日本語で書いてください。
+絵文字不要。「〜しましょう」で終わる簡潔な文。"""
+
 # ---------------------------------------------------------------------------
 # 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
 # target = 推奨量/目安量, upper = 耐容上限量 (None = 設定なし)
@@ -2275,6 +2283,101 @@ def _generate_onepoint_advice(
     return "  \n".join(lines)
 
 
+def _get_home_advice() -> str:
+    """トップページ用の1行栄養アドバイスを生成（session_stateにキャッシュ）。"""
+    cache_key = "_home_advice"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+
+    try:
+        weight_data = load_weight_data()
+        records = weight_data.get("records", {})
+        goals = weight_data.get("goals", {})
+        api_key = get_gemini_api_key()
+        today = date.today()
+
+        # 過去7日間のデータを収集
+        past_days: list[dict] = []
+        for i in range(7):
+            d = today - timedelta(days=i)
+            dk = d.strftime("%Y-%m-%d")
+            if dk in records and records[dk].get("items"):
+                past_days.append(records[dk])
+
+        if len(past_days) < 2:
+            advice = "食事を記録していくとアドバイスが表示されます"
+            st.session_state[cache_key] = advice
+            return advice
+
+        # 平均カロリー
+        avg_cal = round(sum(d.get("total_calories", 0) for d in past_days) / len(past_days))
+        target_cal = goals.get("daily_calorie_target", 0) or "未設定"
+
+        # 栄養素の過不足判定
+        nutrient_sums: dict[str, float] = {}
+        for day in past_days:
+            day_nuts = _aggregate_day_nutrients(day)
+            for k, v in day_nuts.items():
+                nutrient_sums[k] = nutrient_sums.get(k, 0) + v
+        nutrient_avgs = {k: round(v / len(past_days), 1) for k, v in nutrient_sums.items()}
+
+        deficient: list[str] = []
+        excess: list[str] = []
+        for nut_key, nut_info in DEFAULT_NUTRIENT_TARGETS.items():
+            avg_val = nutrient_avgs.get(nut_key, 0)
+            target = nut_info.get("target")
+            upper = nut_info.get("upper")
+            label = nut_info.get("label", nut_key)
+            if target and avg_val < target * 0.6:
+                deficient.append(label)
+            if upper and avg_val > upper:
+                excess.append(label)
+
+        # 最近の食品名
+        food_names: list[str] = []
+        seen: set[str] = set()
+        for day in past_days:
+            for item in _get_day_items(day):
+                n = item.get("name", "")
+                if n and n not in seen:
+                    seen.add(n)
+                    food_names.append(n)
+                if len(food_names) >= 10:
+                    break
+
+        deficient_str = "、".join(deficient) if deficient else "特になし"
+        excess_str = "、".join(excess) if excess else "特になし"
+
+        # Gemini で1行アドバイス生成
+        if api_key:
+            try:
+                prompt = HOME_ADVICE_PROMPT.format(
+                    days=len(past_days),
+                    avg_cal=avg_cal,
+                    target_cal=target_cal,
+                    deficient=deficient_str,
+                    excess=excess_str,
+                    recent_foods="、".join(food_names[:8]),
+                )
+                advice = _gemini_generate(api_key, [{"text": prompt}]).strip()
+                st.session_state[cache_key] = advice
+                return advice
+            except Exception:
+                pass
+
+        # フォールバック: ルールベース
+        if deficient:
+            advice = f"{deficient_str}が不足気味です。バランスの良い食事を心がけましょう"
+        elif excess:
+            advice = f"{excess_str}が多めです。摂りすぎに注意しましょう"
+        else:
+            advice = f"平均{avg_cal}kcal/日。栄養バランスは概ね良好です"
+        st.session_state[cache_key] = advice
+        return advice
+    except Exception:
+        return ""
+
+
 def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
     """画像のEXIFから撮影日時を取得する。"""
     try:
@@ -3639,6 +3742,20 @@ def render_home_screen(knowledge_count: int, metadata: dict | None = None,
         f"📚 {knowledge_count}件 の知識を収録</span></p>",
         unsafe_allow_html=True,
     )
+
+    # --- 週間食事アドバイス ---
+    home_advice = _get_home_advice()
+    if home_advice:
+        ac1, ac2, ac3 = st.columns([1, 4, 1])
+        with ac2:
+            st.markdown(
+                f"<div style='text-align:center; background:#1a2a1a; "
+                f"border:1px solid #2a4a2a; border-radius:12px; "
+                f"padding:10px 16px; margin:8px auto; "
+                f"color:#a0d0a0; font-size:13px;'>"
+                f"🥗 {home_advice}</div>",
+                unsafe_allow_html=True,
+            )
 
     # --- ランダムピックアップ画像 ---
     if metadata and service and len(metadata) > 0:
