@@ -2329,32 +2329,44 @@ def _get_home_advice() -> str:
                 nutrient_sums[k] = nutrient_sums.get(k, 0) + v
         nutrient_avgs = {k: round(v / len(past_days), 1) for k, v in nutrient_sums.items()}
 
-        deficient: list[str] = []
-        excess: list[str] = []
+        # 栄養素の実測値/目標値を詳細に列挙
+        nutrient_lines: list[str] = []
+        worst_deficient = ""
+        worst_ratio = 1.0
         for nut_key, nut_info in DEFAULT_NUTRIENT_TARGETS.items():
             avg_val = nutrient_avgs.get(nut_key, 0)
             target = nut_info.get("target")
             upper = nut_info.get("upper")
             label = nut_info.get("label", nut_key)
-            if target and avg_val < target * 0.6:
-                deficient.append(label)
-            if upper and avg_val > upper:
-                excess.append(label)
+            unit = nut_info.get("unit", "")
+            if target:
+                ratio = round(avg_val / target * 100) if target else 0
+                status = ""
+                if ratio < 60:
+                    status = " ⚠不足"
+                    if ratio < worst_ratio * 100 or not worst_deficient:
+                        worst_deficient = label
+                        worst_ratio = avg_val / target if target else 1
+                elif upper and avg_val > upper:
+                    status = " ⚠過剰"
+                nutrient_lines.append(
+                    f"  {label}: {avg_val}{unit}（目標{target}{unit}, 充足率{ratio}%{status}）"
+                )
+            elif upper:
+                over = "⚠過剰" if avg_val > upper else ""
+                nutrient_lines.append(f"  {label}: {avg_val}{unit}（上限{upper}{unit}{over}）")
 
-        # 最近の食品名
-        food_names: list[str] = []
-        seen: set[str] = set()
+        nutrient_detail = "\n".join(nutrient_lines) if nutrient_lines else "  データなし"
+
+        # 最近の食品名（頻度付き）
+        food_freq: dict[str, int] = {}
         for day in past_days:
             for item in _get_day_items(day):
                 n = item.get("name", "")
-                if n and n not in seen:
-                    seen.add(n)
-                    food_names.append(n)
-                if len(food_names) >= 10:
-                    break
-
-        deficient_str = "、".join(deficient) if deficient else "特になし"
-        excess_str = "、".join(excess) if excess else "特になし"
+                if n:
+                    food_freq[n] = food_freq.get(n, 0) + 1
+        top_foods = sorted(food_freq.items(), key=lambda x: -x[1])[:10]
+        food_str = "、".join(f"{n}({c}回)" for n, c in top_foods)
 
         # Gemini で1行アドバイス生成
         if api_key:
@@ -2363,9 +2375,8 @@ def _get_home_advice() -> str:
                     days=len(past_days),
                     avg_cal=avg_cal,
                     target_cal=target_cal,
-                    deficient=deficient_str,
-                    excess=excess_str,
-                    recent_foods="、".join(food_names[:8]),
+                    nutrient_detail=nutrient_detail,
+                    recent_foods=food_str,
                 )
                 advice = _gemini_generate(api_key, [{"text": prompt}]).strip()
                 st.session_state[cache_key] = advice
@@ -2373,11 +2384,19 @@ def _get_home_advice() -> str:
             except Exception:
                 pass
 
-        # フォールバック: ルールベース
-        if deficient:
-            advice = f"{deficient_str}が不足気味です。バランスの良い食事を心がけましょう"
-        elif excess:
-            advice = f"{excess_str}が多めです。摂りすぎに注意しましょう"
+        # フォールバック: 具体的な数値入り
+        if worst_deficient:
+            avg_v = nutrient_avgs.get(
+                next((k for k, v in DEFAULT_NUTRIENT_TARGETS.items() if v["label"] == worst_deficient), ""),
+                0,
+            )
+            tgt = next(
+                (v["target"] for v in DEFAULT_NUTRIENT_TARGETS.values() if v["label"] == worst_deficient),
+                0,
+            )
+            advice = f"{worst_deficient}が平均{avg_v}g/日（目標{tgt}g）で不足しています"
+        elif top_foods:
+            advice = f"平均{avg_cal}kcal/日。{top_foods[0][0]}が{top_foods[0][1]}回と多め、他の食品も取り入れましょう"
         else:
             advice = f"平均{avg_cal}kcal/日。栄養バランスは概ね良好です"
         st.session_state[cache_key] = advice
