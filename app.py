@@ -9929,7 +9929,7 @@ def _quiz_css():
         background: #f8f9fa; border-left: 4px solid #667eea;
         padding: 20px; border-radius: 0 12px 12px 0;
         font-size: 18px; font-weight: 600; margin: 16px 0;
-        line-height: 1.6;
+        line-height: 1.6; color: #2c3e50;
     }
     .quiz-correct-banner {
         background: linear-gradient(90deg, #00b894, #00cec9);
@@ -9949,7 +9949,7 @@ def _quiz_css():
     }
     .quiz-explanation {
         background: #fff3e0; border-radius: 12px; padding: 16px;
-        margin: 12px 0; border: 1px solid #ffe0b2;
+        margin: 12px 0; border: 1px solid #ffe0b2; color: #2c3e50;
     }
     .quiz-summary-score {
         text-align: center; padding: 30px;
