@@ -10461,9 +10461,9 @@ def main():
         "📂 手動整理": TAB_NAMES[1],
         "🤖 AI整理": TAB_NAMES[1],
         "⚡ 一括解析": TAB_NAMES[2],
-        "🗂️ フォルダ設定": TAB_NAMES[4],
-        "🗑️ ゴミ箱": TAB_NAMES[4],
-        "⚙️ 設定": TAB_NAMES[4],
+        "🗂️ フォルダ設定": TAB_NAMES[5],
+        "🗑️ ゴミ箱": TAB_NAMES[5],
+        "⚙️ 設定": TAB_NAMES[5],
         "⚖️ 体重管理": TAB_NAMES[3],
     }
     if st.session_state["active_tab"] in old_tab_map:
@@ -10635,6 +10635,8 @@ def main():
     elif active == TAB_NAMES[3]:
         page_weight_management()
     elif active == TAB_NAMES[4]:
+        page_quiz()
+    elif active == TAB_NAMES[5]:
         page_settings_all()
 
 
