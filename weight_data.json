@@ -9229,6 +9229,188 @@
         }
       ],
       "total_calories": 2535
+    },
+    "2026-03-17": {
+      "items": [
+        {
+          "id": "item_492fc6bb7e8e",
+          "name": "ランチパック（ブルーベリージャム&マーガリン）",
+          "quantity": "ふつう",
+          "calories": 280,
+          "nutrients": {
+            "protein": 5.6,
+            "fat": 11.2,
+            "carbs": 38.4,
+            "fiber": 1.2,
+            "salt": 0.8,
+            "calcium": 40,
+            "iron": 0.8,
+            "vitamin_a": 0,
+            "vitamin_c": 0,
+            "vitamin_d": 0,
+            "vitamin_e": 0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_90aedcda226e",
+          "image_ext": "jpg",
+          "drive_file_id": "1-LhBggExX4Ski75XvZi7BjIqUqqILlOx"
+        },
+        {
+          "id": "item_272b0e85d504",
+          "name": "マウントレーニア カフェラテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 121,
+          "nutrients": {
+            "protein": 4.4,
+            "fat": 5.7,
+            "carbs": 12.9,
+            "fiber": 0,
+            "salt": 0.15,
+            "calcium": 150,
+            "iron": 0,
+            "vitamin_a": 0,
+            "vitamin_c": 0,
+            "vitamin_d": 0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_90aedcda226e",
+          "image_ext": "jpg",
+          "drive_file_id": "1-LhBggExX4Ski75XvZi7BjIqUqqILlOx"
+        },
+        {
+          "id": "item_fb1093b722dd",
+          "name": "甘露煮パイ",
+          "quantity": "ふつう",
+          "calories": 250,
+          "nutrients": {
+            "protein": 3.0,
+            "fat": 15.0,
+            "carbs": 25.0,
+            "fiber": 1.0,
+            "salt": 0.1,
+            "calcium": 20.0,
+            "iron": 0.5,
+            "vitamin_a": 5.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_7b07ee6e523a",
+          "image_ext": "jpg",
+          "drive_file_id": "14cpGfgv__29Q7rUx1d8y17zLyyl927f8"
+        },
+        {
+          "id": "item_9191b83802e2",
+          "name": "ご飯（のりたまふりかけかけ）",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 7.0,
+            "fat": 3.0,
+            "carbs": 70.0,
+            "fiber": 1.0,
+            "salt": 1.5,
+            "calcium": 50.0,
+            "iron": 1.0,
+            "vitamin_a": 50.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_b06cd1a6b4e6",
+          "image_ext": "jpg",
+          "drive_file_id": "1DY6nmD7cKv7STd4vVfD2t-M1YLONIerj"
+        },
+        {
+          "id": "item_e8f85a3ad646",
+          "name": "鶏の唐揚げ",
+          "quantity": "ふつう",
+          "calories": 220,
+          "nutrients": {
+            "protein": 15.0,
+            "fat": 12.0,
+            "carbs": 8.0,
+            "fiber": 0.5,
+            "salt": 0.8,
+            "calcium": 10.0,
+            "iron": 0.8,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_b06cd1a6b4e6",
+          "image_ext": "jpg",
+          "drive_file_id": "1DY6nmD7cKv7STd4vVfD2t-M1YLONIerj"
+        },
+        {
+          "id": "item_8e1ebdf21d99",
+          "name": "野菜の煮物",
+          "quantity": "ふつう",
+          "calories": 80,
+          "nutrients": {
+            "protein": 2.0,
+            "fat": 3.0,
+            "carbs": 10.0,
+            "fiber": 3.0,
+            "salt": 0.5,
+            "calcium": 30.0,
+            "iron": 0.5,
+            "vitamin_a": 200.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_b06cd1a6b4e6",
+          "image_ext": "jpg",
+          "drive_file_id": "1DY6nmD7cKv7STd4vVfD2t-M1YLONIerj"
+        },
+        {
+          "id": "item_03143132cbc0",
+          "name": "鶏つくね",
+          "quantity": "ふつう",
+          "calories": 150,
+          "nutrients": {
+            "protein": 10.0,
+            "fat": 8.0,
+            "carbs": 5.0,
+            "fiber": 0.5,
+            "salt": 0.6,
+            "calcium": 20.0,
+            "iron": 1.0,
+            "vitamin_a": 20.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_b06cd1a6b4e6",
+          "image_ext": "jpg",
+          "drive_file_id": "1DY6nmD7cKv7STd4vVfD2t-M1YLONIerj"
+        },
+        {
+          "id": "item_05eff73ec0d4",
+          "name": "味噌汁",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 3.0,
+            "fat": 1.5,
+            "carbs": 5.0,
+            "fiber": 1.0,
+            "salt": 1.5,
+            "calcium": 20.0,
+            "iron": 0.5,
+            "vitamin_a": 10.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_b06cd1a6b4e6",
+          "image_ext": "jpg",
+          "drive_file_id": "1DY6nmD7cKv7STd4vVfD2t-M1YLONIerj"
+        }
+      ],
+      "total_calories": 1501
     }
   }
 }
