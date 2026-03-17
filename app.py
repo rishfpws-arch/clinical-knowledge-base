@@ -68,6 +68,7 @@ UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
 FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
+QUIZ_DATA_PATH = Path(__file__).parent / "quiz_data.json"
 _AUTH_STATE_PATH = Path(__file__).parent / ".auth_state"
 FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
 MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
@@ -504,6 +505,28 @@ HOME_ADVICE_PROMPT = """あなたは管理栄養士です。以下は実際の�
 - 「〜を〜に置き換えると良いでしょう」「〜が目標の半分以下です」のように具体的に
 - 一般論（「バランスよく」「野菜を増やしましょう」等）は禁止
 - 絵文字不要"""
+
+QUIZ_GENERATION_PROMPT = """あなたは医学教育の専門家です。以下の医療画像の解析データを基に、4択クイズを1問作成してください。
+
+【画像データ】
+- タイトル: {title}
+- 要約: {summary}
+- キーワード: {keywords}
+- OCRテキスト: {ocr_text}
+
+以下のJSON形式で出力してください。他のテキストは不要です:
+{{
+  "question": "臨床的に重要な問題文（具体的な所見や診断に関する問い）",
+  "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
+  "correct_index": 0,
+  "explanation": "正解の根拠と解説（画像所見との関連を含めて2-3文）"
+}}
+
+ルール:
+- 問題文は臨床的に意味のある内容にすること
+- 誤答の選択肢も医学的にもっともらしいものにすること
+- correct_index は 0-3 の整数
+- 解説は具体的な所見名や診断根拠を含めること"""
 
 # ---------------------------------------------------------------------------
 # 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
