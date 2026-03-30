@@ -9864,50 +9864,41 @@ def _pick_case_quiz_items(metadata: dict, review_data: dict, count: int = 10) ->
 
 # --- Gemini 誤答生成 ---
 
-_DISTRACTOR_PROMPT = """医学教育のクイズを作成中です。以下の正解に対して、医学的にもっともらしいが誤りである選択肢を3つ生成してください。
-
-正解: {correct}
-分野: {folder}
-
-ルール:
-- 同じ分野の類似疾患・所見・用語を選ぶこと
-- 医学生や研修医が迷うレベルのもっともらしさにすること
-- 正解と明らかに異なる分野のものは避けること
-- JSON配列で3つだけ返すこと。他のテキスト不要
-
-例: ["選択肢1", "選択肢2", "選択肢3"]"""
-
-
 def _generate_distractors_batch(items: list[tuple[str, dict]], api_key: str) -> dict[str, list[str]]:
     """セッション内の全アイテムに対して誤答選択肢をGeminiで一括生成する。
     戻り値: {file_id: [distractor1, distractor2, distractor3]}
     """
     if not items or not api_key:
         return {}
-    # 一括プロンプトで全アイテム分を生成
     entries = []
     for i, (fid, meta) in enumerate(items):
         title = meta.get("title", "不明")
         folder = meta.get("folder", "未分類")
-        entries.append(f'{i+1}. 正解="{title}" 分野="{folder}"')
-    batch_prompt = f"""医学教育のクイズを作成中です。以下の各正解に対して、医学的にもっともらしいが誤りである選択肢を3つずつ生成してください。
+        keywords = ", ".join(meta.get("keywords", [])[:5])
+        summary_snippet = (meta.get("summary", "") or "")[:80]
+        entries.append(
+            f'{i+1}. 正解="{title}" 分野="{folder}" '
+            f'キーワード=[{keywords}] 概要="{summary_snippet}"'
+        )
+    batch_prompt = f"""あなたは医学教育の専門家です。4択クイズの誤答選択肢を作成してください。
+
+以下の各問題の正解に対して、**同じ解剖学的部位・同じ検査モダリティ・同じ臨床カテゴリ**の鑑別疾患や類似所見を3つずつ生成してください。
 
 {chr(10).join(entries)}
 
-ルール:
-- 同じ分野の類似疾患・所見・用語を選ぶこと
-- 医学生や研修医が迷うレベルのもっともらしさにすること
-- 正解と明らかに異なる分野のものは避けること
+【重要ルール】
+- 誤答は正解と同じ身体部位・同じ画像検査の疾患にすること（例: 正解が「大腿骨頭壊死」なら誤答も股関節の疾患）
+- 誤答の文体・長さを正解と揃えること
+- 医師国家試験レベルの難易度にすること
+- 全く異なる臓器・分野の疾患を混ぜないこと
 
-以下のJSON形式で返してください。他のテキスト不要:
+JSON形式で返してください。他のテキスト不要:
 [
   ["1の誤答A", "1の誤答B", "1の誤答C"],
-  ["2の誤答A", "2の誤答B", "2の誤答C"],
-  ...
+  ["2の誤答A", "2の誤答B", "2の誤答C"]
 ]"""
     try:
         resp = _gemini_generate(api_key, [{"text": batch_prompt}])
-        # JSON抽出
         clean = resp.strip()
         start = clean.find("[")
         end = clean.rfind("]") + 1
@@ -9917,15 +9908,23 @@ def _generate_distractors_batch(items: list[tuple[str, dict]], api_key: str) -> 
             for i, (fid, _) in enumerate(items):
                 if i < len(parsed) and isinstance(parsed[i], list) and len(parsed[i]) >= 3:
                     result[fid] = [str(d) for d in parsed[i][:3]]
-            return result
+            if result:
+                return result
     except Exception as e:
         _log.warning(f"[Review] 誤答一括生成失敗: {e}")
-    # フォールバック: 個別生成
+    # フォールバック: 1件ずつ個別生成
     result = {}
-    for fid, meta in items[:5]:  # 最大5件に制限
+    for fid, meta in items[:5]:
         title = meta.get("title", "不明")
         folder = meta.get("folder", "未分類")
-        prompt = _DISTRACTOR_PROMPT.format(correct=title, folder=folder)
+        keywords = ", ".join(meta.get("keywords", [])[:5])
+        prompt = (
+            f"医学4択クイズの誤答を作成してください。\n"
+            f"正解: {title}\n分野: {folder}\nキーワード: {keywords}\n\n"
+            f"正解と同じ身体部位・同じ検査法の鑑別疾患を3つ、JSON配列で返してください。"
+            f"文体と長さを正解に揃えてください。他のテキスト不要。\n"
+            f'例: ["疾患A", "疾患B", "疾患C"]'
+        )
         try:
             resp = _gemini_generate(api_key, [{"text": prompt}])
             clean = resp.strip()
@@ -9936,7 +9935,7 @@ def _generate_distractors_batch(items: list[tuple[str, dict]], api_key: str) -> 
                 if isinstance(arr, list) and len(arr) >= 3:
                     result[fid] = [str(d) for d in arr[:3]]
         except Exception as e:
-            _log.warning(f"[Review] 誤答生成失敗 ({fid}): {e}")
+            _log.warning(f"[Review] 誤答個別生成失敗 ({fid}): {e}")
     return result
 
 
