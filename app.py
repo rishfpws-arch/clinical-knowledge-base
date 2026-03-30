@@ -68,7 +68,7 @@ UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
 FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
-QUIZ_DATA_PATH = Path(__file__).parent / "quiz_data.json"
+REVIEW_DATA_PATH = Path(__file__).parent / "review_data.json"
 _AUTH_STATE_PATH = Path(__file__).parent / ".auth_state"
 FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
 MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
@@ -505,28 +505,6 @@ HOME_ADVICE_PROMPT = """あなたは管理栄養士です。以下は実際の�
 - 「〜を〜に置き換えると良いでしょう」「〜が目標の半分以下です」のように具体的に
 - 一般論（「バランスよく」「野菜を増やしましょう」等）は禁止
 - 絵文字不要"""
-
-QUIZ_GENERATION_PROMPT = """あなたは医学教育の専門家です。以下の医療画像の解析データを基に、4択クイズを1問作成してください。
-
-【画像データ】
-- タイトル: {title}
-- 要約: {summary}
-- キーワード: {keywords}
-- OCRテキスト: {ocr_text}
-
-以下のJSON形式で出力してください。他のテキストは不要です:
-{{
-  "question": "臨床的に重要な問題文（具体的な所見や診断に関する問い）",
-  "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
-  "correct_index": 0,
-  "explanation": "正解の根拠と解説（画像所見との関連を含めて2-3文）"
-}}
-
-ルール:
-- 問題文は臨床的に意味のある内容にすること
-- 誤答の選択肢も医学的にもっともらしいものにすること
-- correct_index は 0-3 の整数
-- 解説は具体的な所見名や診断根拠を含めること"""
 
 # ---------------------------------------------------------------------------
 # 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
@@ -9754,667 +9732,697 @@ def _page_weight_management_inner():
 
 
 # ===========================================================================
-# クイズ機能
+# 復習機能（フラッシュカード＋症例クイズ）
 # ===========================================================================
 
-def _load_quiz_data() -> dict:
-    """quiz_data.json を読み込む。存在しなければ空構造を返す。"""
-    if QUIZ_DATA_PATH.exists():
+_REVIEW_DATA_EMPTY = {
+    "flashcard_reviews": {},
+    "case_quiz_history": {},
+    "stats": {
+        "total_flashcard_reviews": 0,
+        "total_case_attempts": 0,
+        "total_case_correct": 0,
+        "last_session_date": "",
+        "streak_days": 0,
+    },
+}
+
+
+def _load_review_data() -> dict:
+    """review_data.json を読み込む。セッションキャッシュ付き。"""
+    cached = st.session_state.get("_cache_review_data")
+    if cached is not None:
+        return cached
+    data = copy.deepcopy(_REVIEW_DATA_EMPTY)
+    if REVIEW_DATA_PATH.exists():
         try:
-            with open(QUIZ_DATA_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+            with open(REVIEW_DATA_PATH, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if "questions" in loaded:
+                _log.info("[Review] 旧クイズ形式を検知 → 新形式にリセット")
+                _atomic_json_write(REVIEW_DATA_PATH, data)
+            else:
+                data = loaded
         except Exception as e:
-            _log.warning(f"[Quiz] データ読み込み失敗: {e}")
-    return {"questions": {}, "user_history": {}, "stats": {"total_attempted": 0, "total_correct": 0}}
+            _log.warning(f"[Review] データ読み込み失敗: {e}")
+    st.session_state["_cache_review_data"] = data
+    return data
 
 
-def _save_quiz_data(data: dict) -> bool:
-    """quiz_data.json を保存する。"""
-    return _atomic_json_write(QUIZ_DATA_PATH, data)
+def _save_review_data(data: dict) -> bool:
+    """review_data.json を保存する。セッションキャッシュも更新。"""
+    st.session_state["_cache_review_data"] = data
+    return _atomic_json_write(REVIEW_DATA_PATH, data)
 
 
-# --- クイズ生成エンジン ---
+def _update_streak(stats: dict):
+    """連続学習日数を更新する。"""
+    today_str = date.today().isoformat()
+    last = stats.get("last_session_date", "")
+    if last == today_str:
+        return  # 同日は変更なし
+    if last:
+        try:
+            last_date = date.fromisoformat(last)
+            if (date.today() - last_date).days == 1:
+                stats["streak_days"] = stats.get("streak_days", 0) + 1
+            else:
+                stats["streak_days"] = 1
+        except ValueError:
+            stats["streak_days"] = 1
+    else:
+        stats["streak_days"] = 1
+    stats["last_session_date"] = today_str
 
-def _generate_quiz_batch(api_key: str, metadata: dict, count: int = 5) -> list[dict]:
-    """metadata から count 件の画像を選び、各画像につき1問ずつクイズを生成する。"""
-    if not metadata:
+
+# --- アイテム選出（間隔反復） ---
+
+def _pick_flashcard_items(metadata: dict, review_data: dict, count: int = 10,
+                          filter_mode: str = "all") -> list[tuple[str, dict]]:
+    """教科書データから優先度順にcount件を選出する。
+
+    filter_mode: "all"=全体, "new_only"=未レビューのみ, "review_only"=要復習のみ
+    """
+    reviews = review_data.get("flashcard_reviews", {})
+    all_textbook = [
+        (fid, m) for fid, m in metadata.items()
+        if m.get("folder") != PATIENT_DATA_FOLDER and m.get("summary")
+    ]
+    if not all_textbook:
         return []
-    # reviewed 済みの画像のみ対象
+
+    if filter_mode == "new_only":
+        candidates = [(fid, m) for fid, m in all_textbook if fid not in reviews]
+        random.shuffle(candidates)
+        return candidates[:count]
+    elif filter_mode == "review_only":
+        candidates = [
+            (fid, m) for fid, m in all_textbook
+            if reviews.get(fid, {}).get("status") == "review"
+        ]
+        candidates.sort(key=lambda x: reviews.get(x[0], {}).get("last_reviewed", ""))
+        return candidates[:count]
+
+    # filter_mode == "all": 優先度順
+    def priority_key(item):
+        fid = item[0]
+        r = reviews.get(fid)
+        if not r:
+            return (0, 0, "")
+        status = r.get("status", "new")
+        if status == "review":
+            return (0, 1, r.get("last_reviewed", ""))
+        consec = r.get("consecutive_remembered", 0)
+        return (1, consec, r.get("last_reviewed", ""))
+
+    all_textbook.sort(key=priority_key)
+    return all_textbook[:count]
+
+
+def _pick_case_quiz_items(metadata: dict, review_data: dict, count: int = 10) -> list[tuple[str, dict]]:
+    """患者データから優先度順にcount件を選出する。"""
+    history = review_data.get("case_quiz_history", {})
     candidates = [
         (fid, m) for fid, m in metadata.items()
-        if m.get("status") == "reviewed" and m.get("summary")
+        if m.get("folder") == PATIENT_DATA_FOLDER
     ]
     if not candidates:
-        candidates = [(fid, m) for fid, m in metadata.items() if m.get("summary")]
-    if not candidates:
         return []
-    selected = random.sample(candidates, min(count, len(candidates)))
-    generated = []
-    for fid, meta in selected:
-        prompt = QUIZ_GENERATION_PROMPT.format(
-            title=meta.get("title", "不明"),
-            summary=(meta.get("summary", "") or "")[:500],
-            keywords=", ".join(meta.get("keywords", [])),
-            ocr_text=(meta.get("ocr_text", "") or "")[:300],
-        )
-        try:
-            resp = _gemini_generate(api_key, [{"text": prompt}])
-            parsed = _parse_quiz_json(resp)
-            if parsed:
-                parsed["source_image_id"] = fid
-                parsed["id"] = str(uuid.uuid4())
-                parsed["created_at"] = datetime.now().isoformat()
-                parsed["edited"] = False
-                generated.append(parsed)
-        except Exception as e:
-            _log.warning(f"[Quiz] 生成失敗 ({fid}): {e}")
-        time.sleep(0.5)  # レート制限対策
-    return generated
+
+    def priority_key(item):
+        fid = item[0]
+        h = history.get(fid)
+        if not h:
+            return (0, "")  # 未回答: 最優先
+        if not h.get("last_correct", True):
+            return (0, h.get("last_attempted", ""))  # 前回不正解: 高優先
+        return (1, h.get("last_attempted", ""))
+
+    candidates.sort(key=priority_key)
+    return candidates[:count]
 
 
-def _parse_quiz_json(text: str) -> dict | None:
-    """Gemini の応答からクイズ JSON をパースしバリデーションする。"""
-    # JSON ブロック抽出
-    clean = text.strip()
-    if "```json" in clean:
-        clean = clean.split("```json", 1)[1]
-        if "```" in clean:
-            clean = clean.split("```", 1)[0]
-    elif "```" in clean:
-        clean = clean.split("```", 1)[1]
-        if "```" in clean:
-            clean = clean.split("```", 1)[0]
-    # { ... } を探す
-    start = clean.find("{")
-    end = clean.rfind("}") + 1
-    if start < 0 or end <= start:
-        return None
+# --- 画像表示ヘルパー ---
+
+def _show_review_image(file_id: str):
+    """Drive画像を取得して表示する。"""
     try:
-        data = json.loads(clean[start:end])
-    except json.JSONDecodeError:
-        return None
-    # バリデーション
-    if not isinstance(data.get("question"), str) or not data["question"].strip():
-        return None
-    choices = data.get("choices")
-    if not isinstance(choices, list) or len(choices) != 4:
-        return None
-    ci = data.get("correct_index")
-    if not isinstance(ci, int) or ci < 0 or ci > 3:
-        return None
-    if not isinstance(data.get("explanation"), str):
-        data["explanation"] = "解説なし"
-    return {
-        "question": data["question"].strip(),
-        "choices": [str(c).strip() for c in choices],
-        "correct_index": ci,
-        "explanation": data["explanation"].strip(),
-    }
+        service = get_drive_service()
+        img_bytes = download_image(service, file_id)
+        if img_bytes:
+            st.image(img_bytes, use_container_width=True)
+        else:
+            st.caption("📷 画像を読み込めませんでした")
+    except Exception:
+        st.caption("📷 画像を読み込めませんでした")
 
 
-# --- 重複検知 ---
+# --- CSS ---
 
-def _quiz_fingerprint(question_text: str) -> set:
-    """問題文から助詞・句読点を除去し、文字3-gramセットを生成する。"""
-    cleaned = re.sub(r"[、。？！?!・\s　「」『』（）\(\)\[\]]", "", question_text)
-    if len(cleaned) < 3:
-        return {cleaned}
-    return {cleaned[i:i+3] for i in range(len(cleaned) - 2)}
-
-
-def _jaccard_similarity(fp1: set, fp2: set) -> float:
-    """Jaccard 類似度を計算する。"""
-    if not fp1 or not fp2:
-        return 0.0
-    intersection = len(fp1 & fp2)
-    union = len(fp1 | fp2)
-    return intersection / union if union > 0 else 0.0
-
-
-def _is_duplicate_quiz(new_q: dict, existing_questions: dict, threshold: float = 0.7) -> bool:
-    """新しい問題が既存問題と重複しているか判定する。"""
-    new_fp = _quiz_fingerprint(new_q["question"])
-    for eq in existing_questions.values():
-        existing_fp = _quiz_fingerprint(eq["question"])
-        if _jaccard_similarity(new_fp, existing_fp) > threshold:
-            return True
-    return False
-
-
-def _dedup_quiz_questions(quiz_data: dict) -> int:
-    """全問題の重複をチェックし、重複する古い方を削除する。削除数を返す。"""
-    questions = quiz_data.get("questions", {})
-    if len(questions) < 2:
-        return 0
-    sorted_qs = sorted(questions.values(), key=lambda q: q.get("created_at", ""))
-    to_remove = set()
-    fps = {}
-    for q in sorted_qs:
-        qid = q["id"]
-        fp = _quiz_fingerprint(q["question"])
-        for prev_id, prev_fp in fps.items():
-            if prev_id in to_remove:
-                continue
-            if _jaccard_similarity(fp, prev_fp) > 0.7:
-                to_remove.add(qid)  # 新しい方を削除
-                break
-        fps[qid] = fp
-    for qid in to_remove:
-        questions.pop(qid, None)
-        quiz_data.get("user_history", {}).pop(qid, None)
-    return len(to_remove)
-
-
-# --- クイズ UI ---
-
-def _quiz_css():
-    """クイズ画面用の CSS を注入する。"""
-    st.markdown("""<style>
-    .quiz-stat-card {
+_REVIEW_CSS = """<style>
+    .rv-stat-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px; padding: 20px; color: white;
+        border-radius: 16px; padding: 20px; color: #ffffff;
         text-align: center; margin-bottom: 8px;
     }
-    .quiz-stat-card .stat-num { font-size: 32px; font-weight: 800; }
-    .quiz-stat-card .stat-label { font-size: 13px; opacity: 0.9; }
-    .quiz-progress {
-        background: #e0e0e0; border-radius: 10px; height: 8px;
+    .rv-stat-card .rv-num { font-size: 32px; font-weight: 800; color: #ffffff; }
+    .rv-stat-card .rv-label { font-size: 13px; color: rgba(255,255,255,0.9); }
+    .rv-streak-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 16px; padding: 20px; color: #ffffff;
+        text-align: center; margin-bottom: 8px;
+    }
+    .rv-streak-card .rv-num { font-size: 32px; font-weight: 800; color: #ffffff; }
+    .rv-streak-card .rv-label { font-size: 13px; color: rgba(255,255,255,0.9); }
+    .rv-flashcard {
+        background: #1e1e2e; border: 1px solid #3a3a4a;
+        border-radius: 20px; padding: 24px; margin: 16px 0;
+        color: #e0e0e0;
+    }
+    .rv-card-title {
+        font-size: 18px; font-weight: 700; color: #ffffff;
+        margin-bottom: 12px; line-height: 1.5;
+    }
+    .rv-reveal-box {
+        background: #2a2a3e; border-radius: 12px; padding: 16px;
+        margin: 12px 0; color: #d0d0e0; line-height: 1.7;
+        border-left: 4px solid #667eea;
+        animation: rv-fade-in 0.3s ease-out;
+    }
+    .rv-reveal-box strong { color: #a0c4ff; }
+    .rv-case-prompt {
+        background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+        border-radius: 16px; padding: 20px; color: #ffffff;
+        text-align: center; font-size: 20px; font-weight: 700;
+        margin: 16px 0;
+    }
+    .rv-progress {
+        background: #3a3a4a; border-radius: 10px; height: 8px;
         margin: 12px 0 20px 0; overflow: hidden;
     }
-    .quiz-progress-fill {
+    .rv-progress-fill {
         background: linear-gradient(90deg, #667eea, #764ba2);
         height: 100%; border-radius: 10px; transition: width 0.3s;
     }
-    .quiz-question-box {
-        background: #f8f9fa; border-left: 4px solid #667eea;
-        padding: 20px; border-radius: 0 12px 12px 0;
-        font-size: 18px; font-weight: 600; margin: 16px 0;
-        line-height: 1.6; color: #2c3e50;
-    }
-    .quiz-correct-banner {
+    .rv-remembered-banner {
         background: linear-gradient(90deg, #00b894, #00cec9);
-        color: white; padding: 16px; border-radius: 12px;
+        color: #ffffff; padding: 16px; border-radius: 12px;
         text-align: center; font-size: 20px; font-weight: 700;
-        margin: 12px 0; animation: quiz-pop 0.3s ease-out;
+        margin: 12px 0; animation: rv-pop 0.3s ease-out;
     }
-    .quiz-wrong-banner {
-        background: linear-gradient(90deg, #e17055, #d63031);
-        color: white; padding: 16px; border-radius: 12px;
+    .rv-review-banner {
+        background: linear-gradient(90deg, #fdcb6e, #e17055);
+        color: #ffffff; padding: 16px; border-radius: 12px;
         text-align: center; font-size: 20px; font-weight: 700;
-        margin: 12px 0; animation: quiz-pop 0.3s ease-out;
+        margin: 12px 0; animation: rv-pop 0.3s ease-out;
     }
-    @keyframes quiz-pop {
+    .rv-summary-score {
+        text-align: center; padding: 30px;
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        border-radius: 20px; color: #ffffff; margin: 16px 0;
+    }
+    .rv-summary-score .big-score { font-size: 48px; font-weight: 800; color: #ffffff; }
+    .rv-summary-score .sub-text { font-size: 16px; color: rgba(255,255,255,0.9); }
+    .rv-answer-box {
+        background: #1e1e2e; border: 2px solid #00b894;
+        border-radius: 16px; padding: 20px; margin: 12px 0;
+        color: #e0e0e0;
+    }
+    .rv-answer-box .rv-answer-title {
+        font-size: 20px; font-weight: 700; color: #00cec9; margin-bottom: 8px;
+    }
+    .rv-answer-box .rv-keywords { font-size: 14px; color: #aaa; }
+    @keyframes rv-pop {
         0% { transform: scale(0.8); opacity: 0; }
         100% { transform: scale(1); opacity: 1; }
     }
-    .quiz-explanation {
-        background: #fff3e0; border-radius: 12px; padding: 16px;
-        margin: 12px 0; border: 1px solid #ffe0b2; color: #2c3e50;
+    @keyframes rv-fade-in {
+        0% { opacity: 0; transform: translateY(8px); }
+        100% { opacity: 1; transform: translateY(0); }
     }
-    .quiz-summary-score {
-        text-align: center; padding: 30px;
-        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
-        border-radius: 20px; color: white; margin: 16px 0;
-    }
-    .quiz-summary-score .big-score { font-size: 48px; font-weight: 800; }
-    .quiz-summary-score .sub-text { font-size: 16px; opacity: 0.9; }
-    </style>""", unsafe_allow_html=True)
+    </style>"""
 
 
-def _quiz_home(quiz_data: dict):
-    """クイズのホーム画面。"""
-    st.markdown("## 🧠 クイズ")
-    questions = quiz_data.get("questions", {})
-    history = quiz_data.get("user_history", {})
-    stats = quiz_data.get("stats", {})
+def _review_css():
+    """復習画面用のCSS注入。"""
+    st.markdown(_REVIEW_CSS, unsafe_allow_html=True)
 
-    total_q = len(questions)
-    total_attempted = stats.get("total_attempted", 0)
-    total_correct = stats.get("total_correct", 0)
-    accuracy = (total_correct / total_attempted * 100) if total_attempted > 0 else 0
 
-    # 間違えた問題数
-    wrong_ids = [
-        qid for qid, h in history.items()
-        if not h.get("last_correct", True) and qid in questions
-    ]
-    wrong_count = len(wrong_ids)
+# --- ホーム画面 ---
+
+def _review_home(review_data: dict):
+    """復習のホーム画面。"""
+    st.markdown("## 🧠 復習")
+    metadata = load_metadata()
+    reviews = review_data.get("flashcard_reviews", {})
+    case_hist = review_data.get("case_quiz_history", {})
+    stats = review_data.get("stats", {})
+
+    # 教科書データ数
+    textbook_count = sum(
+        1 for m in metadata.values()
+        if m.get("folder") != PATIENT_DATA_FOLDER and m.get("summary")
+    )
+    patient_count = sum(
+        1 for m in metadata.values()
+        if m.get("folder") == PATIENT_DATA_FOLDER
+    )
+    reviewed_count = sum(1 for r in reviews.values() if r.get("status") == "remembered")
+    need_review = sum(1 for r in reviews.values() if r.get("status") == "review")
+    never_seen = textbook_count - len(reviews)
+    streak = stats.get("streak_days", 0)
 
     # 統計カード
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.markdown(f"""<div class="quiz-stat-card">
-            <div class="stat-num">{total_q}</div>
-            <div class="stat-label">総問題数</div>
+        st.markdown(f"""<div class="rv-stat-card">
+            <div class="rv-num">{reviewed_count}</div>
+            <div class="rv-label">覚えた</div>
         </div>""", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""<div class="quiz-stat-card">
-            <div class="stat-num">{accuracy:.0f}%</div>
-            <div class="stat-label">正答率</div>
+        st.markdown(f"""<div class="rv-stat-card" style="background: linear-gradient(135deg, #e17055, #d63031);">
+            <div class="rv-num">{need_review + never_seen}</div>
+            <div class="rv-label">要復習</div>
         </div>""", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"""<div class="quiz-stat-card" style="background: linear-gradient(135deg, #e17055, #d63031);">
-            <div class="stat-num">{wrong_count}</div>
-            <div class="stat-label">要復習</div>
+        st.markdown(f"""<div class="rv-streak-card">
+            <div class="rv-num">{streak}</div>
+            <div class="rv-label">連続日数</div>
         </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # アクションボタン
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🎯 クイズ開始", key="quiz_start_all", use_container_width=True,
-                      disabled=total_q == 0, type="primary"):
-            q_list = list(questions.keys())
-            random.shuffle(q_list)
-            st.session_state["quiz_session"] = {
-                "question_ids": q_list[:10],
-                "current_index": 0,
-                "answers": [],
+    # フラッシュカード開始（3モード）
+    st.markdown("#### 📖 フラッシュカード")
+    fc1, fc2, fc3 = st.columns(3)
+
+    def _start_flashcard(mode: str):
+        items = _pick_flashcard_items(metadata, review_data, count=10, filter_mode=mode)
+        if items:
+            st.session_state["review_session"] = {
+                "items": items, "current_index": 0, "results": [], "type": "flashcard",
             }
-            st.session_state["quiz_mode"] = "playing"
-            st.rerun()
-    with col2:
-        if st.button("🔄 間違えた問題", key="quiz_start_wrong", use_container_width=True,
-                      disabled=wrong_count == 0):
-            random.shuffle(wrong_ids)
-            st.session_state["quiz_session"] = {
-                "question_ids": wrong_ids[:10],
-                "current_index": 0,
-                "answers": [],
-            }
-            st.session_state["quiz_mode"] = "playing"
+            st.session_state["review_mode"] = "flashcard_playing"
+            _update_streak(review_data.setdefault("stats", {}))
+            _save_review_data(review_data)
             st.rerun()
 
-    col3, col4 = st.columns(2)
-    with col3:
-        gen_busy = st.session_state.get("_quiz_generating", False)
-        gen_label = "⏳ 生成中..." if gen_busy else "➕ 問題を生成"
-        if st.button(gen_label, key="quiz_generate", use_container_width=True, disabled=gen_busy):
-            st.session_state["_quiz_generating"] = True
-            st.rerun()
-    with col4:
-        if st.button("📋 問題管理", key="quiz_manage_btn", use_container_width=True,
-                      disabled=total_q == 0):
-            st.session_state["quiz_mode"] = "manage"
-            st.rerun()
-
-    # 問題生成処理
-    if st.session_state.pop("_quiz_generating", False):
-        st.markdown(
-            '<div class="loading-banner">🧠 AIがクイズを生成中… しばらくお待ちください</div>',
-            unsafe_allow_html=True,
-        )
-        api_key = get_gemini_api_key()
-        metadata = load_metadata()
-        if api_key and metadata:
-            new_qs = _generate_quiz_batch(api_key, metadata, count=5)
-            added = 0
-            for q in new_qs:
-                if not _is_duplicate_quiz(q, quiz_data.get("questions", {})):
-                    quiz_data["questions"][q["id"]] = q
-                    added += 1
-            _save_quiz_data(quiz_data)
-            if added > 0:
-                st.success(f"✅ {added} 問のクイズを追加しました！")
-            else:
-                st.info("新しい問題は生成されませんでした（重複または生成失敗）")
-        else:
-            st.warning("⚠️ APIキーまたは画像データがありません")
-        st.rerun()
-
-    # 問題が0件の場合のガイド
-    if total_q == 0:
-        st.info("📝 まだクイズがありません。「➕ 問題を生成」ボタンで AI にクイズを作成してもらいましょう！")
-
-
-def _quiz_playing(quiz_data: dict):
-    """クイズ出題画面。"""
-    session = st.session_state.get("quiz_session", {})
-    q_ids = session.get("question_ids", [])
-    idx = session.get("current_index", 0)
-    questions = quiz_data.get("questions", {})
-
-    if idx >= len(q_ids) or q_ids[idx] not in questions:
-        st.session_state["quiz_mode"] = "summary"
-        st.rerun()
-        return
-
-    qid = q_ids[idx]
-    q = questions[qid]
-    total = len(q_ids)
-
-    # ヘッダー + プログレス
-    st.markdown(f"### 問題 {idx + 1} / {total}")
-    pct = ((idx) / total) * 100
-    st.markdown(f"""<div class="quiz-progress">
-        <div class="quiz-progress-fill" style="width: {pct}%;"></div>
-    </div>""", unsafe_allow_html=True)
-
-    # 問題文
-    st.markdown(f'<div class="quiz-question-box">{html.escape(q["question"])}</div>',
-                unsafe_allow_html=True)
-
-    # 選択肢ボタン
-    labels = ["A", "B", "C", "D"]
-    for i, choice in enumerate(q["choices"]):
-        btn_label = f"{labels[i]}. {choice}"
-        if st.button(btn_label, key=f"quiz_choice_{idx}_{i}", use_container_width=True):
-            # 回答記録
-            is_correct = (i == q["correct_index"])
-            session["answers"].append({
-                "question_id": qid,
-                "selected": i,
-                "correct": is_correct,
-            })
-            st.session_state["quiz_session"] = session
-            st.session_state["quiz_last_answer"] = {
-                "question_id": qid,
-                "selected": i,
-                "is_correct": is_correct,
-            }
-            # 履歴更新
-            hist = quiz_data.setdefault("user_history", {})
-            h = hist.setdefault(qid, {"attempts": 0, "correct": 0, "last_attempted": "", "last_correct": False})
-            h["attempts"] += 1
-            if is_correct:
-                h["correct"] += 1
-            h["last_attempted"] = datetime.now().isoformat()
-            h["last_correct"] = is_correct
-            # 統計更新
-            s = quiz_data.setdefault("stats", {"total_attempted": 0, "total_correct": 0})
-            s["total_attempted"] += 1
-            if is_correct:
-                s["total_correct"] += 1
-            _save_quiz_data(quiz_data)
-            st.session_state["quiz_mode"] = "answered"
-            st.rerun()
-
-    # 戻るボタン
-    if st.button("🏠 ホームに戻る", key="quiz_back_home_playing"):
-        st.session_state["quiz_mode"] = "home"
-        st.rerun()
-
-
-def _quiz_answered(quiz_data: dict):
-    """解答・解説画面。"""
-    last = st.session_state.get("quiz_last_answer", {})
-    qid = last.get("question_id", "")
-    selected = last.get("selected", -1)
-    is_correct = last.get("is_correct", False)
-    questions = quiz_data.get("questions", {})
-
-    if qid not in questions:
-        st.session_state["quiz_mode"] = "home"
-        st.rerun()
-        return
-
-    q = questions[qid]
-    session = st.session_state.get("quiz_session", {})
-    idx = session.get("current_index", 0)
-    total = len(session.get("question_ids", []))
-
-    st.markdown(f"### 問題 {idx + 1} / {total}")
-
-    # 正解/不正解バナー
-    if is_correct:
-        st.markdown('<div class="quiz-correct-banner">⭕ 正解！</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="quiz-wrong-banner">❌ 不正解</div>', unsafe_allow_html=True)
-
-    # 問題文
-    st.markdown(f'<div class="quiz-question-box">{html.escape(q["question"])}</div>',
-                unsafe_allow_html=True)
-
-    # 選択肢（正解・不正解をハイライト）
-    labels = ["A", "B", "C", "D"]
-    for i, choice in enumerate(q["choices"]):
-        prefix = labels[i]
-        if i == q["correct_index"]:
-            st.markdown(f"✅ **{prefix}. {choice}**（正解）")
-        elif i == selected:
-            st.markdown(f"❌ ~~{prefix}. {choice}~~（あなたの回答）")
-        else:
-            st.markdown(f"　 {prefix}. {choice}")
-
-    # 解説
-    st.markdown(f"""<div class="quiz-explanation">
-        <strong>📖 解説</strong><br>{html.escape(q.get("explanation", "解説なし"))}
-    </div>""", unsafe_allow_html=True)
-
-    # 根拠画像の表示
-    source_id = q.get("source_image_id", "")
-    if source_id:
-        metadata = load_metadata()
-        meta = metadata.get(source_id, {})
-        if meta:
-            with st.expander(f"📸 出典: {meta.get('title', '画像')}"):
-                try:
-                    service = get_drive_service()
-                    request = service.files().get_media(fileId=source_id)
-                    buf = io.BytesIO()
-                    downloader = MediaIoBaseDownload(buf, request)
-                    done = False
-                    while not done:
-                        _, done = downloader.next_chunk()
-                    buf.seek(0)
-                    st.image(buf, caption=meta.get("title", ""), use_container_width=True)
-                except Exception:
-                    st.caption(f"📄 {meta.get('title', '画像')} — {meta.get('summary', '')[:100]}")
-
-    # 次へボタン
-    if idx + 1 < total:
-        if st.button("次の問題へ →", key="quiz_next", use_container_width=True, type="primary"):
-            session["current_index"] = idx + 1
-            st.session_state["quiz_session"] = session
-            st.session_state["quiz_mode"] = "playing"
-            st.rerun()
-    else:
-        if st.button("📊 結果を見る", key="quiz_to_summary", use_container_width=True, type="primary"):
-            st.session_state["quiz_mode"] = "summary"
-            st.rerun()
-
-
-def _quiz_summary(quiz_data: dict):
-    """クイズ結果サマリー画面。"""
-    session = st.session_state.get("quiz_session", {})
-    answers = session.get("answers", [])
-    questions = quiz_data.get("questions", {})
-
-    total = len(answers)
-    correct_count = sum(1 for a in answers if a.get("correct"))
-    pct = (correct_count / total * 100) if total > 0 else 0
-
-    # スコアカード
-    st.markdown(f"""<div class="quiz-summary-score">
-        <div class="big-score">{correct_count} / {total}</div>
-        <div class="sub-text">正答率 {pct:.0f}%</div>
-    </div>""", unsafe_allow_html=True)
-
-    # 間違えた問題一覧
-    wrong_answers = [a for a in answers if not a.get("correct")]
-    if wrong_answers:
-        st.markdown("### ❌ 間違えた問題")
-        for wa in wrong_answers:
-            qid = wa["question_id"]
-            q = questions.get(qid, {})
-            if q:
-                with st.expander(f"📝 {q['question'][:50]}..."):
-                    correct_idx = q["correct_index"]
-                    st.markdown(f"**正解:** {q['choices'][correct_idx]}")
-                    st.markdown(f"**解説:** {q.get('explanation', '解説なし')}")
-
-    # アクションボタン
-    col1, col2 = st.columns(2)
-    with col1:
-        if wrong_answers:
-            if st.button("🔄 間違えた問題を解き直す", key="quiz_retry_wrong", use_container_width=True,
-                          type="primary"):
-                retry_ids = [a["question_id"] for a in wrong_answers if a["question_id"] in questions]
-                random.shuffle(retry_ids)
-                st.session_state["quiz_session"] = {
-                    "question_ids": retry_ids,
-                    "current_index": 0,
-                    "answers": [],
-                }
-                st.session_state["quiz_mode"] = "playing"
-                st.rerun()
-        else:
-            st.balloons()
-    with col2:
-        if st.button("🏠 ホームに戻る", key="quiz_back_home_summary", use_container_width=True):
-            st.session_state["quiz_mode"] = "home"
-            st.rerun()
-
-
-def _quiz_manage(quiz_data: dict):
-    """問題管理・編集画面。"""
-    st.markdown("## 📋 問題管理")
-    questions = quiz_data.get("questions", {})
-    history = quiz_data.get("user_history", {})
-    metadata = load_metadata()
-
-    if st.button("← 戻る", key="quiz_manage_back"):
-        st.session_state["quiz_mode"] = "home"
-        st.rerun()
-
-    # 重複チェックボタン
-    if st.button("🔍 重複チェック実行", key="quiz_dedup_btn"):
-        removed = _dedup_quiz_questions(quiz_data)
-        _save_quiz_data(quiz_data)
-        if removed > 0:
-            st.success(f"✅ {removed} 件の重複問題を削除しました")
-            st.rerun()
-        else:
-            st.info("重複問題はありませんでした")
+    with fc1:
+        if st.button("🆕 新しいカード", key="rv_start_new", use_container_width=True,
+                      type="primary", disabled=never_seen == 0):
+            _start_flashcard("new_only")
+        st.caption(f"{never_seen} 件")
+    with fc2:
+        if st.button("🔄 要復習", key="rv_start_review", use_container_width=True,
+                      disabled=need_review == 0):
+            _start_flashcard("review_only")
+        st.caption(f"{need_review} 件")
+    with fc3:
+        if st.button("📚 すべて", key="rv_start_all", use_container_width=True,
+                      disabled=textbook_count == 0):
+            _start_flashcard("all")
+        st.caption(f"{textbook_count} 件")
 
     st.markdown("---")
 
-    if not questions:
-        st.info("問題がありません")
+    # 症例クイズ
+    st.markdown("#### 🩺 症例クイズ")
+    if st.button("🩺 症例クイズを開始", key="rv_start_case", use_container_width=True,
+                  disabled=patient_count == 0):
+        items = _pick_case_quiz_items(metadata, review_data, count=10)
+        # 誤答選択肢プールを事前計算
+        patient_titles = list({
+            m.get("title", "") for m in metadata.values()
+            if m.get("folder") == PATIENT_DATA_FOLDER and m.get("title")
+        })
+        if items:
+            st.session_state["review_session"] = {
+                "items": items, "current_index": 0, "results": [], "type": "case",
+                "distractor_pool": patient_titles,
+            }
+            st.session_state["review_mode"] = "case_playing"
+            _update_streak(review_data.setdefault("stats", {}))
+            _save_review_data(review_data)
+            st.rerun()
+    if patient_count > 0:
+        st.caption(f"🏥 {patient_count} 件の患者データ")
+
+    if textbook_count == 0 and patient_count == 0:
+        st.info("📝 画像ライブラリにデータを登録すると、ここで復習できます。")
+
+
+# --- フラッシュカード ---
+
+def _flashcard_session(review_data: dict):
+    """フラッシュカード出題画面（画像+タイトル+「確認」ボタン）。"""
+    session = st.session_state.get("review_session", {})
+    items = session.get("items", [])
+    idx = session.get("current_index", 0)
+
+    if idx >= len(items):
+        st.session_state["review_mode"] = "session_summary"
+        st.rerun()
         return
 
-    # 編集モードチェック
-    edit_id = st.session_state.get("quiz_edit_id")
-    if edit_id and edit_id in questions:
-        _quiz_edit_form(quiz_data, edit_id)
+    fid, meta = items[idx]
+    total = len(items)
+
+    # プログレス
+    st.markdown(f"### 📖 {idx + 1} / {total}")
+    pct = (idx / total) * 100
+    st.markdown(f"""<div class="rv-progress">
+        <div class="rv-progress-fill" style="width: {pct}%;"></div>
+    </div>""", unsafe_allow_html=True)
+
+    # 画像＋タイトル
+    _show_review_image(fid)
+    st.markdown(f'<div class="rv-card-title">{html.escape(meta.get("title", "無題"))}</div>',
+                unsafe_allow_html=True)
+
+    # 確認ボタン
+    if st.button("👁️ タップして要点を確認", key=f"rv_reveal_{idx}", use_container_width=True,
+                  type="primary"):
+        st.session_state["review_mode"] = "flashcard_revealed"
+        st.rerun()
+
+    if st.button("🏠 ホームに戻る", key="rv_flash_back"):
+        st.session_state["review_mode"] = "home"
+        st.rerun()
+
+
+def _flashcard_revealed(review_data: dict):
+    """フラッシュカード確認画面（サマリー展開+覚えた/もう一回）。"""
+    session = st.session_state.get("review_session", {})
+    items = session.get("items", [])
+    idx = session.get("current_index", 0)
+
+    if idx >= len(items):
+        st.session_state["review_mode"] = "session_summary"
+        st.rerun()
         return
 
-    # 問題一覧
-    sorted_qs = sorted(questions.values(), key=lambda q: q.get("created_at", ""), reverse=True)
-    for q in sorted_qs:
-        qid = q["id"]
-        h = history.get(qid, {})
-        attempts = h.get("attempts", 0)
-        correct = h.get("correct", 0)
-        acc_str = f"{correct}/{attempts}" if attempts > 0 else "未回答"
+    fid, meta = items[idx]
+    total = len(items)
 
-        source_title = ""
-        src_id = q.get("source_image_id", "")
-        if src_id and src_id in metadata:
-            source_title = metadata[src_id].get("title", "")[:20]
+    st.markdown(f"### 📖 {idx + 1} / {total}")
+    pct = ((idx + 1) / total) * 100
+    st.markdown(f"""<div class="rv-progress">
+        <div class="rv-progress-fill" style="width: {pct}%;"></div>
+    </div>""", unsafe_allow_html=True)
 
-        label = q["question"][:40]
-        if q.get("edited"):
-            label = "✏️ " + label
+    # 画像＋タイトル
+    _show_review_image(fid)
+    st.markdown(f'<div class="rv-card-title">{html.escape(meta.get("title", "無題"))}</div>',
+                unsafe_allow_html=True)
 
-        with st.expander(f"{label}… [{acc_str}]"):
-            st.markdown(f"**問題:** {q['question']}")
-            labels_abc = ["A", "B", "C", "D"]
-            for i, c in enumerate(q["choices"]):
-                mark = "✅" if i == q["correct_index"] else "　"
-                st.markdown(f"{mark} {labels_abc[i]}. {c}")
-            st.markdown(f"**解説:** {q.get('explanation', 'なし')}")
-            if source_title:
-                st.caption(f"📸 出典: {source_title}")
+    # サマリー展開
+    summary = meta.get("summary", "")
+    if summary:
+        # サマリーを整形して表示（改行をHTML <br> に変換）
+        formatted = html.escape(summary).replace("\n", "<br>")
+        st.markdown(f'<div class="rv-reveal-box">{formatted}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="rv-reveal-box">サマリーがありません</div>', unsafe_allow_html=True)
 
-            ec, dc = st.columns(2)
-            with ec:
-                if st.button("✏️ 編集", key=f"quiz_edit_{qid}"):
-                    st.session_state["quiz_edit_id"] = qid
-                    st.rerun()
-            with dc:
-                if st.button("🗑️ 削除", key=f"quiz_del_{qid}"):
-                    st.session_state[f"quiz_confirm_del_{qid}"] = True
-                    st.rerun()
+    # キーワード
+    keywords = meta.get("keywords", [])
+    if keywords:
+        st.markdown(" ".join(f"`{kw}`" for kw in keywords[:10]))
 
-            # 削除確認
-            if st.session_state.get(f"quiz_confirm_del_{qid}"):
-                st.warning("本当にこの問題を削除しますか？")
-                yc, nc = st.columns(2)
-                with yc:
-                    if st.button("はい、削除", key=f"quiz_del_yes_{qid}"):
-                        questions.pop(qid, None)
-                        quiz_data.get("user_history", {}).pop(qid, None)
-                        _save_quiz_data(quiz_data)
-                        st.session_state.pop(f"quiz_confirm_del_{qid}", None)
-                        st.rerun()
-                with nc:
-                    if st.button("キャンセル", key=f"quiz_del_no_{qid}"):
-                        st.session_state.pop(f"quiz_confirm_del_{qid}", None)
-                        st.rerun()
-
-
-def _quiz_edit_form(quiz_data: dict, qid: str):
-    """問題編集フォーム。"""
-    q = quiz_data["questions"][qid]
-    st.markdown("### ✏️ 問題を編集")
-
-    new_question = st.text_area("問題文", value=q["question"], key="quiz_edit_q")
-    new_choices = []
-    labels_abc = ["A", "B", "C", "D"]
-    for i in range(4):
-        val = st.text_input(f"選択肢 {labels_abc[i]}", value=q["choices"][i], key=f"quiz_edit_c{i}")
-        new_choices.append(val)
-    new_correct = st.selectbox(
-        "正解",
-        options=[0, 1, 2, 3],
-        format_func=lambda x: f"{labels_abc[x]}. {new_choices[x]}",
-        index=q["correct_index"],
-        key="quiz_edit_correct",
-    )
-    new_explanation = st.text_area("解説", value=q.get("explanation", ""), key="quiz_edit_exp")
-
+    # 覚えた / もう一回
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("💾 保存", key="quiz_edit_save", type="primary", use_container_width=True):
-            q["question"] = new_question.strip()
-            q["choices"] = [c.strip() for c in new_choices]
-            q["correct_index"] = new_correct
-            q["explanation"] = new_explanation.strip()
-            q["edited"] = True
-            _save_quiz_data(quiz_data)
-            st.session_state.pop("quiz_edit_id", None)
-            st.success("保存しました")
+        if st.button("✅ 覚えた", key=f"rv_remembered_{idx}", use_container_width=True, type="primary"):
+            _record_flashcard_result(review_data, fid, remembered=True)
+            session["results"].append({"fid": fid, "remembered": True})
+            session["current_index"] = idx + 1
+            st.session_state["review_session"] = session
+            st.session_state["review_mode"] = "flashcard_playing"
             st.rerun()
     with col2:
-        if st.button("キャンセル", key="quiz_edit_cancel", use_container_width=True):
-            st.session_state.pop("quiz_edit_id", None)
+        if st.button("🔄 もう一回", key=f"rv_review_{idx}", use_container_width=True):
+            _record_flashcard_result(review_data, fid, remembered=False)
+            session["results"].append({"fid": fid, "remembered": False})
+            session["current_index"] = idx + 1
+            st.session_state["review_session"] = session
+            st.session_state["review_mode"] = "flashcard_playing"
             st.rerun()
 
 
-def page_quiz():
-    """クイズページのメインルーター。"""
-    _quiz_css()
-    quiz_data = _load_quiz_data()
-
-    if "quiz_mode" not in st.session_state:
-        st.session_state["quiz_mode"] = "home"
-
-    mode = st.session_state["quiz_mode"]
-    if mode == "home":
-        _quiz_home(quiz_data)
-    elif mode == "playing":
-        _quiz_playing(quiz_data)
-    elif mode == "answered":
-        _quiz_answered(quiz_data)
-    elif mode == "summary":
-        _quiz_summary(quiz_data)
-    elif mode == "manage":
-        _quiz_manage(quiz_data)
+def _record_flashcard_result(review_data: dict, fid: str, remembered: bool):
+    """フラッシュカードの結果を記録する。"""
+    reviews = review_data.setdefault("flashcard_reviews", {})
+    r = reviews.setdefault(fid, {"review_count": 0, "last_reviewed": "", "status": "new", "consecutive_remembered": 0})
+    r["review_count"] = r.get("review_count", 0) + 1
+    r["last_reviewed"] = datetime.now().isoformat()
+    if remembered:
+        r["status"] = "remembered"
+        r["consecutive_remembered"] = r.get("consecutive_remembered", 0) + 1
     else:
-        st.session_state["quiz_mode"] = "home"
+        r["status"] = "review"
+        r["consecutive_remembered"] = 0
+    stats = review_data.setdefault("stats", {})
+    stats["total_flashcard_reviews"] = stats.get("total_flashcard_reviews", 0) + 1
+    _save_review_data(review_data)
+
+
+# --- 症例クイズ ---
+
+def _case_quiz_session(review_data: dict):
+    """症例クイズ出題画面（患者画像+4択 or タップ確認）。"""
+    session = st.session_state.get("review_session", {})
+    items = session.get("items", [])
+    idx = session.get("current_index", 0)
+
+    if idx >= len(items):
+        st.session_state["review_mode"] = "session_summary"
         st.rerun()
+        return
+
+    fid, meta = items[idx]
+    total = len(items)
+
+    st.markdown(f"### 🩺 症例 {idx + 1} / {total}")
+    pct = (idx / total) * 100
+    st.markdown(f"""<div class="rv-progress">
+        <div class="rv-progress-fill" style="width: {pct}%;"></div>
+    </div>""", unsafe_allow_html=True)
+
+    # 患者画像
+    _show_review_image(fid)
+
+    # プロンプト
+    st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
+
+    # 4択を生成（distractor_poolからセッション開始時に準備済み）
+    correct_title = meta.get("title", "不明")
+    distractor_pool = session.get("distractor_pool", [])
+    distractors = [t for t in distractor_pool if t != correct_title]
+    random.shuffle(distractors)
+    distractors = distractors[:3]
+
+    if len(distractors) >= 3:
+        # 4択モード
+        choices = [correct_title] + distractors[:3]
+        # セッションごとに固定されたシャッフル順を使う
+        shuffle_key = f"rv_shuffle_{idx}"
+        if shuffle_key not in st.session_state:
+            order = list(range(4))
+            random.shuffle(order)
+            st.session_state[shuffle_key] = order
+        order = st.session_state[shuffle_key]
+        shuffled = [choices[i] for i in order]
+        correct_shuffled_idx = order.index(0)
+
+        labels = ["A", "B", "C", "D"]
+        for i, choice in enumerate(shuffled):
+            if st.button(f"{labels[i]}. {choice}", key=f"rv_case_choice_{idx}_{i}",
+                         use_container_width=True):
+                is_correct = (i == correct_shuffled_idx)
+                st.session_state["review_case_answer"] = {
+                    "fid": fid, "correct_title": correct_title,
+                    "selected": choice, "is_correct": is_correct,
+                    "keywords": meta.get("keywords", []),
+                }
+                _record_case_result(review_data, fid, is_correct)
+                session["results"].append({"fid": fid, "correct": is_correct})
+                st.session_state["review_session"] = session
+                st.session_state["review_mode"] = "case_revealed"
+                st.rerun()
+    else:
+        # タップで確認モード（患者データが少ない場合）
+        if st.button("👁️ タップして答えを確認", key=f"rv_case_reveal_{idx}",
+                      use_container_width=True, type="primary"):
+            st.session_state["review_case_answer"] = {
+                "fid": fid, "correct_title": correct_title,
+                "selected": None, "is_correct": None,
+                "keywords": meta.get("keywords", []),
+            }
+            st.session_state["review_mode"] = "case_revealed"
+            st.rerun()
+
+    if st.button("🏠 ホームに戻る", key="rv_case_back"):
+        st.session_state["review_mode"] = "home"
+        st.rerun()
+
+
+def _case_quiz_revealed(review_data: dict):
+    """症例クイズ解答画面。"""
+    session = st.session_state.get("review_session", {})
+    idx = session.get("current_index", 0)
+    total = len(session.get("items", []))
+    answer = st.session_state.get("review_case_answer", {})
+
+    correct_title = answer.get("correct_title", "不明")
+    is_correct = answer.get("is_correct")
+    keywords = answer.get("keywords", [])
+    fid = answer.get("fid", "")
+
+    st.markdown(f"### 🩺 症例 {idx + 1} / {total}")
+
+    # 患者画像を表示
+    if fid:
+        _show_review_image(fid)
+
+    # バナー
+    if is_correct is True:
+        st.markdown('<div class="rv-remembered-banner">⭕ 正解！</div>', unsafe_allow_html=True)
+    elif is_correct is False:
+        st.markdown('<div class="rv-review-banner">❌ 不正解</div>', unsafe_allow_html=True)
+
+    # 正解表示
+    kw_str = "、".join(keywords[:6]) if keywords else ""
+    st.markdown(f"""<div class="rv-answer-box">
+        <div class="rv-answer-title">📋 {html.escape(correct_title)}</div>
+        <div class="rv-keywords">キーワード: {html.escape(kw_str)}</div>
+    </div>""", unsafe_allow_html=True)
+
+    # 自己評価（タップ確認モードの場合）
+    if is_correct is None:
+        st.markdown("**自己評価:**")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⭕ 正解だった", key=f"rv_case_self_correct_{idx}", use_container_width=True,
+                          type="primary"):
+                _record_case_result(review_data, fid, True)
+                session["results"].append({"fid": fid, "correct": True})
+                session["current_index"] = idx + 1
+                st.session_state["review_session"] = session
+                st.session_state["review_mode"] = "case_playing"
+                st.rerun()
+        with col2:
+            if st.button("❌ 不正解だった", key=f"rv_case_self_wrong_{idx}", use_container_width=True):
+                _record_case_result(review_data, fid, False)
+                session["results"].append({"fid": fid, "correct": False})
+                session["current_index"] = idx + 1
+                st.session_state["review_session"] = session
+                st.session_state["review_mode"] = "case_playing"
+                st.rerun()
+    else:
+        # 次へボタン
+        if idx + 1 < total:
+            if st.button("次の症例へ →", key="rv_case_next", use_container_width=True, type="primary"):
+                session["current_index"] = idx + 1
+                st.session_state["review_session"] = session
+                st.session_state["review_mode"] = "case_playing"
+                st.rerun()
+        else:
+            if st.button("📊 結果を見る", key="rv_case_to_summary", use_container_width=True,
+                          type="primary"):
+                st.session_state["review_mode"] = "session_summary"
+                st.rerun()
+
+
+def _record_case_result(review_data: dict, fid: str, correct: bool):
+    """症例クイズの結果を記録する。"""
+    history = review_data.setdefault("case_quiz_history", {})
+    h = history.setdefault(fid, {"attempts": 0, "correct": 0, "last_attempted": "", "last_correct": False})
+    h["attempts"] = h.get("attempts", 0) + 1
+    if correct:
+        h["correct"] = h.get("correct", 0) + 1
+    h["last_attempted"] = datetime.now().isoformat()
+    h["last_correct"] = correct
+    stats = review_data.setdefault("stats", {})
+    stats["total_case_attempts"] = stats.get("total_case_attempts", 0) + 1
+    if correct:
+        stats["total_case_correct"] = stats.get("total_case_correct", 0) + 1
+    _save_review_data(review_data)
+
+
+# --- セッションサマリー ---
+
+def _session_summary(review_data: dict):
+    """セッション結果サマリー画面。"""
+    session = st.session_state.get("review_session", {})
+    results = session.get("results", [])
+    session_type = session.get("type", "flashcard")
+
+    total = len(results)
+    if total == 0:
+        st.session_state["review_mode"] = "home"
+        st.rerun()
+        return
+
+    if session_type == "flashcard":
+        remembered = sum(1 for r in results if r.get("remembered"))
+        pct = (remembered / total * 100) if total > 0 else 0
+        st.markdown(f"""<div class="rv-summary-score">
+            <div class="big-score">{remembered} / {total}</div>
+            <div class="sub-text">覚えた率 {pct:.0f}%</div>
+        </div>""", unsafe_allow_html=True)
+
+        review_again = [r for r in results if not r.get("remembered")]
+        if review_again:
+            st.markdown(f"🔄 **{len(review_again)} 件**を「もう一回」にマークしました。次回優先的に出題されます。")
+        else:
+            st.balloons()
+            st.markdown("🎉 全問覚えていました！")
+    else:
+        correct = sum(1 for r in results if r.get("correct"))
+        pct = (correct / total * 100) if total > 0 else 0
+        st.markdown(f"""<div class="rv-summary-score">
+            <div class="big-score">{correct} / {total}</div>
+            <div class="sub-text">正答率 {pct:.0f}%</div>
+        </div>""", unsafe_allow_html=True)
+
+        wrong = [r for r in results if not r.get("correct")]
+        if wrong:
+            st.markdown(f"❌ **{len(wrong)} 件**不正解。次回優先的に出題されます。")
+        else:
+            st.balloons()
+
+    if st.button("🏠 ホームに戻る", key="rv_summary_home", use_container_width=True, type="primary"):
+        st.session_state["review_mode"] = "home"
+        st.rerun()
+
+
+# --- メインルーター ---
+
+def page_quiz():
+    """復習ページのメインルーター。"""
+    _review_css()
+    review_data = _load_review_data()
+
+    if "review_mode" not in st.session_state:
+        st.session_state["review_mode"] = "home"
+
+    mode = st.session_state["review_mode"]
+    if mode == "home":
+        _review_home(review_data)
+    elif mode == "flashcard_playing":
+        _flashcard_session(review_data)
+    elif mode == "flashcard_revealed":
+        _flashcard_revealed(review_data)
+    elif mode == "case_playing":
+        _case_quiz_session(review_data)
+    elif mode == "case_revealed":
+        _case_quiz_revealed(review_data)
+    elif mode == "session_summary":
+        _session_summary(review_data)
+    else:
+        st.session_state["review_mode"] = "home"
+        st.rerun()
+
 
 
 # ===========================================================================

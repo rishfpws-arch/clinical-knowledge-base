@@ -7,5 +7,7 @@ trash.json
 folders.json
 uploads/
 auto_push.ps1
+quiz_data.json
+review_data.json
 .claude/
 nul
