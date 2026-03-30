@@ -9862,6 +9862,84 @@ def _pick_case_quiz_items(metadata: dict, review_data: dict, count: int = 10) ->
     return candidates[:count]
 
 
+# --- Gemini 誤答生成 ---
+
+_DISTRACTOR_PROMPT = """医学教育のクイズを作成中です。以下の正解に対して、医学的にもっともらしいが誤りである選択肢を3つ生成してください。
+
+正解: {correct}
+分野: {folder}
+
+ルール:
+- 同じ分野の類似疾患・所見・用語を選ぶこと
+- 医学生や研修医が迷うレベルのもっともらしさにすること
+- 正解と明らかに異なる分野のものは避けること
+- JSON配列で3つだけ返すこと。他のテキスト不要
+
+例: ["選択肢1", "選択肢2", "選択肢3"]"""
+
+
+def _generate_distractors_batch(items: list[tuple[str, dict]], api_key: str) -> dict[str, list[str]]:
+    """セッション内の全アイテムに対して誤答選択肢をGeminiで一括生成する。
+    戻り値: {file_id: [distractor1, distractor2, distractor3]}
+    """
+    if not items or not api_key:
+        return {}
+    # 一括プロンプトで全アイテム分を生成
+    entries = []
+    for i, (fid, meta) in enumerate(items):
+        title = meta.get("title", "不明")
+        folder = meta.get("folder", "未分類")
+        entries.append(f'{i+1}. 正解="{title}" 分野="{folder}"')
+    batch_prompt = f"""医学教育のクイズを作成中です。以下の各正解に対して、医学的にもっともらしいが誤りである選択肢を3つずつ生成してください。
+
+{chr(10).join(entries)}
+
+ルール:
+- 同じ分野の類似疾患・所見・用語を選ぶこと
+- 医学生や研修医が迷うレベルのもっともらしさにすること
+- 正解と明らかに異なる分野のものは避けること
+
+以下のJSON形式で返してください。他のテキスト不要:
+[
+  ["1の誤答A", "1の誤答B", "1の誤答C"],
+  ["2の誤答A", "2の誤答B", "2の誤答C"],
+  ...
+]"""
+    try:
+        resp = _gemini_generate(api_key, [{"text": batch_prompt}])
+        # JSON抽出
+        clean = resp.strip()
+        start = clean.find("[")
+        end = clean.rfind("]") + 1
+        if start >= 0 and end > start:
+            parsed = json.loads(clean[start:end])
+            result = {}
+            for i, (fid, _) in enumerate(items):
+                if i < len(parsed) and isinstance(parsed[i], list) and len(parsed[i]) >= 3:
+                    result[fid] = [str(d) for d in parsed[i][:3]]
+            return result
+    except Exception as e:
+        _log.warning(f"[Review] 誤答一括生成失敗: {e}")
+    # フォールバック: 個別生成
+    result = {}
+    for fid, meta in items[:5]:  # 最大5件に制限
+        title = meta.get("title", "不明")
+        folder = meta.get("folder", "未分類")
+        prompt = _DISTRACTOR_PROMPT.format(correct=title, folder=folder)
+        try:
+            resp = _gemini_generate(api_key, [{"text": prompt}])
+            clean = resp.strip()
+            start = clean.find("[")
+            end = clean.rfind("]") + 1
+            if start >= 0 and end > start:
+                arr = json.loads(clean[start:end])
+                if isinstance(arr, list) and len(arr) >= 3:
+                    result[fid] = [str(d) for d in arr[:3]]
+        except Exception as e:
+            _log.warning(f"[Review] 誤答生成失敗 ({fid}): {e}")
+    return result
+
+
 # --- 画像表示ヘルパー ---
 
 def _show_review_image(file_id: str):
@@ -10012,7 +10090,7 @@ def _review_home(review_data: dict):
 
     st.markdown("---")
 
-    # フラッシュカード開始（3モード）
+    # --- フラッシュカード ---
     st.markdown("#### 📖 フラッシュカード")
     fc1, fc2, fc3 = st.columns(3)
 
@@ -10045,27 +10123,61 @@ def _review_home(review_data: dict):
 
     st.markdown("---")
 
-    # 症例クイズ
-    st.markdown("#### 🩺 症例クイズ")
-    if st.button("🩺 症例クイズを開始", key="rv_start_case", use_container_width=True,
-                  disabled=patient_count == 0):
-        items = _pick_case_quiz_items(metadata, review_data, count=10)
-        # 誤答選択肢プールを事前計算
-        patient_titles = list({
-            m.get("title", "") for m in metadata.values()
-            if m.get("folder") == PATIENT_DATA_FOLDER and m.get("title")
-        })
-        if items:
-            st.session_state["review_session"] = {
-                "items": items, "current_index": 0, "results": [], "type": "case",
-                "distractor_pool": patient_titles,
-            }
-            st.session_state["review_mode"] = "case_playing"
-            _update_streak(review_data.setdefault("stats", {}))
-            _save_review_data(review_data)
-            st.rerun()
-    if patient_count > 0:
-        st.caption(f"🏥 {patient_count} 件の患者データ")
+    # --- クイズ（教科書＋患者データ共通） ---
+    st.markdown("#### 🎯 クイズ")
+
+    def _start_quiz(quiz_type: str):
+        """クイズセッションを開始する（Gemini誤答生成付き）。"""
+        if quiz_type == "textbook":
+            items = _pick_flashcard_items(metadata, review_data, count=10, filter_mode="all")
+        else:
+            items = _pick_case_quiz_items(metadata, review_data, count=10)
+        if not items:
+            return
+        # Gemini で誤答を一括生成
+        api_key = get_gemini_api_key()
+        distractors_map = {}
+        if api_key:
+            st.session_state["_quiz_generating"] = True
+        st.session_state["_quiz_pending"] = {
+            "items": items, "quiz_type": quiz_type,
+        }
+        st.rerun()
+
+    qz1, qz2 = st.columns(2)
+    with qz1:
+        if st.button("📖 教科書クイズ", key="rv_start_textbook_quiz", use_container_width=True,
+                      disabled=textbook_count == 0):
+            _start_quiz("textbook")
+        st.caption(f"📚 {textbook_count} 件")
+    with qz2:
+        if st.button("🩺 症例クイズ", key="rv_start_case_quiz", use_container_width=True,
+                      disabled=patient_count == 0):
+            _start_quiz("case")
+        st.caption(f"🏥 {patient_count} 件")
+
+    # クイズ生成処理（Gemini呼び出し）
+    pending = st.session_state.pop("_quiz_pending", None)
+    if pending:
+        st.markdown(
+            '<div class="loading-banner">🧠 クイズを準備中… しばらくお待ちください</div>',
+            unsafe_allow_html=True,
+        )
+        items = pending["items"]
+        quiz_type = pending["quiz_type"]
+        api_key = get_gemini_api_key()
+        distractors_map = _generate_distractors_batch(items, api_key) if api_key else {}
+        st.session_state.pop("_quiz_generating", None)
+        st.session_state["review_session"] = {
+            "items": items, "current_index": 0, "results": [],
+            "type": "quiz",
+            "quiz_type": quiz_type,
+            "distractors_map": distractors_map,
+        }
+        st.session_state["review_mode"] = "quiz_playing"
+        _update_streak(review_data.setdefault("stats", {}))
+        _save_review_data(review_data)
+        st.rerun()
 
     if textbook_count == 0 and patient_count == 0:
         st.info("📝 画像ライブラリにデータを登録すると、ここで復習できます。")
@@ -10186,13 +10298,15 @@ def _record_flashcard_result(review_data: dict, fid: str, remembered: bool):
     _save_review_data(review_data)
 
 
-# --- 症例クイズ ---
+# --- クイズ（教科書＋症例 共通） ---
 
-def _case_quiz_session(review_data: dict):
-    """症例クイズ出題画面（患者画像+4択 or タップ確認）。"""
+def _quiz_playing(review_data: dict):
+    """クイズ出題画面（教科書・患者データ共通）。"""
     session = st.session_state.get("review_session", {})
     items = session.get("items", [])
     idx = session.get("current_index", 0)
+    distractors_map = session.get("distractors_map", {})
+    quiz_type = session.get("quiz_type", "case")
 
     if idx >= len(items):
         st.session_state["review_mode"] = "session_summary"
@@ -10201,31 +10315,30 @@ def _case_quiz_session(review_data: dict):
 
     fid, meta = items[idx]
     total = len(items)
+    icon = "🩺" if quiz_type == "case" else "📖"
 
-    st.markdown(f"### 🩺 症例 {idx + 1} / {total}")
+    st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
     pct = (idx / total) * 100
     st.markdown(f"""<div class="rv-progress">
         <div class="rv-progress-fill" style="width: {pct}%;"></div>
     </div>""", unsafe_allow_html=True)
 
-    # 患者画像
+    # 画像
     _show_review_image(fid)
 
     # プロンプト
-    st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
+    if quiz_type == "case":
+        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="rv-case-prompt">この画像の内容は？</div>', unsafe_allow_html=True)
 
-    # 4択を生成（distractor_poolからセッション開始時に準備済み）
+    # 4択を生成（Gemini生成の誤答を使用）
     correct_title = meta.get("title", "不明")
-    distractor_pool = session.get("distractor_pool", [])
-    distractors = [t for t in distractor_pool if t != correct_title]
-    random.shuffle(distractors)
-    distractors = distractors[:3]
+    distractors = distractors_map.get(fid, [])
 
     if len(distractors) >= 3:
-        # 4択モード
         choices = [correct_title] + distractors[:3]
-        # セッションごとに固定されたシャッフル順を使う
-        shuffle_key = f"rv_shuffle_{idx}"
+        shuffle_key = f"rv_qshuffle_{idx}"
         if shuffle_key not in st.session_state:
             order = list(range(4))
             random.shuffle(order)
@@ -10236,51 +10349,56 @@ def _case_quiz_session(review_data: dict):
 
         labels = ["A", "B", "C", "D"]
         for i, choice in enumerate(shuffled):
-            if st.button(f"{labels[i]}. {choice}", key=f"rv_case_choice_{idx}_{i}",
+            if st.button(f"{labels[i]}. {choice}", key=f"rv_quiz_choice_{idx}_{i}",
                          use_container_width=True):
                 is_correct = (i == correct_shuffled_idx)
-                st.session_state["review_case_answer"] = {
+                st.session_state["review_quiz_answer"] = {
                     "fid": fid, "correct_title": correct_title,
                     "selected": choice, "is_correct": is_correct,
                     "keywords": meta.get("keywords", []),
+                    "summary": meta.get("summary", ""),
                 }
-                _record_case_result(review_data, fid, is_correct)
+                _record_quiz_result(review_data, fid, is_correct, quiz_type)
                 session["results"].append({"fid": fid, "correct": is_correct})
                 st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "case_revealed"
+                st.session_state["review_mode"] = "quiz_revealed"
                 st.rerun()
     else:
-        # タップで確認モード（患者データが少ない場合）
-        if st.button("👁️ タップして答えを確認", key=f"rv_case_reveal_{idx}",
+        # 誤答が生成できなかった場合 → タップ確認
+        if st.button("👁️ タップして答えを確認", key=f"rv_quiz_reveal_{idx}",
                       use_container_width=True, type="primary"):
-            st.session_state["review_case_answer"] = {
+            st.session_state["review_quiz_answer"] = {
                 "fid": fid, "correct_title": correct_title,
                 "selected": None, "is_correct": None,
                 "keywords": meta.get("keywords", []),
+                "summary": meta.get("summary", ""),
             }
-            st.session_state["review_mode"] = "case_revealed"
+            st.session_state["review_mode"] = "quiz_revealed"
             st.rerun()
 
-    if st.button("🏠 ホームに戻る", key="rv_case_back"):
+    if st.button("🏠 ホームに戻る", key="rv_quiz_back"):
         st.session_state["review_mode"] = "home"
         st.rerun()
 
 
-def _case_quiz_revealed(review_data: dict):
-    """症例クイズ解答画面。"""
+def _quiz_revealed(review_data: dict):
+    """クイズ解答画面（教科書・患者データ共通）。"""
     session = st.session_state.get("review_session", {})
     idx = session.get("current_index", 0)
     total = len(session.get("items", []))
-    answer = st.session_state.get("review_case_answer", {})
+    quiz_type = session.get("quiz_type", "case")
+    answer = st.session_state.get("review_quiz_answer", {})
 
     correct_title = answer.get("correct_title", "不明")
     is_correct = answer.get("is_correct")
     keywords = answer.get("keywords", [])
+    summary = answer.get("summary", "")
     fid = answer.get("fid", "")
+    icon = "🩺" if quiz_type == "case" else "📖"
 
-    st.markdown(f"### 🩺 症例 {idx + 1} / {total}")
+    st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
 
-    # 患者画像を表示
+    # 画像
     if fid:
         _show_review_image(fid)
 
@@ -10297,44 +10415,48 @@ def _case_quiz_revealed(review_data: dict):
         <div class="rv-keywords">キーワード: {html.escape(kw_str)}</div>
     </div>""", unsafe_allow_html=True)
 
+    # 教科書クイズの場合はサマリーも表示
+    if summary and quiz_type == "textbook":
+        formatted = html.escape(summary).replace("\n", "<br>")
+        st.markdown(f'<div class="rv-reveal-box">{formatted}</div>', unsafe_allow_html=True)
+
     # 自己評価（タップ確認モードの場合）
     if is_correct is None:
         st.markdown("**自己評価:**")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("⭕ 正解だった", key=f"rv_case_self_correct_{idx}", use_container_width=True,
+            if st.button("⭕ 正解だった", key=f"rv_quiz_self_correct_{idx}", use_container_width=True,
                           type="primary"):
-                _record_case_result(review_data, fid, True)
+                _record_quiz_result(review_data, fid, True, quiz_type)
                 session["results"].append({"fid": fid, "correct": True})
                 session["current_index"] = idx + 1
                 st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "case_playing"
+                st.session_state["review_mode"] = "quiz_playing"
                 st.rerun()
         with col2:
-            if st.button("❌ 不正解だった", key=f"rv_case_self_wrong_{idx}", use_container_width=True):
-                _record_case_result(review_data, fid, False)
+            if st.button("❌ 不正解だった", key=f"rv_quiz_self_wrong_{idx}", use_container_width=True):
+                _record_quiz_result(review_data, fid, False, quiz_type)
                 session["results"].append({"fid": fid, "correct": False})
                 session["current_index"] = idx + 1
                 st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "case_playing"
+                st.session_state["review_mode"] = "quiz_playing"
                 st.rerun()
     else:
-        # 次へボタン
         if idx + 1 < total:
-            if st.button("次の症例へ →", key="rv_case_next", use_container_width=True, type="primary"):
+            if st.button("次の問題へ →", key="rv_quiz_next", use_container_width=True, type="primary"):
                 session["current_index"] = idx + 1
                 st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "case_playing"
+                st.session_state["review_mode"] = "quiz_playing"
                 st.rerun()
         else:
-            if st.button("📊 結果を見る", key="rv_case_to_summary", use_container_width=True,
+            if st.button("📊 結果を見る", key="rv_quiz_to_summary", use_container_width=True,
                           type="primary"):
                 st.session_state["review_mode"] = "session_summary"
                 st.rerun()
 
 
-def _record_case_result(review_data: dict, fid: str, correct: bool):
-    """症例クイズの結果を記録する。"""
+def _record_quiz_result(review_data: dict, fid: str, correct: bool, quiz_type: str):
+    """クイズの結果を記録する（教科書・症例共通）。"""
     history = review_data.setdefault("case_quiz_history", {})
     h = history.setdefault(fid, {"attempts": 0, "correct": 0, "last_attempted": "", "last_correct": False})
     h["attempts"] = h.get("attempts", 0) + 1
@@ -10413,10 +10535,10 @@ def page_quiz():
         _flashcard_session(review_data)
     elif mode == "flashcard_revealed":
         _flashcard_revealed(review_data)
-    elif mode == "case_playing":
-        _case_quiz_session(review_data)
-    elif mode == "case_revealed":
-        _case_quiz_revealed(review_data)
+    elif mode == "quiz_playing":
+        _quiz_playing(review_data)
+    elif mode == "quiz_revealed":
+        _quiz_revealed(review_data)
     elif mode == "session_summary":
         _session_summary(review_data)
     else:
