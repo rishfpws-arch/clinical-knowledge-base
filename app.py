@@ -9862,43 +9862,45 @@ def _pick_case_quiz_items(metadata: dict, review_data: dict, count: int = 10) ->
     return candidates[:count]
 
 
-# --- Gemini 誤答生成 ---
+# --- Gemini クイズデータ生成 ---
 
-def _generate_distractors_batch(items: list[tuple[str, dict]], api_key: str) -> dict[str, list[str]]:
-    """セッション内の全アイテムに対して誤答選択肢をGeminiで一括生成する。
-    戻り値: {file_id: [distractor1, distractor2, distractor3]}
+def _generate_quiz_data_batch(items: list[tuple[str, dict]], api_key: str,
+                              quiz_type: str = "case") -> dict[str, dict]:
+    """クイズデータを一括生成する。
+    症例: {fid: {"distractors": [d1,d2,d3]}}
+    教科書: {fid: {"question":"...", "choices":[...], "correct_index":0}}
     """
     if not items or not api_key:
         return {}
+    if quiz_type == "case":
+        return _generate_case_distractors(items, api_key)
+    return _generate_textbook_questions(items, api_key)
+
+
+def _generate_case_distractors(items: list[tuple[str, dict]], api_key: str) -> dict[str, dict]:
+    """症例クイズ用: 誤答3つを生成。"""
     entries = []
     for i, (fid, meta) in enumerate(items):
         title = meta.get("title", "不明")
         folder = meta.get("folder", "未分類")
         keywords = ", ".join(meta.get("keywords", [])[:5])
-        summary_snippet = (meta.get("summary", "") or "")[:80]
-        entries.append(
-            f'{i+1}. 正解="{title}" 分野="{folder}" '
-            f'キーワード=[{keywords}] 概要="{summary_snippet}"'
-        )
-    batch_prompt = f"""あなたは医学教育の専門家です。4択クイズの誤答選択肢を作成してください。
+        entries.append(f'{i+1}. 正解="{title}" 分野="{folder}" キーワード=[{keywords}]')
+    prompt = f"""あなたは医学教育の専門家です。4択クイズの誤答選択肢を作成してください。
 
-以下の各問題の正解に対して、**同じ解剖学的部位・同じ検査モダリティ・同じ臨床カテゴリ**の鑑別疾患や類似所見を3つずつ生成してください。
+各正解に対して、**同じ解剖学的部位・同じ検査モダリティ**の鑑別疾患を3つずつ生成してください。
 
 {chr(10).join(entries)}
 
-【重要ルール】
-- 誤答は正解と同じ身体部位・同じ画像検査の疾患にすること（例: 正解が「大腿骨頭壊死」なら誤答も股関節の疾患）
+【ルール】
+- 誤答は正解と同じ身体部位・同じ画像検査の疾患にすること
 - 誤答の文体・長さを正解と揃えること
-- 医師国家試験レベルの難易度にすること
-- 全く異なる臓器・分野の疾患を混ぜないこと
+- 医師国家試験レベルの難易度
+- 全く異なる臓器の疾患を混ぜないこと
 
-JSON形式で返してください。他のテキスト不要:
-[
-  ["1の誤答A", "1の誤答B", "1の誤答C"],
-  ["2の誤答A", "2の誤答B", "2の誤答C"]
-]"""
+JSON配列で返してください。他のテキスト不要:
+[["1の誤答A","1の誤答B","1の誤答C"],["2の誤答A","2の誤答B","2の誤答C"]]"""
     try:
-        resp = _gemini_generate(api_key, [{"text": batch_prompt}])
+        resp = _gemini_generate(api_key, [{"text": prompt}])
         clean = resp.strip()
         start = clean.find("[")
         end = clean.rfind("]") + 1
@@ -9907,36 +9909,69 @@ JSON形式で返してください。他のテキスト不要:
             result = {}
             for i, (fid, _) in enumerate(items):
                 if i < len(parsed) and isinstance(parsed[i], list) and len(parsed[i]) >= 3:
-                    result[fid] = [str(d) for d in parsed[i][:3]]
+                    result[fid] = {"distractors": [str(d) for d in parsed[i][:3]]}
             if result:
                 return result
     except Exception as e:
-        _log.warning(f"[Review] 誤答一括生成失敗: {e}")
-    # フォールバック: 1件ずつ個別生成
-    result = {}
-    for fid, meta in items[:5]:
+        _log.warning(f"[Review] 症例誤答一括生成失敗: {e}")
+    return {}
+
+
+def _generate_textbook_questions(items: list[tuple[str, dict]], api_key: str) -> dict[str, dict]:
+    """教科書クイズ用: 問題文＋4択＋正解indexを生成。"""
+    entries = []
+    for i, (fid, meta) in enumerate(items):
         title = meta.get("title", "不明")
         folder = meta.get("folder", "未分類")
-        keywords = ", ".join(meta.get("keywords", [])[:5])
-        prompt = (
-            f"医学4択クイズの誤答を作成してください。\n"
-            f"正解: {title}\n分野: {folder}\nキーワード: {keywords}\n\n"
-            f"正解と同じ身体部位・同じ検査法の鑑別疾患を3つ、JSON配列で返してください。"
-            f"文体と長さを正解に揃えてください。他のテキスト不要。\n"
-            f'例: ["疾患A", "疾患B", "疾患C"]'
+        keywords = ", ".join(meta.get("keywords", [])[:6])
+        summary = (meta.get("summary", "") or "")[:400]
+        ocr = (meta.get("ocr_text", "") or "")[:200]
+        entries.append(
+            f'{i+1}. タイトル="{title}" 分野="{folder}" '
+            f'キーワード=[{keywords}]\n   要約: {summary}\n   OCR: {ocr}'
         )
-        try:
-            resp = _gemini_generate(api_key, [{"text": prompt}])
-            clean = resp.strip()
-            start = clean.find("[")
-            end = clean.rfind("]") + 1
-            if start >= 0 and end > start:
-                arr = json.loads(clean[start:end])
-                if isinstance(arr, list) and len(arr) >= 3:
-                    result[fid] = [str(d) for d in arr[:3]]
-        except Exception as e:
-            _log.warning(f"[Review] 誤答個別生成失敗 ({fid}): {e}")
-    return result
+    prompt = f"""あなたは医師国家試験の出題委員です。以下の各医学知識について、一般問題（短文）形式の4択問題を1問ずつ作成してください。
+
+{chr(10).join(entries)}
+
+【ルール】
+- 問題文は1-2文の短文にすること（医師国試の一般問題スタイル）
+- 「正しいのはどれか」「誤っているのはどれか」「最も適切なのはどれか」等の形式を使用
+- 正解は要約やキーワードの核心知識から出題すること
+- 誤答3つは同分野で紛らわしいが明確に誤りである知識にすること
+- 4つの選択肢の文体・長さを揃えること
+- 画像は表示しないため、画像に依存しない純粋な知識問題にすること
+- correct_indexは正解の位置（0-3）
+
+JSON配列で返してください。他のテキスト不要:
+[
+  {{"question":"問題文","choices":["選択肢A","選択肢B","選択肢C","選択肢D"],"correct_index":0}},
+  {{"question":"問題文","choices":["選択肢A","選択肢B","選択肢C","選択肢D"],"correct_index":2}}
+]"""
+    try:
+        resp = _gemini_generate(api_key, [{"text": prompt}])
+        clean = resp.strip()
+        start = clean.find("[")
+        end = clean.rfind("]") + 1
+        if start >= 0 and end > start:
+            parsed = json.loads(clean[start:end])
+            result = {}
+            for i, (fid, _) in enumerate(items):
+                if i < len(parsed) and isinstance(parsed[i], dict):
+                    q = parsed[i]
+                    if (isinstance(q.get("question"), str) and
+                            isinstance(q.get("choices"), list) and len(q["choices"]) == 4 and
+                            isinstance(q.get("correct_index"), int) and 0 <= q["correct_index"] <= 3):
+                        result[fid] = {
+                            "question": q["question"],
+                            "choices": [str(c) for c in q["choices"]],
+                            "correct_index": q["correct_index"],
+                        }
+            if result:
+                return result
+    except Exception as e:
+        _log.warning(f"[Review] 教科書問題一括生成失敗: {e}")
+    return {}
 
 
 # --- 画像表示ヘルパー ---
@@ -10133,9 +10168,8 @@ def _review_home(review_data: dict):
             items = _pick_case_quiz_items(metadata, review_data, count=10)
         if not items:
             return
-        # Gemini で誤答を一括生成
+        # Gemini でクイズデータを生成
         api_key = get_gemini_api_key()
-        distractors_map = {}
         if api_key:
             st.session_state["_quiz_generating"] = True
         st.session_state["_quiz_pending"] = {
@@ -10165,13 +10199,13 @@ def _review_home(review_data: dict):
         items = pending["items"]
         quiz_type = pending["quiz_type"]
         api_key = get_gemini_api_key()
-        distractors_map = _generate_distractors_batch(items, api_key) if api_key else {}
+        quiz_data_map = _generate_quiz_data_batch(items, api_key, quiz_type) if api_key else {}
         st.session_state.pop("_quiz_generating", None)
         st.session_state["review_session"] = {
             "items": items, "current_index": 0, "results": [],
             "type": "quiz",
             "quiz_type": quiz_type,
-            "distractors_map": distractors_map,
+            "quiz_data_map": quiz_data_map,
         }
         st.session_state["review_mode"] = "quiz_playing"
         _update_streak(review_data.setdefault("stats", {}))
@@ -10300,11 +10334,11 @@ def _record_flashcard_result(review_data: dict, fid: str, remembered: bool):
 # --- クイズ（教科書＋症例 共通） ---
 
 def _quiz_playing(review_data: dict):
-    """クイズ出題画面（教科書・患者データ共通）。"""
+    """クイズ出題画面（教科書: 知識問題 / 症例: 画像問題）。"""
     session = st.session_state.get("review_session", {})
     items = session.get("items", [])
     idx = session.get("current_index", 0)
-    distractors_map = session.get("distractors_map", {})
+    quiz_data_map = session.get("quiz_data_map", {})
     quiz_type = session.get("quiz_type", "case")
 
     if idx >= len(items):
@@ -10315,6 +10349,8 @@ def _quiz_playing(review_data: dict):
     fid, meta = items[idx]
     total = len(items)
     icon = "🩺" if quiz_type == "case" else "📖"
+    correct_title = meta.get("title", "不明")
+    qdata = quiz_data_map.get(fid, {})
 
     st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
     pct = (idx / total) * 100
@@ -10322,29 +10358,24 @@ def _quiz_playing(review_data: dict):
         <div class="rv-progress-fill" style="width: {pct}%;"></div>
     </div>""", unsafe_allow_html=True)
 
-    # 画像
-    _show_review_image(fid)
-
-    # プロンプト
-    if quiz_type == "case":
-        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="rv-case-prompt">この画像の内容は？</div>', unsafe_allow_html=True)
-
-    # 4択を生成（Gemini生成の誤答を使用）
-    correct_title = meta.get("title", "不明")
-    distractors = distractors_map.get(fid, [])
-
-    if len(distractors) >= 3:
-        choices = [correct_title] + distractors[:3]
+    if quiz_type == "textbook" and "question" in qdata:
+        # --- 教科書クイズ: 画像なし、知識問題 ---
+        st.markdown(
+            f'<div class="rv-case-prompt" style="text-align:left;font-size:17px;font-weight:500;">'
+            f'{html.escape(qdata["question"])}</div>',
+            unsafe_allow_html=True,
+        )
+        choices = qdata["choices"]
+        correct_idx = qdata["correct_index"]
+        # シャッフル（rerun対応）
         shuffle_key = f"rv_qshuffle_{idx}"
         if shuffle_key not in st.session_state:
             order = list(range(4))
             random.shuffle(order)
             st.session_state[shuffle_key] = order
         order = st.session_state[shuffle_key]
-        shuffled = [choices[i] for i in order]
-        correct_shuffled_idx = order.index(0)
+        shuffled = [choices[order[i]] for i in range(4)]
+        correct_shuffled_idx = next(i for i, o in enumerate(order) if o == correct_idx)
 
         labels = ["A", "B", "C", "D"]
         for i, choice in enumerate(shuffled):
@@ -10354,6 +10385,41 @@ def _quiz_playing(review_data: dict):
                 st.session_state["review_quiz_answer"] = {
                     "fid": fid, "correct_title": correct_title,
                     "selected": choice, "is_correct": is_correct,
+                    "correct_choice": choices[correct_idx],
+                    "question": qdata["question"],
+                    "keywords": meta.get("keywords", []),
+                    "summary": meta.get("summary", ""),
+                }
+                _record_quiz_result(review_data, fid, is_correct, quiz_type)
+                session["results"].append({"fid": fid, "correct": is_correct})
+                st.session_state["review_session"] = session
+                st.session_state["review_mode"] = "quiz_revealed"
+                st.rerun()
+    elif quiz_type == "case" and "distractors" in qdata:
+        # --- 症例クイズ: 画像あり、所見を当てる ---
+        _show_review_image(fid)
+        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
+
+        distractors = qdata["distractors"]
+        choices = [correct_title] + distractors[:3]
+        shuffle_key = f"rv_qshuffle_{idx}"
+        if shuffle_key not in st.session_state:
+            order = list(range(4))
+            random.shuffle(order)
+            st.session_state[shuffle_key] = order
+        order = st.session_state[shuffle_key]
+        shuffled = [choices[order[i]] for i in range(4)]
+        correct_shuffled_idx = next(i for i, o in enumerate(order) if o == 0)
+
+        labels = ["A", "B", "C", "D"]
+        for i, choice in enumerate(shuffled):
+            if st.button(f"{labels[i]}. {choice}", key=f"rv_quiz_choice_{idx}_{i}",
+                         use_container_width=True):
+                is_correct = (i == correct_shuffled_idx)
+                st.session_state["review_quiz_answer"] = {
+                    "fid": fid, "correct_title": correct_title,
+                    "selected": choice, "is_correct": is_correct,
+                    "correct_choice": correct_title,
                     "keywords": meta.get("keywords", []),
                     "summary": meta.get("summary", ""),
                 }
@@ -10363,7 +10429,9 @@ def _quiz_playing(review_data: dict):
                 st.session_state["review_mode"] = "quiz_revealed"
                 st.rerun()
     else:
-        # 誤答が生成できなかった場合 → タップ確認
+        # --- フォールバック: タップ確認 ---
+        _show_review_image(fid)
+        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
         if st.button("👁️ タップして答えを確認", key=f"rv_quiz_reveal_{idx}",
                       use_container_width=True, type="primary"):
             st.session_state["review_quiz_answer"] = {
@@ -10397,25 +10465,35 @@ def _quiz_revealed(review_data: dict):
 
     st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
 
-    # 画像
-    if fid:
-        _show_review_image(fid)
-
     # バナー
     if is_correct is True:
         st.markdown('<div class="rv-remembered-banner">⭕ 正解！</div>', unsafe_allow_html=True)
     elif is_correct is False:
         st.markdown('<div class="rv-review-banner">❌ 不正解</div>', unsafe_allow_html=True)
 
-    # 正解表示
+    # 教科書クイズ: 出題した問題文を再表示
+    question = answer.get("question", "")
+    if question:
+        st.markdown(f"**💬 問題:** {html.escape(question)}")
+
+    # 不正解時は正解の選択肢を明示
+    if is_correct is False:
+        correct_choice = answer.get("correct_choice", correct_title)
+        st.success(f"正解: **{correct_choice}**")
+
+    # 元画像を表示
+    if fid:
+        _show_review_image(fid)
+
+    # 正解タイトル＋キーワード
     kw_str = "、".join(keywords[:6]) if keywords else ""
     st.markdown(f"""<div class="rv-answer-box">
         <div class="rv-answer-title">📋 {html.escape(correct_title)}</div>
         <div class="rv-keywords">キーワード: {html.escape(kw_str)}</div>
     </div>""", unsafe_allow_html=True)
 
-    # 教科書クイズの場合はサマリーも表示
-    if summary and quiz_type == "textbook":
+    # サマリー表示（教科書・症例両方）
+    if summary:
         formatted = html.escape(summary).replace("\n", "<br>")
         st.markdown(f'<div class="rv-reveal-box">{formatted}</div>', unsafe_allow_html=True)
 
