@@ -2104,7 +2104,12 @@ def analyze_food_image(image_bytes: bytes, api_key: str) -> dict | None:
 
 
 def analyze_food_images(images_bytes_list: list[bytes], api_key: str) -> dict | None:
-    """複数の食事画像をまとめて Gemini で解析し、品目とカロリーを推定する。"""
+    """複数の食事画像をまとめて Gemini で解析し、品目とカロリーを推定する。
+
+    戻り値:
+        - {"items": [...]}   : 解析成功（品目ありも空もあり得る）
+        - None               : 一時エラー（ネットワーク/レートリミット/パース失敗）→ 呼び出し側で再試行する
+    """
     try:
         parts = [{"text": FOOD_ANALYSIS_PROMPT}]
         for img_bytes in images_bytes_list:
@@ -2117,15 +2122,17 @@ def analyze_food_images(images_bytes_list: list[bytes], api_key: str) -> dict | 
             parts.append({"inline_data": {"mime_type": mime_type, "data": b64_data}})
         response_text = _gemini_generate(api_key, parts)
         result = _parse_gemini_json(response_text)
-        if "items" not in result:
+        if not isinstance(result, dict):
             return None
+        # "items" キーが無い場合は「食事なし」として空配列を返す（再試行不要）
+        if "items" not in result:
+            return {"items": []}
         return result
-    except (json.JSONDecodeError, KeyError):
-        st.error("食事画像の解析結果をJSONとして読み取れませんでした。")
+    except (json.JSONDecodeError, KeyError) as e:
+        _log.error(f"食事画像解析 パースエラー: {e}")
         return None
     except Exception as e:
         _log.error(f"食事画像解析エラー: {e}")
-        st.error("食事画像の解析中にエラーが発生しました。再度お試しください。")
         return None
 
 
@@ -3054,15 +3061,18 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
         if not all_files:
             return 0
 
-    # 未処理画像を抽出（手動スキャン時はAI解析失敗分も再処理）
+    # 未処理画像を抽出
+    # - 手動: no_items / error ともに再処理
+    # - 自動: error のみ再処理（一時エラーのリトライ用、no_items は永続判定なので再処理しない）
     if manual:
-        new_files = [
-            f for f in all_files
-            if f["id"] not in processed
-            or processed.get(f["id"], {}).get("status") in ("no_items", "error")
-        ]
+        retry_statuses = ("no_items", "error")
     else:
-        new_files = [f for f in all_files if f["id"] not in processed]
+        retry_statuses = ("error",)
+    new_files = [
+        f for f in all_files
+        if f["id"] not in processed
+        or processed.get(f["id"], {}).get("status") in retry_statuses
+    ]
     if not new_files:
         return 0
 
@@ -3113,7 +3123,22 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
 
             # AI解析
             result = analyze_food_images([img_bytes], api_key)
-            if result and "items" in result and result["items"]:
+            if result is None:
+                # 一時エラー（API/ネットワーク/パース失敗）: 処理済みに記録せず次回再試行
+                _log.warning(f"食事画像AI解析 一時エラー（再試行予定）: {file_name}")
+                processed[file_id] = {
+                    "date": "",
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "error",
+                    "error": "AI解析に失敗（一時エラー）",
+                }
+                if manual:
+                    st.warning(f"⚠️ {file_name}: AI解析に失敗しました（次回自動再試行）")
+                continue
+
+            items_list = result.get("items") or []
+            if items_list:
                 day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
                 # 重複防止: この画像が既に取り込み済みならスキップ
                 existing_fids = {x.get("drive_file_id") for x in day_data.get("items", [])}
@@ -3125,7 +3150,7 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
                         "status": "ok",
                     }
                     continue
-                for it in result["items"]:
+                for it in items_list:
                     item_entry = {
                         "id": f"item_{uuid.uuid4().hex[:12]}",
                         "name": it.get("name", "不明"),
@@ -3153,7 +3178,7 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
                 }
                 count += 1
             else:
-                # AI解析で品目が検出できなかった（食事以外の画像など）
+                # AIが応答したが食事と判定されなかった（食事以外の画像）
                 processed[file_id] = {
                     "date": date_key,
                     "file_name": file_name,
