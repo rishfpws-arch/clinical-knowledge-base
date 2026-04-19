@@ -9680,6 +9680,40 @@ def _page_weight_management_inner():
                             _log.error(f"AI再計算エラー: {e}")
                             st.error("処理中にエラーが発生しました。")
 
+                # 0kcal日の再取り込みボタン
+                if st.button(
+                    "🔁 0kcalの日を再取り込み",
+                    key="wm_food_zero_rescan",
+                    help="記録開始日以降でカロリーが0の日に紐づく画像をまとめて再解析します。",
+                ):
+                    try:
+                        service = get_drive_service()
+                        _ak = get_gemini_api_key()
+                        if not _ak:
+                            st.warning("APIキー未設定")
+                        else:
+                            r = rescan_zero_calorie_days(service, food_fid, _ak)
+                            if r["days"] == 0:
+                                st.info("全ての日でカロリーが記録されています 🎉")
+                            elif r["files"] == 0:
+                                st.info(
+                                    f"0kcalの日は {r['days']} 日ありますが、対応する画像が見つかりませんでした。"
+                                )
+                            else:
+                                if r["imported"] > 0:
+                                    st.toast(
+                                        f"✅ {r['imported']} 枚を再取り込みしました（{r['days']} 日分を処理）",
+                                        icon="📷",
+                                    )
+                                    st.rerun()
+                                else:
+                                    st.warning(
+                                        f"{r['files']} 枚を再解析しましたが、食事の品目を検出できませんでした。"
+                                    )
+                    except Exception as e:
+                        _log.error(f"ゼロデイ再取り込みエラー: {e}")
+                        st.error("処理中にエラーが発生しました。")
+
             # 画像アップロード
             with st.form("wm_food_form", clear_on_submit=True):
                 food_files = st.file_uploader(
