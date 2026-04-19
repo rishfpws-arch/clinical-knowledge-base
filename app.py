@@ -3273,6 +3273,163 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
     return count
 
 
+def rescan_zero_calorie_days(service, food_folder_id: str, api_key: str) -> dict:
+    """記録開始日以降で total_calories == 0 の日に紐づく Drive 画像を強制再解析する。
+
+    対象: 処理済みリスト内で date が 0kcal日 に該当するエントリ、
+          または status=="error" で date が空のエントリ。
+
+    Returns:
+        {"days": 対象日数, "files": 対象ファイル数, "imported": 新規取り込み数}
+    """
+    weight_data = load_weight_data()
+    records = weight_data.setdefault("records", {})
+    if not records:
+        return {"days": 0, "files": 0, "imported": 0}
+
+    # 記録開始日～今日 の範囲で 0kcal 日を抽出
+    sorted_keys = sorted(records.keys())
+    try:
+        first_d = date.fromisoformat(sorted_keys[0])
+    except (ValueError, TypeError):
+        return {"days": 0, "files": 0, "imported": 0}
+    today_d = date.today()
+    zero_days: set[str] = set()
+    cur = first_d
+    while cur <= today_d:
+        dk = cur.strftime("%Y-%m-%d")
+        day = records.get(dk)
+        if (not day) or (day.get("total_calories", 0) == 0) or (not _get_day_items(day)):
+            zero_days.add(dk)
+        cur += timedelta(days=1)
+
+    if not zero_days:
+        return {"days": 0, "files": 0, "imported": 0}
+
+    processed = load_food_processed()
+    target_fids = [
+        fid for fid, entry in processed.items()
+        if (entry.get("date") in zero_days) or
+           (entry.get("status") == "error" and not entry.get("date"))
+    ]
+
+    if not target_fids:
+        return {"days": len(zero_days), "files": 0, "imported": 0}
+
+    # 進捗表示
+    progress_text = st.empty()
+    progress_bar = st.progress(0.0)
+    progress_text.caption(
+        f"🔁 {len(zero_days)} 日分 / {len(target_fids)} 枚の画像を再解析中…"
+    )
+
+    imported = 0
+    for idx, file_id in enumerate(target_fids):
+        progress_bar.progress(idx / max(len(target_fids), 1))
+        try:
+            # Drive からファイル情報取得
+            try:
+                file_info = service.files().get(
+                    fileId=file_id,
+                    fields="id,name,mimeType,modifiedTime,createdTime",
+                ).execute()
+            except Exception as e:
+                _log.warning(f"Drive get 失敗 {file_id}: {e}")
+                continue
+            file_name = file_info.get("name", file_id)
+
+            img_bytes = download_image(service, file_id)
+            if not img_bytes:
+                continue
+
+            # 撮影日決定（EXIF → modifiedTime → 今日）
+            photo_dt = _extract_exif_datetime(img_bytes)
+            if photo_dt is None:
+                mod_time_str = file_info.get("modifiedTime", "")
+                if mod_time_str:
+                    try:
+                        photo_dt = datetime.fromisoformat(
+                            mod_time_str.replace("Z", "+00:00")
+                        )
+                    except (ValueError, TypeError):
+                        pass
+            if photo_dt is None:
+                photo_dt = datetime.now()
+            date_key = photo_dt.strftime("%Y-%m-%d")
+
+            # ローカル保存
+            WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
+            img_id = f"wm_{uuid.uuid4().hex[:12]}"
+            ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "png"
+            if ext not in ("jpg", "jpeg", "png"):
+                ext = "png"
+            (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(img_bytes)
+
+            # AI 解析（強制リトライ）
+            result = analyze_food_images([img_bytes], api_key)
+            if result is None:
+                processed[file_id] = {
+                    "date": "",
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "error",
+                    "error": "AI解析に失敗（一時エラー）",
+                }
+                continue
+
+            items_list = result.get("items") or []
+            if items_list:
+                day_data = records.setdefault(
+                    date_key, {"items": [], "total_calories": 0}
+                )
+                # 同一 drive_file_id の既存 item を除外してから追加（重複防止）
+                day_data["items"] = [
+                    it for it in day_data.get("items", [])
+                    if it.get("drive_file_id") != file_id
+                ]
+                for it in items_list:
+                    item_entry = {
+                        "id": f"item_{uuid.uuid4().hex[:12]}",
+                        "name": it.get("name", "不明"),
+                        "quantity": it.get("quantity", "ふつう"),
+                        "calories": it.get("calories", 0),
+                        "nutrients": it.get("nutrients", {}),
+                        "meal_type": _guess_meal_type_from_dt(photo_dt),
+                        "image_id": img_id,
+                        "image_ext": ext,
+                        "drive_file_id": file_id,
+                    }
+                    day_data["items"].append(item_entry)
+                all_items = _get_day_items(day_data)
+                day_data["total_calories"] = sum(
+                    it.get("calories", 0) for it in all_items
+                )
+                processed[file_id] = {
+                    "date": date_key,
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "ok",
+                }
+                imported += 1
+            else:
+                processed[file_id] = {
+                    "date": date_key,
+                    "file_name": file_name,
+                    "processed_at": datetime.now().isoformat(),
+                    "status": "no_items",
+                }
+        except Exception as e:
+            _log.error(f"再解析失敗 {file_id}: {e}")
+
+    save_weight_data(weight_data)
+    save_food_processed(processed)
+    progress_bar.progress(1.0)
+    progress_bar.empty()
+    progress_text.empty()
+
+    return {"days": len(zero_days), "files": len(target_fids), "imported": imported}
+
+
 # ---------------------------------------------------------------------------
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
