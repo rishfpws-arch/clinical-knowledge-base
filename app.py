@@ -3083,17 +3083,31 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
             return 0
 
     # 未処理画像を抽出
-    # - 手動: no_items / error ともに再処理
-    # - 自動: error のみ再処理（一時エラーのリトライ用、no_items は永続判定なので再処理しない）
-    if manual:
-        retry_statuses = ("no_items", "error")
-    else:
-        retry_statuses = ("error",)
-    new_files = [
-        f for f in all_files
-        if f["id"] not in processed
-        or processed.get(f["id"], {}).get("status") in retry_statuses
-    ]
+    # - 手動: no_items / error をすべて再処理
+    # - 自動: error は常に再処理、no_items は最後の処理から24h以上経過したもののみ再処理
+    #   （Gemini が一時的に食事を検出できなかった画像を日次でリトライし、自動で欠落日を復旧）
+    now_dt = datetime.now()
+
+    def _should_include(f: dict) -> bool:
+        fid = f["id"]
+        entry = processed.get(fid)
+        if entry is None:
+            return True
+        status = entry.get("status")
+        if status == "error":
+            return True
+        if status == "no_items":
+            if manual:
+                return True
+            # 自動スキャン: 24h以上経過していればリトライ
+            try:
+                last = datetime.fromisoformat(entry.get("processed_at", ""))
+                return (now_dt - last).total_seconds() >= 86400
+            except (ValueError, TypeError):
+                return True
+        return False
+
+    new_files = [f for f in all_files if _should_include(f)]
     if not new_files:
         return 0
 
