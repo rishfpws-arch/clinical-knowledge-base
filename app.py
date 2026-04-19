@@ -9238,6 +9238,8 @@ def _render_weight_history_inner(records: dict, goals: dict):
                             )
                 if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
                     st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
+                    # 記録タブへ切り替え（radio widgetキーは次回run冒頭で反映される）
+                    st.session_state["_wm_next_tab"] = "📝 記録"
                     st.rerun()
         except Exception as e:
             _log.exception(f"日別記録描画エラー dk={dk}")
@@ -9265,6 +9267,10 @@ def _page_weight_management_inner():
 
     # 全日分の total_calories を現在の items から再計算（古い集計値のズレを自動補正）
     _recompute_all_day_totals(records)
+
+    # 前のrunでセットされた「次回表示タブ」を反映（widget描画前に書き込む必要あり）
+    if "_wm_next_tab" in st.session_state:
+        st.session_state["wm_active_tab"] = st.session_state.pop("_wm_next_tab")
 
     # タブ切り替え（st.tabsはプログラム制御できないのでradioで代替）
     _TAB_OPTIONS = ["📝 記録", "📊 履歴"]
