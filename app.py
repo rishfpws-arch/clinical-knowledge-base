@@ -9007,7 +9007,16 @@ def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
 
 def _render_weight_history(records: dict, goals: dict):
     """体重管理の履歴一覧（MoneyForward風）。"""
+    try:
+        _render_weight_history_inner(records, goals)
+    except Exception as e:
+        _log.exception("食事記録履歴の描画でエラー")
+        st.error(f"履歴表示でエラーが発生しました: {type(e).__name__}: {e}")
+        st.caption("ページ再読み込みまたは期間を変更してお試しください。")
 
+
+def _render_weight_history_inner(records: dict, goals: dict):
+    """履歴一覧 内部実装。"""
     if not records:
         st.info("まだ記録がありません。「📝 記録」タブからデータを入力してください。")
         return
@@ -9192,37 +9201,47 @@ def _render_weight_history(records: dict, goals: dict):
     st.markdown("### 📋 日別記録")
 
     for dk in sorted_dates:
-        day = records[dk]
-        w = day.get("weight")
-        cal = day.get("total_calories", 0)
-        day_items = _get_day_items(day)
-        item_count = len(day_items)
+        try:
+            # 日付形式でないキーはスキップ（破損データ耐性）
+            try:
+                dt = datetime.strptime(dk, "%Y-%m-%d")
+            except ValueError:
+                continue
 
-        dt = datetime.strptime(dk, "%Y-%m-%d")
-        weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
+            day = records[dk]
+            if not isinstance(day, dict):
+                continue
+            w = day.get("weight")
+            cal = day.get("total_calories", 0)
+            day_items = _get_day_items(day)
+            item_count = len(day_items)
 
-        w_str = f"⚖️ {w} kg" if w else "⚖️ --"
-        header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {item_count}品"
+            weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
+            w_str = f"⚖️ {w} kg" if w else "⚖️ --"
+            header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {item_count}品"
 
-        with st.expander(header, expanded=False):
-            if not day_items:
-                st.caption("食事記録なし")
-            else:
-                groups = _group_items_by_meal(day_items)
-                for meal_key, items in groups.items():
-                    if not items:
-                        continue
-                    label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
-                    sub = sum(it.get("calories", 0) for it in items)
-                    st.markdown(f"**{label}** — {sub} kcal")
-                    for it in items:
-                        st.markdown(
-                            f"　{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
-                            f"　**{it.get('calories', 0)} kcal**"
-                        )
-            if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
-                st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
-                st.rerun()
+            with st.expander(header, expanded=False):
+                if not day_items:
+                    st.caption("食事記録なし")
+                else:
+                    groups = _group_items_by_meal(day_items)
+                    for meal_key, items in groups.items():
+                        if not items:
+                            continue
+                        label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
+                        sub = sum(it.get("calories", 0) for it in items)
+                        st.markdown(f"**{label}** — {sub} kcal")
+                        for it in items:
+                            st.markdown(
+                                f"　{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
+                                f"　**{it.get('calories', 0)} kcal**"
+                            )
+                if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
+                    st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
+                    st.rerun()
+        except Exception as e:
+            _log.exception(f"日別記録描画エラー dk={dk}")
+            st.caption(f"⚠️ {dk} の表示でエラー: {type(e).__name__}")
 
 
 def page_weight_management():
