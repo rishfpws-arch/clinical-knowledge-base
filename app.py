@@ -3307,11 +3307,71 @@ def rescan_zero_calorie_days(service, food_folder_id: str, api_key: str) -> dict
         return {"days": 0, "files": 0, "imported": 0}
 
     processed = load_food_processed()
-    target_fids = [
-        fid for fid, entry in processed.items()
-        if (entry.get("date") in zero_days) or
-           (entry.get("status") == "error" and not entry.get("date"))
-    ]
+
+    # Drive 上の全画像を列挙（新規・既存を問わず）
+    all_drive_files: dict[str, dict] = {}
+    try:
+        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
+        query = f"'{food_folder_id}' in parents and ({mime_query}) and trashed=false"
+        _page_token = None
+        while True:
+            params = dict(
+                q=query,
+                fields="nextPageToken, files(id, name, mimeType, createdTime, modifiedTime)",
+                orderBy="modifiedTime desc",
+                pageSize=100,
+            )
+            if _page_token:
+                params["pageToken"] = _page_token
+            results = service.files().list(**params).execute()
+            for f in results.get("files", []):
+                all_drive_files[f["id"]] = f
+            _page_token = results.get("nextPageToken")
+            if not _page_token:
+                break
+    except Exception as e:
+        _log.error(f"Drive一覧取得失敗: {e}")
+
+    def _drive_date(f: dict) -> str | None:
+        for field in ("createdTime", "modifiedTime"):
+            t = f.get(field, "")
+            if t:
+                try:
+                    return datetime.fromisoformat(
+                        t.replace("Z", "+00:00")
+                    ).date().isoformat()
+                except (ValueError, TypeError):
+                    continue
+        return None
+
+    # 再処理対象を収集
+    # 1) processed の date が 0kcal日 に該当
+    # 2) processed で status=="error" かつ date が空
+    # 3) Drive上に存在するが processed に無く、Driveタイムスタンプが 0kcal日
+    # 4) Drive上に存在するが processed に無く、撮影日が記録開始日～今日 の範囲（Drive日付未取得時の保険）
+    target_set: set[str] = set()
+    for fid, entry in processed.items():
+        if entry.get("date") in zero_days:
+            target_set.add(fid)
+        elif entry.get("status") == "error" and not entry.get("date"):
+            target_set.add(fid)
+
+    first_iso = first_d.isoformat()
+    today_iso = today_d.isoformat()
+    for fid, f in all_drive_files.items():
+        if fid in processed:
+            continue
+        dd = _drive_date(f)
+        if dd is None:
+            # 日付不明だが未処理 → 範囲内の可能性があるので含める
+            target_set.add(fid)
+        elif dd in zero_days:
+            target_set.add(fid)
+        elif first_iso <= dd <= today_iso:
+            # 範囲内の未処理画像は念のため含める
+            target_set.add(fid)
+
+    target_fids = list(target_set)
 
     if not target_fids:
         return {"days": len(zero_days), "files": 0, "imported": 0}
