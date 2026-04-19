@@ -9249,6 +9249,42 @@ def _render_weight_history_inner(records: dict, goals: dict):
         st.info("まだ記録がありません。「📝 記録」タブからデータを入力してください。")
         return
 
+    # --- 0kcal日の再取り込みボタン ---
+    _food_fid = get_food_folder_id()
+    if _food_fid:
+        if st.button(
+            "🔁 0kcalの日を再取り込み",
+            key="wm_hist_zero_rescan",
+            help="記録開始日以降でカロリーが0の日に紐づく Drive 画像をまとめて再解析します。",
+        ):
+            try:
+                _svc = get_drive_service()
+                _ak = get_gemini_api_key()
+                if not _ak:
+                    st.warning("APIキー未設定")
+                else:
+                    r = rescan_zero_calorie_days(_svc, _food_fid, _ak)
+                    if r["days"] == 0:
+                        st.info("全ての日でカロリーが記録されています 🎉")
+                    elif r["files"] == 0:
+                        st.info(
+                            f"0kcalの日は {r['days']} 日ありますが、対応する画像が見つかりませんでした。"
+                        )
+                    else:
+                        if r["imported"] > 0:
+                            st.toast(
+                                f"✅ {r['imported']} 枚を再取り込みしました（{r['days']} 日分を処理）",
+                                icon="📷",
+                            )
+                            st.rerun()
+                        else:
+                            st.warning(
+                                f"{r['files']} 枚を再解析しましたが、食事の品目を検出できませんでした。"
+                            )
+            except Exception as e:
+                _log.error(f"ゼロデイ再取り込みエラー: {e}")
+                st.error("処理中にエラーが発生しました。")
+
     # --- 期間フィルター ---
     period = st.selectbox("表示期間", ["直近7日", "直近30日", "全期間"], key="wm_hist_period")
     today = date.today()
