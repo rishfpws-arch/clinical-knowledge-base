@@ -8239,36 +8239,42 @@ def _get_weight_trend(records: dict) -> str:
 
 
 def _render_date_navigation():
-    """MoneyForward風の日付ナビゲーション。◀ 前日 | カレンダー | 翌日 ▶ | 今日"""
+    """MoneyForward風の日付ナビゲーション。◀ 前日 | カレンダー | 翌日 ▶ | 今日
+
+    wm_selected_date を唯一の真実として扱い、date_input widget の key は毎回 dynamic に
+    変える事で widget internal state の残留による日付バウンス問題を回避する。
+    """
     if "wm_selected_date" not in st.session_state:
         st.session_state["wm_selected_date"] = date.today()
 
     sel = st.session_state["wm_selected_date"]
 
+    def _set_date(new_d):
+        st.session_state["wm_selected_date"] = new_d
+        st.rerun()
+
     col_prev, col_date, col_next, col_today = st.columns([1, 4, 1, 1.5])
     with col_prev:
         if st.button("◀", key="wm_prev_day", width="stretch"):
-            st.session_state["wm_selected_date"] = sel - timedelta(days=1)
-            st.rerun()
+            _set_date(sel - timedelta(days=1))
     with col_date:
+        # key を sel に紐付けると sel が変わった時に新規widgetとして再生成されるため
+        # 内部stateの残留バウンス問題が起きない
         picked = st.date_input(
             "日付を選択",
             value=sel,
-            key="wm_date_picker",
+            key=f"wm_date_picker_{sel.isoformat()}",
             label_visibility="collapsed",
         )
         if picked != sel:
-            st.session_state["wm_selected_date"] = picked
-            st.rerun()
+            _set_date(picked)
     with col_next:
         if st.button("▶", key="wm_next_day", width="stretch"):
-            st.session_state["wm_selected_date"] = sel + timedelta(days=1)
-            st.rerun()
+            _set_date(sel + timedelta(days=1))
     with col_today:
         if sel != date.today():
             if st.button("今日", key="wm_today_btn", width="stretch"):
-                st.session_state["wm_selected_date"] = date.today()
-                st.rerun()
+                _set_date(date.today())
 
 
 def _render_dashboard_card(day_data: dict, goals: dict, records: dict):
