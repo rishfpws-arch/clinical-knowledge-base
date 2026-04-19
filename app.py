@@ -9213,11 +9213,16 @@ def _render_weight_history_inner(records: dict, goals: dict):
     if any(v > 0 for v in meal_cal_totals.values()):
         st.markdown("### 🥧 食事カテゴリ別カロリー")
         import pandas as pd
+        import altair as alt
         labels = [MEAL_TYPE_LABELS.get(mt, mt) for mt in MEAL_TYPE_ORDER]
         vals = [meal_cal_totals[mt] for mt in MEAL_TYPE_ORDER]
         pie_df = pd.DataFrame({"カテゴリ": labels, "カロリー(kcal)": vals})
-        pie_df = pie_df.set_index("カテゴリ")
-        st.bar_chart(pie_df)
+        _cal_chart = alt.Chart(pie_df).mark_bar().encode(
+            x=alt.X("カテゴリ:N", sort=labels, title="カテゴリ"),
+            y=alt.Y("カロリー(kcal):Q", title="カロリー (kcal)"),
+            tooltip=["カテゴリ:N", "カロリー(kcal):Q"],
+        ).properties(height=300)
+        st.altair_chart(_cal_chart, use_container_width=True)
 
     # --- 栄養素トレンド ---
     # 各日の栄養素を集計
