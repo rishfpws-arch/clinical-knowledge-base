@@ -9441,17 +9441,38 @@ def _render_weight_history_inner(records: dict, goals: dict):
     # --- 日別サマリー（MoneyForward風） ---
     st.markdown("### 📋 日別記録")
 
-    for dk in sorted_dates:
+    # 表示範囲: 記録開始日（または期間フィルタ）〜 今日 の全日付を降順で構築
+    # （records に存在しない 0kcal 日も表示対象にする）
+    _record_date_list = []
+    for _k in records.keys():
         try:
-            # 日付形式でないキーはスキップ（破損データ耐性）
+            _record_date_list.append(date.fromisoformat(_k))
+        except (ValueError, TypeError):
+            continue
+    if _record_date_list:
+        _range_start = min(_record_date_list)
+    else:
+        _range_start = today
+    if cutoff and cutoff > _range_start:
+        _range_start = cutoff
+    _range_end = today
+
+    _all_dates_desc: list[str] = []
+    _cur_d = _range_end
+    while _cur_d >= _range_start:
+        _all_dates_desc.append(_cur_d.strftime("%Y-%m-%d"))
+        _cur_d -= timedelta(days=1)
+
+    for dk in _all_dates_desc:
+        try:
             try:
                 dt = datetime.strptime(dk, "%Y-%m-%d")
             except ValueError:
                 continue
 
-            day = records[dk]
+            day = records.get(dk) or {}
             if not isinstance(day, dict):
-                continue
+                day = {}
             w = day.get("weight")
             cal = day.get("total_calories", 0)
             day_items = _get_day_items(day)
@@ -9459,7 +9480,11 @@ def _render_weight_history_inner(records: dict, goals: dict):
 
             weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
             w_str = f"⚖️ {w} kg" if w else "⚖️ --"
-            header = f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　🔥 {cal} kcal　🍽️ {item_count}品"
+            _empty_mark = "  ⚠️ 記録なし" if (not day_items and not w) else ""
+            header = (
+                f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　"
+                f"🔥 {cal} kcal　🍽️ {item_count}品{_empty_mark}"
+            )
 
             with st.expander(header, expanded=False):
                 if not day_items:
@@ -9479,7 +9504,6 @@ def _render_weight_history_inner(records: dict, goals: dict):
                             )
                 if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
                     st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
-                    # 記録タブへ切り替え（radio widgetキーは次回run冒頭で反映される）
                     st.session_state["_wm_next_tab"] = "📝 記録"
                     st.rerun()
         except Exception as e:
