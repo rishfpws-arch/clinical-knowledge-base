@@ -9498,8 +9498,7 @@ def _page_weight_management_inner():
                             service = get_drive_service()
                             _ak = get_gemini_api_key()
                             if _ak:
-                                with st.spinner("取り込み中..."):
-                                    n = scan_food_images(service, food_fid, _ak, manual=True)
+                                n = scan_food_images(service, food_fid, _ak, manual=True)
                                 if n > 0:
                                     st.toast(f"🔔 {n} 枚取り込みました", icon="📷")
                                     st.rerun()
