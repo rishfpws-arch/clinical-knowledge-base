@@ -3111,16 +3111,34 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
     if not new_files:
         return 0
 
-    # 件数制限（自動スキャン時のみ）
-    if not manual:
+    # 件数制限
+    # - 自動: MAX_FOOD_SCAN_IMAGES
+    # - 手動: 30枚/クリック（UI がフリーズしないよう上限を設ける）
+    _MANUAL_SCAN_LIMIT = 30
+    _total_candidates = len(new_files)
+    if manual:
+        new_files = new_files[:_MANUAL_SCAN_LIMIT]
+    else:
         new_files = new_files[:MAX_FOOD_SCAN_IMAGES]
 
     # weight_data を読み込み
     weight_data = load_weight_data()
     records = weight_data.setdefault("records", {})
 
+    # 手動スキャン時は進捗表示
+    _progress = None
+    _progress_text = None
+    if manual:
+        _progress_text = st.empty()
+        _progress = st.progress(0.0)
+        _progress_text.caption(
+            f"📷 {len(new_files)} / {_total_candidates} 枚を処理中…"
+        )
+
     count = 0
-    for file_info in new_files:
+    for _idx, file_info in enumerate(new_files):
+        if _progress is not None:
+            _progress.progress((_idx) / max(len(new_files), 1))
         file_id = file_info["id"]
         file_name = file_info.get("name", file_id)
 
