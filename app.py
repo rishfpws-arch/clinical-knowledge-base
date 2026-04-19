@@ -9241,15 +9241,23 @@ def _render_weight_history_inner(records: dict, goals: dict):
     if _nut_dates:
         st.markdown("### 🥗 栄養素推移 (PFC)")
         import pandas as pd
+        import altair as alt
         _nut_df = pd.DataFrame({
-            "日付": _nut_dates,
+            "日付": pd.to_datetime(_nut_dates),
             "たんぱく質(g)": _nut_p,
             "脂質(g)": _nut_f,
             "炭水化物(g)": _nut_c,
         })
-        _nut_df["日付"] = pd.to_datetime(_nut_df["日付"])
-        _nut_df = _nut_df.set_index("日付")
-        st.line_chart(_nut_df)
+        _nut_long = _nut_df.melt(
+            id_vars="日付", var_name="栄養素", value_name="量(g)"
+        )
+        _nut_chart = alt.Chart(_nut_long).mark_line(point=True).encode(
+            x=alt.X("日付:T", title="日付"),
+            y=alt.Y("量(g):Q", title="量 (g)"),
+            color=alt.Color("栄養素:N", title="栄養素"),
+            tooltip=["日付:T", "栄養素:N", "量(g):Q"],
+        ).properties(height=300)
+        st.altair_chart(_nut_chart, use_container_width=True)
 
         # 期間平均
         _avg_p = round(sum(_nut_p) / len(_nut_p), 1) if _nut_p else 0
