@@ -9170,7 +9170,7 @@ def _render_weight_history_inner(records: dict, goals: dict):
             ).encode(x="日付:T", y="y:Q", text="label:N")
             chart = chart + target_rule + target_label
 
-        st.altair_chart(chart.properties(height=300).interactive(), use_container_width=True)
+        st.altair_chart(chart.properties(height=300), use_container_width=True)
 
         if target_wt:
             latest_wt = _wt_vals[-1]
