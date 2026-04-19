@@ -9263,12 +9263,28 @@ def _page_weight_management_inner():
     records = weight_data.setdefault("records", {})
     goals = weight_data.get("goals", {})
 
-    tab_record, tab_history = st.tabs(["📝 記録", "📊 履歴"])
+    # 全日分の total_calories を現在の items から再計算（古い集計値のズレを自動補正）
+    _recompute_all_day_totals(records)
 
-    with tab_history:
+    # タブ切り替え（st.tabsはプログラム制御できないのでradioで代替）
+    _TAB_OPTIONS = ["📝 記録", "📊 履歴"]
+    if st.session_state.get("wm_active_tab") not in _TAB_OPTIONS:
+        st.session_state["wm_active_tab"] = "📝 記録"
+    active_tab = st.radio(
+        "タブ",
+        _TAB_OPTIONS,
+        index=_TAB_OPTIONS.index(st.session_state["wm_active_tab"]),
+        horizontal=True,
+        label_visibility="collapsed",
+        key="wm_active_tab",
+    )
+
+    if active_tab == "📊 履歴":
         _render_weight_history(records, goals)
+        return
 
-    with tab_record:
+    # ===== 以下 "📝 記録" タブ =====
+    if True:
 
         # ====== 日付ナビゲーション ======
         _render_date_navigation()
