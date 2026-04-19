@@ -3258,6 +3258,18 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
         save_weight_data(weight_data)
     save_food_processed(processed)
 
+    # 進捗表示のクリーンアップ
+    if _progress is not None:
+        _progress.progress(1.0)
+        _progress.empty()
+    if _progress_text is not None:
+        if manual and _total_candidates > len(new_files):
+            _progress_text.info(
+                f"✅ {len(new_files)} 枚を処理しました（残り {_total_candidates - len(new_files)} 枚は次回クリックで処理）"
+            )
+        else:
+            _progress_text.empty()
+
     return count
 
 
