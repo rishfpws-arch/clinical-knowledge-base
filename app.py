@@ -9320,7 +9320,6 @@ def _page_weight_management_inner():
     active_tab = st.radio(
         "タブ",
         _TAB_OPTIONS,
-        index=_TAB_OPTIONS.index(st.session_state["wm_active_tab"]),
         horizontal=True,
         label_visibility="collapsed",
         key="wm_active_tab",
