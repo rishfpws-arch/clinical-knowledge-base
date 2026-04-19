@@ -2478,6 +2478,27 @@ def _aggregate_day_nutrients(day_data: dict) -> dict[str, float]:
     return totals
 
 
+def _recompute_all_day_totals(records: dict) -> int:
+    """全日分の total_calories を items から再計算する。
+
+    items 追加/削除後に total_calories が古いままのケースを補正する。
+    戻り値: 値が変更された日数。
+    """
+    changed = 0
+    for dk, day in list(records.items()):
+        if not isinstance(day, dict):
+            continue
+        try:
+            items = _get_day_items(day)
+            new_total = sum(it.get("calories", 0) for it in items)
+            if day.get("total_calories") != new_total:
+                day["total_calories"] = new_total
+                changed += 1
+        except Exception:
+            continue
+    return changed
+
+
 def _guess_meal_type(hour: int | None = None) -> str:
     """時刻から食事タイプを推定する。hourが省略された場合は現在時刻を使用。"""
     if hour is None:
