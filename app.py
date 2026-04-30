@@ -67,6 +67,7 @@ UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
 FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
+FAVORITES_PATH = Path(__file__).parent / "favorites.json"
 _AUTH_STATE_PATH = Path(__file__).parent / ".auth_state"
 FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
 MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
