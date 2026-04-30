@@ -7369,6 +7369,7 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                 f'<div class="g-day">{_fmt_day(d)}</div>',
                 unsafe_allow_html=True,
             )
+        favs = _ensure_favorites_loaded()
         cols = st.columns(GALLERY_COLS)
         for ci, e in enumerate(row):
             with cols[ci]:
@@ -7383,7 +7384,8 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                         '<div class="g-placeholder">🖼️</div>',
                         unsafe_allow_html=True,
                     )
-                if st.button("🔍", key=f"{key_prefix}_btn_{e['fid']}",
+                btn_label = "🔍 ⭐" if e["fid"] in favs else "🔍"
+                if st.button(btn_label, key=f"{key_prefix}_btn_{e['fid']}",
                              use_container_width=True):
                     _open_photo_dialog(e)
 
