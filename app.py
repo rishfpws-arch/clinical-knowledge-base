@@ -7268,7 +7268,7 @@ def _open_photo_dialog(entry: dict):
     title = entry.get("title") or "(タイトルなし)"
     st.markdown(f"### {title}")
     img_bytes: bytes | None = None
-    if entry.get("kind") == "patient":
+    if entry.get("kind") in ("patient", "screenshot"):
         try:
             service = get_drive_service()
             if service:
