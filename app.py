@@ -8702,6 +8702,7 @@ def _render_weight_history_inner(records: dict, goals: dict):
                 if not day_items:
                     st.caption("食事記録なし")
                 else:
+                    _render_day_food_thumbnails(day, dk, "wm_hist_thumb", per_row=6)
                     groups = _group_items_by_meal(day_items)
                     for meal_key, items in groups.items():
                         if not items:
