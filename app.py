@@ -7415,7 +7415,7 @@ def page_screenshot_gallery():
 
     def _fetch(e):
         try:
-            return download_thumbnail(service, e["fid"])
+            return download_thumbnail(service, e["fid"], max_px=800, quality=88)
         except Exception:
             return None
 
