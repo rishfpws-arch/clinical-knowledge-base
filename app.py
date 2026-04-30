@@ -7394,6 +7394,32 @@ def page_food_gallery():
     _render_photo_gallery(entries, "food_gal", _fetch)
 
 
+def page_screenshot_gallery():
+    """スクショ（clinical-kb 直下、患者データ以外）の Google Photos 風ギャラリー。"""
+    _inject_gallery_css()
+    st.markdown("## 📱 スクショ")
+
+    metadata = load_metadata()
+    service = get_drive_service()
+    if not service:
+        st.error("Google Driveに接続できませんでした。設定を確認してください。")
+        return
+
+    folder_id = get_folder_id()
+    drive_files = list_images(service, folder_id)
+    entries = _build_screenshot_entries(metadata, drive_files)
+
+    st.caption(f"全 {len(entries)} 件")
+
+    def _fetch(e):
+        try:
+            return download_thumbnail(service, e["fid"])
+        except Exception:
+            return None
+
+    _render_photo_gallery(entries, "ss_gal", _fetch)
+
+
 # ===========================================================================
 # 統合ページ: ⚙️ 設定（フォルダ管理 + ゴミ箱 + システム 統合）
 # ===========================================================================
