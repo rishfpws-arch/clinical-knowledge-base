@@ -9462,6 +9462,7 @@ def main():
         st.session_state.pop("last_upload_id", None)
         st.session_state.pop("pat_gal_loaded", None)
         st.session_state.pop("food_gal_loaded", None)
+        st.session_state.pop("ss_gal_loaded", None)
         st.rerun()
 
     # ─── サイドバー: ページ切り替え（4ボタンのみ）───
