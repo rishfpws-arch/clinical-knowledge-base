@@ -7311,8 +7311,15 @@ def _build_food_entries(weight_data: dict) -> list[dict]:
 @st.dialog("画像", width="large")
 def _open_photo_dialog(entry: dict):
     """画像をモーダルで拡大表示する。"""
-    title = entry.get("title") or "(タイトルなし)"
-    st.markdown(f"### {title}")
+    fid = entry.get("fid", "")
+    favs = _ensure_favorites_loaded()
+    is_fav = fid in favs
+
+    fav_label = "★ お気に入り解除" if is_fav else "☆ お気に入りに追加"
+    if st.button(fav_label, key=f"fav_btn_{fid}", use_container_width=True):
+        toggle_favorite(fid)
+        st.rerun()
+
     img_bytes: bytes | None = None
     if entry.get("kind") in ("patient", "screenshot"):
         try:
