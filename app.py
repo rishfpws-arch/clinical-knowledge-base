@@ -60,7 +60,6 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
 ]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
-CHAT_SESSIONS_PATH = Path(__file__).parent / "chat_sessions.json"
 TRASH_PATH = Path(__file__).parent / "trash.json"
 IGNORE_LIST_PATH = Path(__file__).parent / "ignore_list.json"
 FOLDERS_PATH = Path(__file__).parent / "folders.json"
@@ -68,7 +67,6 @@ UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
 FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
-REVIEW_DATA_PATH = Path(__file__).parent / "review_data.json"
 _AUTH_STATE_PATH = Path(__file__).parent / ".auth_state"
 FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
 MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
@@ -88,72 +86,6 @@ STATUS_REVIEWED = "reviewed"
 # ソース識別子
 SOURCE_PATIENT_DATA = "patient_data"
 SOURCE_UPLOAD = "upload"
-
-# ホーム画面の名言
-QUOTES = [
-    # --- 医療 ---
-    ("医術が愛されるところには、人間愛もまた存在する。", "ヒポクラテス"),
-    ("良い医者は病気を治療し、偉大な医者は病気を持つ患者を治療する。", "ウィリアム・オスラー"),
-    ("医学は不確実性の科学であり、確率の芸術である。", "ウィリアム・オスラー"),
-    ("最良の医者は、最も少ない薬を処方する。", "ベンジャミン・フランクリン"),
-    ("人の命を救うことにおいて、人は最も神に近づく。", "キケロ"),
-    ("人生は短く、術の道は長い。", "ヒポクラテス"),
-    ("書物なしに医学を学ぶことは、海図なき航海に出るようなものだ。", "ウィリアム・オスラー"),
-    ("医者は病気ではなく、病気に苦しむ患者を治療すべきである。", "マイモニデス"),
-    ("看護とは、患者の生命力の消耗を最小にするよう整えることである。", "フローレンス・ナイチンゲール"),
-    ("天使とは、花を持ってくる者ではなく、苦しむ者のそばにいる者である。", "フローレンス・ナイチンゲール"),
-    # --- 科学 ---
-    ("想像力は知識よりも重要だ。知識には限界があるが、想像力は世界を包み込む。", "アルベルト・アインシュタイン"),
-    ("狂気とは、同じことを繰り返しながら違う結果を期待することだ。", "アルベルト・アインシュタイン"),
-    ("自然淘汰は、毎日毎時、世界中で最も微細な変異を調べ上げている。", "チャールズ・ダーウィン"),
-    ("生き残るのは最も強い種ではなく、変化に最もよく適応した種である。", "チャールズ・ダーウィン"),
-    ("人生で恐れるべきものは何もない。理解すべきものがあるだけだ。", "マリー・キュリー"),
-    ("科学の本質は、ひとつの問いに答えるたびに十の新しい問いが生まれることだ。", "マリー・キュリー"),
-    ("もし私が他の人々より遠くを見ることができたとすれば、それは巨人たちの肩の上に立っていたからだ。", "アイザック・ニュートン"),
-    ("何かを本当に理解しているなら、それを簡単に説明できるはずだ。", "リチャード・ファインマン"),
-    ("測定できないものは改善できない。", "ウィリアム・トムソン（ケルヴィン卿）"),
-    ("偶然は準備された心にのみ微笑む。", "ルイ・パスツール"),
-    # --- 哲学 ---
-    ("疑いは不快な状態だが、確信は愚かである。", "ヴォルテール"),
-    ("無知を恐れるな、偽りの知識を恐れよ。", "ブレーズ・パスカル"),
-    ("汝自身を知れ。", "ソクラテス"),
-    ("無知の知こそ、知恵の始まりである。", "ソクラテス"),
-    ("我思う、ゆえに我あり。", "ルネ・デカルト"),
-    ("深淵を覗くとき、深淵もまたこちらを覗いているのだ。", "フリードリヒ・ニーチェ"),
-    ("自分を殺さないものは、自分を強くする。", "フリードリヒ・ニーチェ"),
-    ("人生の目的は、目的のある人生を送ることだ。", "セネカ"),
-    ("困難の中にこそ、機会がある。", "セネカ"),
-    ("万物は流転する。", "ヘラクレイトス"),
-    # --- 文学 ---
-    ("観察こそが、人生における最も永続的な喜びである。", "ジョージ・メレディス"),
-    ("人間は考える葦である。", "ブレーズ・パスカル"),
-    ("生まれてきたからには、生きてみせるぞ。", "太宰治"),
-    ("智に働けば角が立つ。情に棹させば流される。", "夏目漱石"),
-    ("明日死ぬかのように生きよ。永遠に生きるかのように学べ。", "マハトマ・ガンジー"),
-    ("行動は雄弁に勝る。", "ウィリアム・シェイクスピア"),
-    ("最も暗い夜も明ける。そして太陽は昇る。", "ヴィクトル・ユゴー"),
-    ("人間とは、自分の運命を支配する自由な存在である。", "ジャン＝ポール・サルトル"),
-    # --- 歴史・政治 ---
-    ("成功とは、失敗から失敗へと情熱を失わずに進むことである。", "ウィンストン・チャーチル"),
-    ("成功がすべてではない。失敗は致命的ではない。大切なのは続ける勇気だ。", "ウィンストン・チャーチル"),
-    ("人民の、人民による、人民のための政治を、この地上から滅ぼしてはならない。", "エイブラハム・リンカーン"),
-    ("為せば成る、為さねば成らぬ何事も、成らぬは人の為さぬなりけり。", "上杉鷹山"),
-    # --- 東洋の知恵 ---
-    ("学びて思わざれば則ち罔し、思いて学ばざれば則ち殆し。", "孔子"),
-    ("最大の栄光は一度も失敗しないことではなく、倒れるたびに起き上がることだ。", "孔子"),
-    ("知ることが少ないから断言し、多くを学ぶほど慎重になる。", "モンテーニュ"),
-    ("千里の道も一歩から。", "老子"),
-    ("上善は水の如し。水は万物を利して争わず。", "老子"),
-    ("己の欲せざるところは、人に施すこと勿れ。", "孔子"),
-    # --- 実業家・現代 ---
-    ("偉大な仕事をする唯一の方法は、自分のやることを愛することだ。", "スティーブ・ジョブズ"),
-    ("点と点を先に結ぶことはできない。振り返ったときにだけ結ばれる。", "スティーブ・ジョブズ"),
-    ("道についてくるものが少ないときは、自分が新しい道を開いているのだと知れ。", "松下幸之助"),
-    ("失敗したところでやめてしまうから失敗になる。成功するまで続ければ成功になる。", "松下幸之助"),
-    ("まず行動せよ。たとえ間違っていたとしても、何もしないよりはましだ。", "ピーター・ドラッカー"),
-    ("未来を予測する最善の方法は、それを自ら創り出すことだ。", "ピーター・ドラッカー"),
-]
-
 
 # ---------------------------------------------------------------------------
 # 認証
@@ -554,7 +486,7 @@ JSON等のフォーマットは不要です。読み取ったテキストのみ�
 # Google Sheets 永続化
 # ---------------------------------------------------------------------------
 _SHEETS_CHUNK_SIZE = 49000  # 1セル上限50,000文字の安全マージン
-_SHEETS_WORKSHEETS = ["metadata", "folders", "chat_sessions", "trash", "weight_data", "food_processed"]
+_SHEETS_WORKSHEETS = ["metadata", "folders", "trash", "weight_data", "food_processed"]
 _CACHE_TTL = 300  # 5分（save時はキャッシュ直接更新するため再取得間隔のみ影響）
 
 _file_write_lock = threading.Lock()
@@ -722,7 +654,7 @@ def _invalidate_cache(*cache_keys: str):
     """指定したキャッシュのみ無効化する。キー未指定なら全キャッシュを破棄。"""
     targets = cache_keys if cache_keys else (
         "_cache_metadata", "_cache_trash", "_cache_ignore_list",
-        "_cache_folders", "_cache_chat_sessions",
+        "_cache_folders",
         "_cache_weight_data", "_cache_food_processed",
     )
     for ck in targets:
@@ -1169,19 +1101,6 @@ def _retry_pending_saves() -> None:
             else:
                 _log.warning("[retry] folders Sheets書き込み再失敗")
 
-    # chat_sessions のリトライ
-    pending_cs = st.session_state.get("_pending_chat_sessions")
-    if pending_cs is not None:
-        _log.info("[retry] pending chat_sessions")
-        sh = get_sheets_client()
-        if sh is not None:
-            ok = _write_json_to_sheet(sh, "chat_sessions", {"sessions": pending_cs})
-            if ok:
-                _log.info("[retry] chat_sessions Sheets書き込み成功")
-                st.session_state.pop("_pending_chat_sessions", None)
-            else:
-                _log.warning("[retry] chat_sessions Sheets書き込み再失敗")
-
     # trash のリトライ
     pending_trash = st.session_state.get("_pending_trash")
     if pending_trash is not None:
@@ -1448,49 +1367,6 @@ def get_all_folders_from_metadata(metadata: dict) -> list[str]:
         if f not in all_folders:
             all_folders.append(f)
     return all_folders
-
-
-# ---------------------------------------------------------------------------
-# チャットセッション管理
-# ---------------------------------------------------------------------------
-def load_chat_sessions() -> dict:
-    """チャットセッションを読み込む。session_state → Sheets → ローカルの順。"""
-    ck = "_cache_chat_sessions"
-    if _is_cache_valid(ck):
-        return st.session_state[ck]
-    sh = get_sheets_client()
-    if sh is not None:
-        data = _read_json_from_sheet(sh, "chat_sessions")
-        if data is not None:
-            sessions = data.get("sessions", {}) if isinstance(data, dict) else data
-            _set_cache(ck, sessions)
-            _atomic_json_write(CHAT_SESSIONS_PATH, {"sessions": sessions})
-            return sessions
-    if CHAT_SESSIONS_PATH.exists():
-        try:
-            with open(CHAT_SESSIONS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                sessions = data.get("sessions", {})
-                _set_cache(ck, sessions)
-                return sessions
-        except (json.JSONDecodeError, IOError):
-            pass
-    _set_cache(ck, {})
-    return {}
-
-
-def save_chat_sessions(sessions: dict) -> None:
-    """チャットセッションを保存する。session_state + Sheets + ローカル。"""
-    _set_cache("_cache_chat_sessions", sessions)
-    sheets_ok = False
-    sh = get_sheets_client()
-    if sh is not None:
-        sheets_ok = _write_json_to_sheet(sh, "chat_sessions", {"sessions": sessions})
-    _atomic_json_write(CHAT_SESSIONS_PATH, {"sessions": sessions})
-    if not sheets_ok and sh is not None:
-        st.session_state["_pending_chat_sessions"] = sessions
-    elif sheets_ok:
-        st.session_state.pop("_pending_chat_sessions", None)
 
 
 # ---------------------------------------------------------------------------
@@ -1971,7 +1847,7 @@ def download_image(_service, file_id: str) -> bytes:
             raise
 
 
-@st.cache_data(ttl=600, show_spinner=False, max_entries=200)
+@st.cache_data(ttl=600, show_spinner=False, max_entries=500)
 def download_thumbnail(_service, file_id: str, max_px: int = 400) -> bytes:
     """サムネイル用に軽量化した画像を返す（最大300px, JPEG 70%）。"""
     raw = download_image(_service, file_id)
@@ -1990,7 +1866,7 @@ def download_thumbnail(_service, file_id: str, max_px: int = 400) -> bytes:
 # ---------------------------------------------------------------------------
 # Gemini AI (REST API 直接呼び出し)
 # ---------------------------------------------------------------------------
-_GEMINI_MODEL = "gemini-2.0-flash"
+_GEMINI_MODEL = "gemini-2.5-flash"
 _GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "{model}:generateContent?key={key}"
@@ -3493,45 +3369,6 @@ def rescan_zero_calorie_days(service, food_folder_id: str, api_key: str) -> dict
 # ---------------------------------------------------------------------------
 # 検索フィルタリング
 # ---------------------------------------------------------------------------
-def filter_images_by_keyword(
-    images: list[dict], keyword: str, metadata: dict,
-    include_ocr: bool = True,
-) -> list[dict]:
-    """キーワードでタイトル・要約・タグ・ファイル名を部分一致検索。
-    include_ocr=False の場合はOCRテキスト検索をスキップする。
-    """
-    if not keyword:
-        return images
-    keyword_lower = keyword.lower()
-    filtered = []
-    for img in images:
-        file_id = img["id"]
-        file_name = img["name"].lower()
-        if file_id in metadata:
-            meta = metadata[file_id]
-            title = meta.get("title", "").lower()
-            summary = meta.get("summary", "").lower()
-            keywords = [kw.lower() for kw in meta.get("keywords", [])]
-            hit = (
-                keyword_lower in title
-                or keyword_lower in summary
-                or any(keyword_lower in kw for kw in keywords)
-                or keyword_lower in file_name
-            )
-            if not hit and include_ocr:
-                ocr_text = meta.get("ocr_text", "").lower()
-                hit = keyword_lower in ocr_text
-            if hit:
-                filtered.append(img)
-        else:
-            if keyword_lower in file_name:
-                filtered.append(img)
-    return filtered
-
-
-# ---------------------------------------------------------------------------
-# UI部品: 要約表示（箇条書き整形）
-# ---------------------------------------------------------------------------
 def render_summary(summary: str) -> None:
     """要約テキストを箇条書きとして整形表示する。"""
     if not summary:
@@ -3951,527 +3788,13 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 # ---------------------------------------------------------------------------
 # 検索機能: 全文検索結果表示
 # ---------------------------------------------------------------------------
-def display_search_results(keyword: str, metadata: dict, service) -> None:
-    """全文検索（OCR+タイトル+キーワード+タグ）の結果をサムネイル一覧で表示する。
-    画像ライブラリと患者データを分けて表示。
-    """
-    if not keyword or not keyword.strip():
-        return
-
-    kw_lower = keyword.strip().lower()
-
-    # --- メタデータ全件を全文検索 ---
-    lib_hits: list[tuple[str, dict]] = []
-    pd_hits: list[tuple[str, dict]] = []
-
-    for fid, meta in metadata.items():
-        title = meta.get("title", "").lower()
-        summary = meta.get("summary", "").lower()
-        kws = [k.lower() for k in meta.get("keywords", [])]
-        ocr = meta.get("ocr_text", "").lower()
-        folder = meta.get("folder", "").lower()
-
-        if (kw_lower in title or kw_lower in summary
-                or any(kw_lower in k for k in kws)
-                or kw_lower in ocr or kw_lower in folder):
-            if is_patient_data(meta):
-                pd_hits.append((fid, meta))
-            else:
-                lib_hits.append((fid, meta))
-
-    total = len(lib_hits) + len(pd_hits)
-
-    st.markdown(
-        f"### 🔍「{keyword}」の検索結果（全 {total} 件）"
-    )
-
-    if total == 0:
-        st.info("該当する画像が見つかりませんでした。別のキーワードで検索してください。")
-        return
-
-    # --- 画像ライブラリ ---
-    if lib_hits:
-        st.markdown(f"**📷 画像ライブラリ（{len(lib_hits)}件）**")
-        _render_search_grid(lib_hits, service, "lib")
-
-    # --- 患者データ ---
-    if pd_hits:
-        if lib_hits:
-            st.markdown("---")
-        st.markdown(f"**🏥 患者データ（{len(pd_hits)}件）**")
-        _render_search_grid(pd_hits, service, "pd")
 
 
-def _render_search_grid(
-    hits: list[tuple[str, dict]], service, prefix: str,
-) -> None:
-    """検索ヒットをサムネイルグリッド（3列）で表示する。"""
-    cols_per_row = 3
-    for row_start in range(0, len(hits), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for col_idx in range(cols_per_row):
-            idx = row_start + col_idx
-            if idx >= len(hits):
-                break
-            fid, meta = hits[idx]
-            title = meta.get("title", "不明")
-            with cols[col_idx]:
-                try:
-                    thumb = download_thumbnail(service, fid)
-                    st.image(thumb, use_container_width=True)
-                except Exception:
-                    st.markdown(
-                        '<div style="background:#333;border-radius:8px;'
-                        'height:80px;display:flex;align-items:center;'
-                        'justify-content:center;color:#b0b0b0;">🖼️</div>',
-                        unsafe_allow_html=True,
-                    )
-                st.caption(title)
-                if st.button(
-                    "🔍 詳細",
-                    key=f"search_{prefix}_{fid}",
-                    width="stretch",
-                ):
-                    st.session_state["lib_selected_id"] = fid
-                    st.session_state["lib_enlarged_view"] = True
-                    st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
-                    st.session_state["active_tab"] = "📸 画像ライブラリ"
-                    st.rerun()
-
-
-# ---------------------------------------------------------------------------
-# 検索機能: ホーム画面
-# ---------------------------------------------------------------------------
-def render_home_screen(knowledge_count: int, metadata: dict | None = None,
-                       service=None) -> None:
-    """検索前のホーム画面を表示する。ランダム画像ピックアップ付き。"""
-    st.markdown("")
-    st.markdown("")
-
-    quote_text, quote_author = random.choice(QUOTES)
-
-    col1, col2, col3 = st.columns([1, 3, 1])
-    with col2:
-        st.markdown(
-            "<h1 style='text-align:center; font-size:64px; margin-bottom:4px;'>🐻</h1>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            "<h2 style='text-align:center; color:#e0e0e0; font-weight:300; "
-            "letter-spacing:4px; margin:0 0 16px;'>Pomken</h2>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<p style='text-align:center; color:#b0b0b0; font-size:13px; "
-            f"font-style:italic; line-height:1.6; margin-bottom:24px;'>"
-            f"\"{quote_text}\"<br>"
-            f"<span style='color:#999; font-size:12px;'>— {quote_author}</span></p>",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown("")
-    st.markdown(
-        f"<p style='text-align:center;'>"
-        f"<span style='background:#1a3a5c; color:#7eb8da; padding:6px 18px;"
-        f"border-radius:20px; font-size:14px;'>"
-        f"📚 {knowledge_count}件 の知識を収録</span></p>",
-        unsafe_allow_html=True,
-    )
-
-    # --- 週間食事アドバイス ---
-    home_advice = _get_home_advice()
-    if home_advice:
-        ac1, ac2, ac3 = st.columns([1, 4, 1])
-        with ac2:
-            st.markdown(
-                f"<div style='text-align:center; background:#1a2a1a; "
-                f"border:1px solid #2a4a2a; border-radius:12px; "
-                f"padding:10px 16px; margin:8px auto; "
-                f"color:#a0d0a0; font-size:13px;'>"
-                f"🥗 {home_advice}</div>",
-                unsafe_allow_html=True,
-            )
-
-    # --- ランダムピックアップ画像 ---
-    if metadata and service and len(metadata) > 0:
-        # セッション中は同じ画像を表示（リロードで変わる）
-        pick_key = "_home_pickup_id"
-        fid = st.session_state.get(pick_key)
-        if fid is None or fid not in metadata:
-            fid = random.choice(list(metadata.keys()))
-            st.session_state[pick_key] = fid
-
-        meta = metadata[fid]
-        title = meta.get("title", "不明")
-        badge = "🏥 患者データ" if is_patient_data(meta) else "📷 画像ライブラリ"
-        kws = meta.get("keywords", [])
-
-        st.markdown("---")
-        st.markdown(
-            "<p style='text-align:center; color:#b0b0b0; font-size:13px; "
-            "margin-bottom:8px;'>📌 ピックアップ</p>",
-            unsafe_allow_html=True,
-        )
-        pc1, pc2, pc3 = st.columns([1, 2, 1])
-        with pc2:
-            try:
-                pickup_img = download_image(service, fid)
-                st.image(pickup_img, use_container_width=True)
-            except Exception:
-                st.markdown(
-                    '<div style="background:#333;border-radius:8px;'
-                    'height:120px;display:flex;align-items:center;'
-                    'justify-content:center;color:#b0b0b0;font-size:32px;">🖼️</div>',
-                    unsafe_allow_html=True,
-                )
-            st.markdown(
-                f"<p style='text-align:center; margin:4px 0 2px;'>"
-                f"<b>{title}</b></p>"
-                f"<p style='text-align:center; color:#999; font-size:12px; margin:0;'>"
-                f"{badge}</p>",
-                unsafe_allow_html=True,
-            )
-            if kws:
-                kw_html = " ".join(
-                    f"<code style='font-size:11px;'>{k}</code>" for k in kws[:5]
-                )
-                st.markdown(
-                    f"<p style='text-align:center; margin-top:4px;'>{kw_html}</p>",
-                    unsafe_allow_html=True,
-                )
-            if st.button("🔍 詳細を見る", key="home_pickup_detail", use_container_width=True):
-                st.session_state["lib_selected_id"] = fid
-                st.session_state["lib_enlarged_view"] = True
-                st.session_state["lib_back_tab"] = st.session_state.get("active_tab")
-                st.session_state["active_tab"] = "📸 画像ライブラリ"
-                st.rerun()
 
 
 # ===========================================================================
 # ページ: 画像管理
 # ===========================================================================
-def page_image_manager():
-    """画像管理ページ（Phase 1-3 の機能）。"""
-    service = get_drive_service()
-    folder_id = get_folder_id()
-    api_key = get_gemini_api_key()
-    metadata = load_metadata()
-
-    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
-    if not images:
-        st.info(
-            "画像が見つかりませんでした。\n\n"
-            "Google Driveに画像を追加するか、チャット画面から画像を貼り付けて取り込んでください。"
-        )
-        return
-
-    # --- サイドバー ---
-    st.sidebar.header("🔍 検索・フィルタ")
-    search_keyword = st.sidebar.text_input(
-        "キーワード検索",
-        placeholder="タイトル、要約、タグで検索...",
-    )
-    filtered_images = filter_images_by_keyword(images, search_keyword, metadata)
-
-    # フォルダフィルタ
-    all_folders = get_all_folders_from_metadata(metadata)
-    if len(all_folders) > 1:
-        folder_filter = st.sidebar.selectbox(
-            "📂 フォルダで絞り込み",
-            ["すべて"] + all_folders,
-            key="img_folder_filter",
-        )
-        if folder_filter != "すべて":
-            filtered_images = [
-                img for img in filtered_images
-                if img["id"] in metadata and get_folder(metadata[img["id"]]) == folder_filter
-            ]
-
-    if st.sidebar.button("🔄 一覧を更新"):
-        list_images.clear()
-        list_patient_images.clear()
-        download_image.clear()
-        st.rerun()
-
-    st.sidebar.markdown("---")
-    if api_key:
-        st.sidebar.success("🤖 Gemini API: 接続済み")
-    else:
-        st.sidebar.warning(
-            "🤖 Gemini API: 未設定\n\n"
-            "`GOOGLE_API_KEY` を secrets.toml に設定してください。"
-        )
-
-    st.sidebar.markdown("---")
-    total = len(images)
-    analyzed = sum(1 for img in images if img["id"] in metadata)
-    reviewed_count = sum(
-        1 for img in images
-        if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-    )
-    st.sidebar.caption(
-        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅確認済み {reviewed_count} 件"
-    )
-
-    if not filtered_images:
-        st.warning("検索条件に一致する画像がありません。")
-        return
-
-    # --- 選択中の画像ID ---
-    if "selected_image_id" not in st.session_state:
-        st.session_state["selected_image_id"] = None
-
-    selected_fid = st.session_state["selected_image_id"]
-
-    # =======================================================================
-    # 詳細表示モード（画像が選択されている場合）
-    # =======================================================================
-    if selected_fid is not None:
-        # 選択された画像を探す
-        selected_file = None
-        for img in filtered_images:
-            if img["id"] == selected_fid:
-                selected_file = img
-                break
-
-        if selected_file is None:
-            st.session_state["selected_image_id"] = None
-            st.rerun()
-            return
-
-        file_id = selected_file["id"]
-
-        # 戻るボタン
-        if st.button("⬅️ 一覧に戻る", key="back_to_grid"):
-            st.session_state["selected_image_id"] = None
-            st.session_state.pop("editing_file_id", None)
-            st.rerun()
-
-        # --- 画像読み込み ---
-        image_bytes = None
-        try:
-            image_bytes = download_image(service, file_id)
-        except HttpError as e:
-            _log.error(f"画像読み込み失敗: {e}")
-            st.error("画像の読み込みに失敗しました。")
-            return
-        except Exception as e:
-            _log.error(f"画像表示エラー: {e}")
-            st.error("画像の表示中にエラーが発生しました。")
-            return
-
-        meta = metadata.get(file_id, {})
-
-        # --- 縦並びレイアウト（モバイル対応）: 画像上 + 情報下 ---
-        st.image(image_bytes, use_container_width=True)
-
-        # タイトル
-        title = meta.get("title", selected_file["name"])
-        st.subheader(title)
-        # 患者データバッジ
-        if is_patient_data(meta):
-            st.markdown(
-                '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
-                'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
-                unsafe_allow_html=True,
-            )
-        # ステータス
-        if file_id in metadata and not is_patient_data(meta):
-            s = get_status(meta)
-            if s == STATUS_REVIEWED:
-                st.success("✅ 確認済み")
-            else:
-                st.warning("📝 未確認")
-        # 要約/検査所見
-        _sl = get_summary_label(meta)
-        summary_text = meta.get("summary", "")
-        if summary_text:
-            st.markdown(f"**{_sl}:**")
-            render_summary(summary_text)
-        elif is_patient_data(meta):
-            st.info("検査所見が未入力です。編集から入力してください。")
-        # キーワード
-        keywords = meta.get("keywords", [])
-        if keywords:
-            render_keyword_tags(keywords)
-
-        # --- 編集フォーム（折りたたみ） ---
-        if file_id in metadata:
-            _is_pd = is_patient_data(metadata[file_id])
-            edit_label = "📝 検査所見を編集" if _is_pd else "📝 編集"
-            with st.expander(edit_label, expanded=_is_pd):
-                display_edit_form(file_id, metadata[file_id], metadata)
-            if _is_pd:
-                st.info("🏥 患者データ: AI解析は行いません。手動で検査所見を入力してください。")
-            elif api_key:
-                if st.button("🤖 AIで再解析する", key=f"reanalyze_{file_id}"):
-                    with st.spinner("Gemini で再解析中..."):
-                        result = analyze_image_with_gemini(image_bytes, api_key)
-                        if result:
-                            old = metadata.get(file_id, {})
-                            for keep_key in ("folder", "source"):
-                                if keep_key in old:
-                                    result[keep_key] = old[keep_key]
-                            metadata[file_id] = result
-                            save_metadata(metadata)
-                            st.session_state.pop("editing_file_id", None)
-                            st.success("再解析が完了しました！")
-                            st.rerun()
-        else:
-            st.markdown("---")
-            if api_key:
-                st.info("この画像はまだAI解析されていません。")
-                if st.button(
-                    "🤖 AI解析を実行",
-                    key=f"analyze_{file_id}",
-                    type="primary",
-                ):
-                    with st.spinner("Gemini 2.0 Flash で解析中..."):
-                        result = analyze_image_with_gemini(image_bytes, api_key)
-                        if result:
-                            old = metadata.get(file_id, {})
-                            for keep_key in ("folder", "source"):
-                                if keep_key in old:
-                                    result[keep_key] = old[keep_key]
-                            metadata[file_id] = result
-                            save_metadata(metadata)
-                            st.success("解析が完了しました！")
-                            st.rerun()
-            else:
-                st.warning(
-                    "AI解析を使用するには `GOOGLE_API_KEY` を "
-                    "`.streamlit/secrets.toml` に設定してください。"
-                )
-        return
-
-    # =======================================================================
-    # グリッド一覧表示モード（デフォルト）— サムネイルで高速表示
-    # =======================================================================
-
-    # 削除モード切り替え
-    if "img_delete_mode" not in st.session_state:
-        st.session_state["img_delete_mode"] = False
-
-    # ページネーション
-    page_items, cur_page, total_pages = _paginate(filtered_images, "img_grid_page")
-    _render_pagination_controls("img_grid_page", cur_page, total_pages, len(filtered_images))
-
-    header_col1, header_col2 = st.columns([3, 1])
-    with header_col1:
-        st.caption(f"**{len(filtered_images)}** / {len(images)} 件中を表示")
-    with header_col2:
-        if st.session_state["img_delete_mode"]:
-            if st.button("✖ 削除モード終了", key="exit_delete_mode", width="stretch"):
-                st.session_state["img_delete_mode"] = False
-                # チェック状態クリア
-                for img in filtered_images:
-                    st.session_state.pop(f"img_del_{img['id']}", None)
-                st.rerun()
-        else:
-            if st.button("🗑️ 削除モード", key="enter_delete_mode", width="stretch"):
-                st.session_state["img_delete_mode"] = True
-                st.rerun()
-
-    # 削除モード時: 全選択/全解除
-    delete_ids = []
-    if st.session_state["img_delete_mode"]:
-        del_c1, del_c2, del_c3 = st.columns([1, 1, 4])
-        with del_c1:
-            if st.button(f"✅ 全選択（全{len(filtered_images)}件）", key="img_del_all"):
-                for img in filtered_images:
-                    if img["id"] in metadata:
-                        st.session_state[f"img_del_{img['id']}"] = True
-                st.rerun()
-        with del_c2:
-            if st.button("🔄 全解除", key="img_del_none"):
-                for img in filtered_images:
-                    st.session_state.pop(f"img_del_{img['id']}", None)
-                st.rerun()
-
-    cols_per_row = 4
-    for row_start in range(0, len(page_items), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for col_idx in range(cols_per_row):
-            img_idx = row_start + col_idx
-            if img_idx >= len(page_items):
-                break
-            img = page_items[img_idx]
-            fid = img["id"]
-
-            with cols[col_idx]:
-                # 削除モード以外: 画像+タイトルをまとめてボタン化
-                if not st.session_state["img_delete_mode"]:
-                    # サムネイル表示
-                    try:
-                        thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
-                    except Exception:
-                        st.markdown(
-                            '<div style="background:#333;border-radius:8px;'
-                            'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                            unsafe_allow_html=True,
-                        )
-                    # タイトル
-                    if fid in metadata:
-                        meta = metadata[fid]
-                        title = meta.get("title", img["name"])
-                        status = get_status(meta)
-                        icon = get_status_icon(meta)
-                        pd_badge = " 🏥" if is_patient_data(meta) else ""
-                        st.caption(f"{icon}{pd_badge} {title}")
-                    else:
-                        st.caption(f"📄 {img['name']}")
-                    # クリックで詳細
-                    if st.button("🔍 詳細を見る", key=f"grid_open_{fid}", width="stretch"):
-                        st.session_state["selected_image_id"] = fid
-                        st.rerun()
-                else:
-                    # 削除モード
-                    try:
-                        thumb_bytes = download_thumbnail(service, fid)
-                        st.image(thumb_bytes, use_container_width=True)
-                    except Exception:
-                        st.markdown(
-                            '<div style="background:#333;border-radius:8px;'
-                            'height:80px;display:flex;align-items:center;'
-                            'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                            unsafe_allow_html=True,
-                        )
-                    if fid in metadata:
-                        meta = metadata[fid]
-                        title = meta.get("title", img["name"])
-                        st.caption(title)
-                        checked = st.checkbox(
-                            "削除",
-                            value=st.session_state.get(f"img_del_{fid}", False),
-                            key=f"img_del_{fid}",
-                        )
-                        if checked:
-                            delete_ids.append(fid)
-                    else:
-                        st.caption(f"📄 {img['name']}（未解析）")
-
-    # 削除モード時: ゴミ箱移動エリア
-    if st.session_state["img_delete_mode"]:
-        st.markdown("---")
-        del_count = len(delete_ids)
-        if del_count > 0:
-            st.warning(f"🗑️ **{del_count} 件**の解析データをゴミ箱に移動します（{TRASH_RETENTION_DAYS}日後に完全削除）。")
-            st.caption("💡 削除した画像は再スキャンしても再取り込みされません。ゴミ箱から復元すると再取り込み対象に戻ります。")
-        if st.button(
-            f"🗑️ 選択した {del_count} 件をゴミ箱へ",
-            type="primary",
-            key="img_grid_delete_run",
-            disabled=(del_count == 0),
-        ):
-            moved = move_to_trash(delete_ids, metadata)
-            for fid in delete_ids:
-                st.session_state.pop(f"img_del_{fid}", None)
-            st.session_state["img_delete_mode"] = False
-            st.success(f"✅ {moved} 件をゴミ箱に移動しました。「🗑️ ゴミ箱」ページから復元できます。")
-            st.rerun()
 
 
 # ===========================================================================
@@ -6518,42 +5841,6 @@ def page_folder_ai():
 # ===========================================================================
 # ページ: チャット検索 (Q&A)
 # ===========================================================================
-def page_chat():
-    """検索ページ — 全文検索でヒットした画像をサムネイル一覧で表示する。"""
-    metadata = load_metadata()
-    service = get_drive_service()
-    knowledge_count = len(metadata)
-
-    # --- 検索バー（常に上部に表示） ---
-    with st.form(key="search_form", clear_on_submit=True):
-        search_query = st.text_input(
-            "検索",
-            placeholder="キーワードで画像を検索...",
-            label_visibility="collapsed",
-        )
-        search_clicked = st.form_submit_button(
-            "🔍 検索する", type="primary", width="stretch",
-        )
-
-    # --- 検索実行 ---
-    pending = st.session_state.pop("pending_question", None)
-    if search_clicked and search_query:
-        st.session_state["_search_query"] = search_query
-    elif pending:
-        st.session_state["_search_query"] = pending
-
-    # --- 表示 ---
-    active_query = st.session_state.get("_search_query", "")
-    if active_query:
-        display_search_results(active_query, metadata, service)
-    else:
-        if knowledge_count == 0:
-            st.info(
-                "まだ知識が登録されていません。\n\n"
-                "「⚡ 取り込み・解析」タブで画像をAI解析して知識を蓄積してください。"
-            )
-        else:
-            render_home_screen(knowledge_count, metadata, service)
 
 
 # ===========================================================================
@@ -6662,15 +5949,6 @@ def _migrate_local_to_sheets():
                 migrated.append("folders")
         except Exception as e:
             st.warning(f"folders移行失敗: {e}")
-    # chat_sessions
-    if CHAT_SESSIONS_PATH.exists():
-        try:
-            with open(CHAT_SESSIONS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if _write_json_to_sheet(sh, "chat_sessions", data):
-                migrated.append("chat_sessions")
-        except Exception as e:
-            st.warning(f"chat_sessions移行失敗: {e}")
     # trash
     if TRASH_PATH.exists():
         try:
@@ -6693,7 +5971,7 @@ def _migrate_local_to_sheets():
     if migrated:
         st.success(f"✅ 移行完了: {', '.join(migrated)}")
         # キャッシュクリア
-        for ck in ["_cache_metadata", "_cache_folders", "_cache_chat_sessions", "_cache_trash", "_cache_weight_data"]:
+        for ck in ["_cache_metadata", "_cache_folders", "_cache_trash", "_cache_weight_data"]:
             st.session_state.pop(ck, None)
             st.session_state.pop(f"{ck}_ts", None)
     else:
@@ -6701,426 +5979,8 @@ def _migrate_local_to_sheets():
 
 
 # ===========================================================================
-# 統合ページ: 📸 画像ライブラリ（画像管理 + 手動整理 + フォルダ表示 統合）
+# 患者データ タイトル一括保存ヘルパー（取り込み・解析タブで使用）
 # ===========================================================================
-def page_image_library():
-    """画像ライブラリページ — 全画像の閲覧・検索・移動・削除を1つのページに統合。"""
-    service = get_drive_service()
-    folder_id = get_folder_id()
-    api_key = get_gemini_api_key()
-    metadata = load_metadata()
-    folders = load_folders()
-
-    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
-    if not images:
-        st.info(
-            "画像が見つかりませんでした。\n\n"
-            "Google Driveに画像を追加するか、チャット画面から画像を貼り付けて取り込んでください。"
-        )
-        return
-
-    # --- サイドバー ---
-    st.sidebar.header("🔍 検索・フィルタ")
-    search_keyword = st.sidebar.text_input(
-        "キーワード検索",
-        placeholder="タイトル、タグ、画像内テキストで検索...",
-        key="lib_search",
-    )
-    lib_ocr_toggle = st.sidebar.checkbox(
-        "📝 全文検索（OCR）", value=True, key="lib_ocr_search_toggle",
-    )
-
-    # フォルダ選択（ラジオボタンスタイル）
-    all_folders = get_all_folders_from_metadata(metadata)
-    folder_options = ["すべて"] + all_folders
-    selected_folder = st.sidebar.radio(
-        "📂 フォルダ",
-        folder_options,
-        key="lib_folder_filter",
-    )
-
-    if st.sidebar.button("🔄 一覧を更新", key="lib_refresh"):
-        list_images.clear()
-        list_patient_images.clear()
-        download_image.clear()
-        st.rerun()
-
-    # --- フィルタ適用 ---
-    filtered_images = filter_images_by_keyword(
-        images, search_keyword, metadata, include_ocr=lib_ocr_toggle,
-    )
-    if selected_folder != "すべて":
-        filtered_images = [
-            img for img in filtered_images
-            if img["id"] in metadata and get_folder(metadata[img["id"]]) == selected_folder
-        ]
-
-    # --- サイドバー統計 ---
-    st.sidebar.markdown("---")
-    total = len(images)
-    analyzed = sum(1 for img in images if img["id"] in metadata)
-    reviewed_count = sum(
-        1 for img in images
-        if img["id"] in metadata
-        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-    )
-    st.sidebar.caption(
-        f"📊 全 {total} 件 | 解析済 {analyzed} 件 | ✅確認済み {reviewed_count} 件"
-    )
-
-    if not filtered_images:
-        st.warning("検索条件に一致する画像がありません。")
-        return
-
-    # --- 選択中の画像ID（詳細表示用） ---
-    if "lib_selected_id" not in st.session_state:
-        st.session_state["lib_selected_id"] = None
-
-    selected_fid = st.session_state["lib_selected_id"]
-
-    # =======================================================================
-    # 詳細表示モード（画像が選択されている場合）
-    # =======================================================================
-    if selected_fid is not None:
-        selected_file = None
-        for img in filtered_images:
-            if img["id"] == selected_fid:
-                selected_file = img
-                break
-        # フィルタ外の場合は全画像から探す
-        if selected_file is None:
-            for img in images:
-                if img["id"] == selected_fid:
-                    selected_file = img
-                    break
-
-        if selected_file is None:
-            st.session_state["lib_selected_id"] = None
-            st.session_state["lib_enlarged_view"] = False
-            st.rerun()
-            return
-
-        file_id = selected_file["id"]
-
-        # 遷移元のページがあればそちらに戻る、なければ一覧に戻る
-        back_tab = st.session_state.get("lib_back_tab")
-        back_label = "⬅️ チャットに戻る" if back_tab == "💬 チャット" else "⬅️ 一覧に戻る"
-        _nav1, _nav2, _nav3 = st.columns([2, 2, 6])
-        with _nav1:
-            if st.button(back_label, key="lib_back_to_grid"):
-                st.session_state["lib_selected_id"] = None
-                st.session_state["lib_enlarged_view"] = False
-                st.session_state.pop("editing_file_id", None)
-                if back_tab and back_tab != "📸 画像ライブラリ":
-                    st.session_state["active_tab"] = back_tab
-                    st.session_state.pop("lib_back_tab", None)
-                st.rerun()
-        with _nav2:
-            if st.session_state.get("lib_enlarged_view"):
-                if st.button("📐 縮小", key="lib_view_toggle"):
-                    st.session_state["lib_enlarged_view"] = False
-                    st.rerun()
-            else:
-                if st.button("📐 拡大", key="lib_view_toggle"):
-                    st.session_state["lib_enlarged_view"] = True
-                    st.rerun()
-
-        # --- 画像読み込み ---
-        image_bytes = None
-        try:
-            image_bytes = download_image(service, file_id)
-        except Exception as e:
-            _log.error(f"画像表示エラー: {e}")
-            st.error("画像の表示中にエラーが発生しました。")
-            return
-
-        meta = metadata.get(file_id, {})
-
-        if st.session_state.get("lib_enlarged_view"):
-            # --- 拡大表示モード ---
-            _title = meta.get("title", selected_file["name"])
-            render_enlarged_view(image_bytes, meta, _title)
-        else:
-            # --- 通常の横並びレイアウト ---
-            col_img, col_info = st.columns([1, 1])
-            with col_img:
-                st.image(image_bytes, use_container_width=True)
-            with col_info:
-                title = meta.get("title", selected_file["name"])
-                st.subheader(title)
-                if is_patient_data(meta):
-                    st.markdown(
-                        '<span style="background-color:#2e7d32; color:#c8e6c9; padding:3px 10px; '
-                        'border-radius:12px; font-size:0.85em;">🏥 患者データ</span>',
-                        unsafe_allow_html=True,
-                    )
-                if file_id in metadata and not is_patient_data(meta):
-                    s = get_status(meta)
-                    if s == STATUS_REVIEWED:
-                        st.success("✅ 確認済み")
-                    else:
-                        st.warning("📝 未確認")
-                _sl = get_summary_label(meta)
-                summary_text = meta.get("summary", "")
-                if summary_text:
-                    st.markdown(f"**{_sl}:**")
-                    render_summary(summary_text)
-                elif is_patient_data(meta):
-                    st.info("検査所見が未入力です。編集から入力してください。")
-                keywords = meta.get("keywords", [])
-                if keywords:
-                    render_keyword_tags(keywords)
-                # OCRテキスト表示
-                ocr_text = meta.get("ocr_text", "")
-                if ocr_text:
-                    with st.expander("📝 OCRテキスト（画像内文字情報）"):
-                        st.text(ocr_text)
-                # フォルダ表示
-                cur_f = get_folder(meta)
-                f_icon = "🏥" if cur_f == PATIENT_DATA_FOLDER else "📁"
-                st.caption(f"{f_icon} {cur_f}")
-
-        # --- 編集フォーム ---
-        if file_id in metadata:
-            _is_pd = is_patient_data(metadata[file_id])
-            edit_label = "📝 検査所見を編集" if _is_pd else "📝 編集"
-            with st.expander(edit_label, expanded=_is_pd):
-                display_edit_form(file_id, metadata[file_id], metadata)
-            if _is_pd:
-                st.info("🏥 患者データ: AI解析は行いません。手動で検査所見を入力してください。")
-            elif api_key:
-                if st.button("🤖 AIで再解析する", key=f"lib_reanalyze_{file_id}"):
-                    with st.spinner("Gemini で再解析中..."):
-                        result = analyze_image_with_gemini(image_bytes, api_key)
-                        if result:
-                            old = metadata.get(file_id, {})
-                            for keep_key in ("folder", "source"):
-                                if keep_key in old:
-                                    result[keep_key] = old[keep_key]
-                            metadata[file_id] = result
-                            save_metadata(metadata)
-                            st.session_state.pop("editing_file_id", None)
-                            st.success("再解析が完了しました！")
-                            st.rerun()
-        else:
-            st.markdown("---")
-            if api_key:
-                st.info("この画像はまだAI解析されていません。")
-                if st.button("🤖 AI解析を実行", key=f"lib_analyze_{file_id}", type="primary"):
-                    with st.spinner("Gemini 2.0 Flash で解析中..."):
-                        result = analyze_image_with_gemini(image_bytes, api_key)
-                        if result:
-                            old = metadata.get(file_id, {})
-                            for keep_key in ("folder", "source"):
-                                if keep_key in old:
-                                    result[keep_key] = old[keep_key]
-                            metadata[file_id] = result
-                            save_metadata(metadata)
-                            st.success("解析が完了しました！")
-                            st.rerun()
-        return
-
-    # =======================================================================
-    # グリッド一覧表示（デフォルト）
-    # =======================================================================
-    # フォルダ名 + 件数ヘッダー
-    if selected_folder != "すべて":
-        folder_icon = "🏥" if selected_folder == PATIENT_DATA_FOLDER else "📁"
-        st.subheader(f"{folder_icon} {selected_folder}")
-    else:
-        st.subheader("📸 画像ライブラリ")
-
-    # モード切替ボタン（セグメントコントロール風）
-    if "lib_mode" not in st.session_state:
-        st.session_state["lib_mode"] = "browse"  # browse / delete / move
-
-    _cur_mode = st.session_state["lib_mode"]
-    mode_c1, mode_c2, mode_c3 = st.columns(3)
-    with mode_c1:
-        if _cur_mode == "browse":
-            st.button("🔍 閲覧", key="lib_mode_browse", type="primary",
-                      width="stretch", disabled=True)
-        else:
-            if st.button("🔍 閲覧", key="lib_mode_browse", width="stretch"):
-                st.session_state["lib_mode"] = "browse"
-                for img in filtered_images:
-                    st.session_state.pop(f"lib_sel_{img['id']}", None)
-                st.rerun()
-    with mode_c2:
-        if _cur_mode == "delete":
-            st.button("🗑️ 削除", key="lib_mode_delete", type="primary",
-                      width="stretch", disabled=True)
-        else:
-            if st.button("🗑️ 削除", key="lib_mode_delete", width="stretch"):
-                st.session_state["lib_mode"] = "delete"
-                st.rerun()
-    with mode_c3:
-        if _cur_mode == "move":
-            st.button("📂 移動", key="lib_mode_move", type="primary",
-                      width="stretch", disabled=True)
-        else:
-            if st.button("📂 移動", key="lib_mode_move", width="stretch"):
-                st.session_state["lib_mode"] = "move"
-                st.rerun()
-
-    st.caption(f"{len(filtered_images)} 件")
-
-    # --- 削除/移動モード時のステータスバー + オプション ---
-    dest_folder = None
-    del_method = None
-    if _cur_mode == "delete":
-        del_method = st.radio(
-            "削除方法",
-            ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
-            key="lib_del_method",
-            horizontal=True,
-        )
-    elif _cur_mode == "move":
-        dest_folder = st.selectbox(
-            "移動先フォルダ",
-            folders,
-            key="lib_dest_folder",
-        )
-
-    # 全選択/全解除（削除・移動モード時）
-    if _cur_mode in ("delete", "move"):
-        _apply_batch_checkbox("_lib_sel_flag", [f"lib_sel_{img['id']}" for img in filtered_images if img["id"] in metadata])
-        sel_c1, sel_c2, sel_c3 = st.columns([1, 1, 4])
-        with sel_c1:
-            if st.button(f"✅ 全選択（全{len(filtered_images)}件）", key="lib_sel_all"):
-                _set_batch_checkbox("_lib_sel_flag", True)
-        with sel_c2:
-            if st.button("🔄 全解除", key="lib_sel_none"):
-                _set_batch_checkbox("_lib_sel_flag", False)
-
-    # 表示件数・並び順（メイン画面）
-    lib_per_page, lib_sort_order = _render_display_options(
-        "lib_grid_page", "lib_per_page", "lib_sort_order"
-    )
-
-    # ソート適用 → ページネーション
-    filtered_images = _sort_images(filtered_images, lib_sort_order, metadata)
-    page_items, cur_page, total_pages = _paginate(
-        filtered_images, "lib_grid_page", per_page=lib_per_page
-    )
-    _render_pagination_controls("lib_grid_page", cur_page, total_pages, len(filtered_images))
-
-    # グリッド表示
-    selected_ids = []
-    cols_per_row = 4
-    for row_start in range(0, len(page_items), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for col_idx in range(cols_per_row):
-            img_idx = row_start + col_idx
-            if img_idx >= len(page_items):
-                break
-            img = page_items[img_idx]
-            fid = img["id"]
-
-            with cols[col_idx]:
-                try:
-                    thumb_bytes = download_thumbnail(service, fid)
-                    st.image(thumb_bytes, use_container_width=True)
-                except Exception:
-                    st.markdown(
-                        '<div style="background:#333;border-radius:8px;'
-                        'height:80px;display:flex;align-items:center;'
-                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                if fid in metadata:
-                    meta = metadata[fid]
-                    title = meta.get("title", img["name"])
-                    icon = get_status_icon(meta)
-                    pd_badge = " 🏥" if is_patient_data(meta) else ""
-                    cur_folder = get_folder(meta)
-                    st.caption(f"{icon}{pd_badge} {title}")
-                    if selected_folder == "すべて":
-                        f_icon = "🏥" if cur_folder == PATIENT_DATA_FOLDER else "📁"
-                        st.caption(f"{f_icon} {cur_folder}")
-                else:
-                    st.caption(f"📄 {img['name']}")
-
-                if _cur_mode == "browse":
-                    if st.button("🔍 拡大表示", key=f"lib_open_{fid}", width="stretch"):
-                        st.session_state["lib_selected_id"] = fid
-                        st.session_state["lib_enlarged_view"] = True
-                        st.session_state.pop("lib_back_tab", None)
-                        st.rerun()
-                else:
-                    # 削除/移動モード: チェックボックス
-                    if fid in metadata:
-                        action_label = "削除" if _cur_mode == "delete" else "選択"
-                        if st.checkbox(
-                            action_label,
-                            value=st.session_state.get(f"lib_sel_{fid}", False),
-                            key=f"lib_sel_{fid}",
-                        ):
-                            selected_ids.append(fid)
-
-    # --- アクションエリア（削除/移動モード時） ---
-    if _cur_mode == "delete":
-        del_count = len(selected_ids)
-        with st.container():
-            st.warning(f"🗑️ {del_count} 件選択中")
-            if del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
-                if st.button(
-                    f"🗑️ 選択した {del_count} 件をゴミ箱へ",
-                    type="primary", key="lib_del_trash_run",
-                    disabled=(del_count == 0), width="stretch",
-                ):
-                    moved = move_to_trash(selected_ids, metadata)
-                    for fid in selected_ids:
-                        st.session_state.pop(f"lib_sel_{fid}", None)
-                    st.session_state["lib_mode"] = "browse"
-                    _invalidate_all_caches()
-                    st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
-                    st.rerun()
-            else:
-                if st.button(
-                    f"🔄 選択した {del_count} 件のメタデータを削除",
-                    type="primary", key="lib_del_meta_run",
-                    disabled=(del_count == 0), width="stretch",
-                ):
-                    removed = 0
-                    for fid in selected_ids:
-                        if fid in metadata:
-                            del metadata[fid]
-                            removed += 1
-                        st.session_state.pop(f"lib_sel_{fid}", None)
-                    remove_from_ignore_list(selected_ids)
-                    save_metadata(metadata)
-                    st.session_state["lib_mode"] = "browse"
-                    _invalidate_all_caches()
-                    st.success(f"✅ {removed} 件のメタデータを削除しました。")
-                    st.rerun()
-
-    elif _cur_mode == "move":
-        move_count = len(selected_ids)
-        with st.container():
-            _dest_label = dest_folder or "未選択"
-            st.info(f"📂 {move_count} 件選択中 → {_dest_label}")
-            if st.button(
-                f"📁 選択した {move_count} 件を「{_dest_label}」に移動",
-                type="primary", key="lib_move_run",
-                disabled=(move_count == 0), width="stretch",
-            ):
-                for fid in selected_ids:
-                    if fid in metadata:
-                        metadata[fid]["folder"] = dest_folder
-                save_metadata(metadata)
-                for fid in selected_ids:
-                    st.session_state.pop(f"lib_sel_{fid}", None)
-                st.session_state["lib_mode"] = "browse"
-                _invalidate_all_caches()
-                st.success(f"✅ {move_count} 件を「{dest_folder}」に移動しました。")
-                st.rerun()
-
-
-# ---------------------------------------------------------------------------
-# ヘルパー: 患者データのタイトル一括保存
-# ---------------------------------------------------------------------------
 def _save_all_patient_titles(patient_data_images: list, metadata: dict) -> int:
     """session_state の pd_title_{fid} からタイトルを読み取り metadata に保存。
 
@@ -8125,6 +6985,328 @@ def page_import_analyze():
 
 
 # ===========================================================================
+# 写真ギャラリー（Google Photos 風 — 患者データ / 食事画像）
+# ===========================================================================
+GALLERY_PAGE_SIZE = 60
+GALLERY_COLS = 3
+_MONTH_LABELS_JA = ["1月", "2月", "3月", "4月", "5月", "6月",
+                    "7月", "8月", "9月", "10月", "11月", "12月"]
+_WEEKDAY_LABELS_JA = ["月", "火", "水", "木", "金", "土", "日"]
+
+
+def _inject_gallery_css():
+    """Google Photos 風ギャラリーの CSS を注入する。"""
+    st.markdown("""
+    <style>
+    .g-month {
+        position: sticky; top: 0; z-index: 10;
+        background: rgba(15,15,20,0.95);
+        backdrop-filter: blur(6px);
+        padding: 10px 4px 6px;
+        font-size: 18px; font-weight: 700;
+        color: #e0e0e0; border-bottom: 1px solid #333;
+        margin: 12px 0 4px;
+    }
+    .g-day {
+        font-size: 13px; color: #b0b0b0;
+        padding: 8px 4px 4px; font-weight: 500;
+    }
+    .g-empty {
+        text-align: center; padding: 60px 20px;
+        color: #888; font-size: 14px;
+    }
+    .g-placeholder {
+        aspect-ratio: 1/1; background: #2a2a2a;
+        border-radius: 4px; display: flex;
+        align-items: center; justify-content: center;
+        color: #888; font-size: 24px;
+    }
+    [data-testid="stHorizontalBlock"] { gap: 4px !important; }
+    [data-testid="column"] { padding: 0 2px !important; }
+    [data-testid="stImage"] img {
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    @media (max-width: 600px) {
+        [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
+        [data-testid="column"] {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+    @media (min-width: 1200px) {
+        [data-testid="column"] {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+def _fmt_month(ts_month: str) -> str:
+    """'2026-04' → '2026年 4月'"""
+    if not ts_month or len(ts_month) < 7:
+        return "日付不明"
+    try:
+        y, m = ts_month[:4], int(ts_month[5:7])
+        return f"{y}年 {_MONTH_LABELS_JA[m-1]}"
+    except (ValueError, IndexError):
+        return ts_month
+
+
+def _fmt_day(ts_day: str) -> str:
+    """'2026-04-30' → '4月30日 (木)'"""
+    if not ts_day or len(ts_day) < 10:
+        return "日付不明"
+    try:
+        d = datetime.strptime(ts_day[:10], "%Y-%m-%d").date()
+        wd = _WEEKDAY_LABELS_JA[d.weekday()]
+        return f"{d.month}月{d.day}日 ({wd})"
+    except ValueError:
+        return ts_day
+
+
+@st.cache_data(ttl=600, show_spinner=False, max_entries=500)
+def _load_food_thumbnail_bytes(image_id: str, ext: str,
+                               drive_file_id: str = "") -> bytes | None:
+    """食事画像のサムネイル（最大400px JPEG q70）。"""
+    raw = None
+    img_path = WEIGHT_UPLOADS_DIR / f"{image_id}.{ext}"
+    if img_path.exists():
+        raw = img_path.read_bytes()
+    elif drive_file_id:
+        try:
+            service = get_drive_service()
+            if service:
+                raw = download_image(service, drive_file_id)
+        except Exception:
+            pass
+    if not raw:
+        return None
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img.thumbnail((400, 400))
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, format="JPEG", quality=70, optimize=True)
+        return buf.getvalue()
+    except Exception:
+        return raw
+
+
+def _load_food_full_bytes(image_id: str, ext: str,
+                          drive_file_id: str = "") -> bytes | None:
+    """食事画像のフルサイズバイト。"""
+    img_path = WEIGHT_UPLOADS_DIR / f"{image_id}.{ext}"
+    if img_path.exists():
+        return img_path.read_bytes()
+    if drive_file_id:
+        try:
+            service = get_drive_service()
+            if service:
+                return download_image(service, drive_file_id)
+        except Exception:
+            pass
+    return None
+
+
+def _build_patient_entries(metadata: dict, drive_files: list[dict]) -> list[dict]:
+    """患者データのエントリを modifiedTime 降順で返す。"""
+    entries: list[dict] = []
+    seen_ids: set[str] = set()
+    for f in drive_files:
+        fid = f.get("id")
+        if not fid:
+            continue
+        meta = metadata.get(fid, {})
+        if not is_patient_data(meta):
+            continue
+        ts = f.get("modifiedTime") or f.get("createdTime") or ""
+        title = meta.get("title") or f.get("name", "")
+        entries.append({
+            "fid": fid,
+            "title": title,
+            "ts": ts,
+            "kind": "patient",
+        })
+        seen_ids.add(fid)
+    # ローカルアップロードの患者データもフォールバック
+    for fid, meta in metadata.items():
+        if fid in seen_ids or not is_patient_data(meta):
+            continue
+        ts = ""
+        for ext in ("png", "jpg", "jpeg"):
+            p = UPLOADS_DIR / f"{fid}.{ext}"
+            if p.exists():
+                ts = datetime.fromtimestamp(p.stat().st_mtime).isoformat() + "Z"
+                break
+        entries.append({
+            "fid": fid,
+            "title": meta.get("title") or fid,
+            "ts": ts,
+            "kind": "patient",
+        })
+    entries.sort(key=lambda x: x["ts"] or "", reverse=True)
+    return entries
+
+
+def _build_food_entries(weight_data: dict) -> list[dict]:
+    """食事画像のエントリを日付降順で返す。"""
+    entries: list[dict] = []
+    records = weight_data.get("records", {}) or {}
+    for date_key in sorted(records.keys(), reverse=True):
+        day = records[date_key] or {}
+        seen: set[str] = set()
+        for it in day.get("items", []) or []:
+            iid = it.get("image_id")
+            if not iid or iid in seen:
+                continue
+            seen.add(iid)
+            entries.append({
+                "fid": iid,
+                "ext": it.get("image_ext", "jpg"),
+                "drive_file_id": it.get("drive_file_id", ""),
+                "ts": date_key,
+                "title": it.get("name", ""),
+                "kind": "food",
+            })
+    return entries
+
+
+@st.dialog("画像", width="large")
+def _open_photo_dialog(entry: dict):
+    """画像をモーダルで拡大表示する。"""
+    title = entry.get("title") or "(タイトルなし)"
+    st.markdown(f"### {title}")
+    img_bytes: bytes | None = None
+    if entry.get("kind") == "patient":
+        try:
+            service = get_drive_service()
+            if service:
+                img_bytes = download_image(service, entry["fid"])
+        except Exception:
+            img_bytes = None
+    else:
+        img_bytes = _load_food_full_bytes(
+            entry["fid"], entry.get("ext", "jpg"),
+            entry.get("drive_file_id", ""),
+        )
+    if img_bytes:
+        st.image(img_bytes, use_container_width=True)
+    else:
+        st.warning("画像の読み込みに失敗しました。")
+    if entry.get("ts"):
+        st.caption(entry["ts"][:10])
+
+
+def _render_photo_gallery(entries: list[dict], key_prefix: str,
+                          fetch_thumb_fn) -> None:
+    """日付グループ化された写真グリッドを描画する。"""
+    if not entries:
+        st.markdown(
+            '<div class="g-empty">画像がまだありません。</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    state_key = f"{key_prefix}_loaded"
+    loaded = st.session_state.get(state_key, GALLERY_PAGE_SIZE)
+    if loaded > len(entries):
+        loaded = len(entries)
+    visible = entries[:loaded]
+
+    cur_month = None
+    cur_day = None
+    for row_start in range(0, len(visible), GALLERY_COLS):
+        row = visible[row_start:row_start + GALLERY_COLS]
+        first = row[0]
+        ts = first.get("ts") or ""
+        m, d = ts[:7], ts[:10]
+        if m != cur_month:
+            cur_month = m
+            st.markdown(
+                f'<div class="g-month">{_fmt_month(m)}</div>',
+                unsafe_allow_html=True,
+            )
+        if d != cur_day:
+            cur_day = d
+            st.markdown(
+                f'<div class="g-day">{_fmt_day(d)}</div>',
+                unsafe_allow_html=True,
+            )
+        cols = st.columns(GALLERY_COLS)
+        for ci, e in enumerate(row):
+            with cols[ci]:
+                try:
+                    thumb = fetch_thumb_fn(e)
+                except Exception:
+                    thumb = None
+                if thumb:
+                    st.image(thumb, use_container_width=True)
+                else:
+                    st.markdown(
+                        '<div class="g-placeholder">🖼️</div>',
+                        unsafe_allow_html=True,
+                    )
+                if st.button("🔍", key=f"{key_prefix}_btn_{e['fid']}",
+                             use_container_width=True):
+                    _open_photo_dialog(e)
+
+    if loaded < len(entries):
+        if st.button(f"もっと見る ({loaded} / {len(entries)})",
+                     key=f"{key_prefix}_more",
+                     use_container_width=True,
+                     type="primary"):
+            st.session_state[state_key] = loaded + GALLERY_PAGE_SIZE
+            st.rerun()
+
+
+def page_patient_gallery():
+    """患者データの Google Photos 風ギャラリー。"""
+    _inject_gallery_css()
+    st.markdown("## 🏥 患者データ")
+
+    metadata = load_metadata()
+    service = get_drive_service()
+    if not service:
+        st.error("Google Driveに接続できませんでした。設定を確認してください。")
+        return
+
+    folder_id = get_folder_id()
+    patient_folder_id = get_patient_folder_id()
+    drive_files = list_all_images(service, folder_id, metadata, patient_folder_id)
+    entries = _build_patient_entries(metadata, drive_files)
+
+    st.caption(f"全 {len(entries)} 件")
+
+    def _fetch(e):
+        try:
+            return download_thumbnail(service, e["fid"])
+        except Exception:
+            return None
+
+    _render_photo_gallery(entries, "pat_gal", _fetch)
+
+
+def page_food_gallery():
+    """食事画像の Google Photos 風ギャラリー。"""
+    _inject_gallery_css()
+    st.markdown("## 🍽️ 食事画像")
+
+    weight_data = load_weight_data()
+    entries = _build_food_entries(weight_data)
+    st.caption(f"全 {len(entries)} 件")
+
+    def _fetch(e):
+        return _load_food_thumbnail_bytes(
+            e["fid"], e.get("ext", "jpg"), e.get("drive_file_id", "")
+        )
+
+    _render_photo_gallery(entries, "food_gal", _fetch)
+
+
+# ===========================================================================
 # 統合ページ: ⚙️ 設定（フォルダ管理 + ゴミ箱 + システム 統合）
 # ===========================================================================
 def page_settings_all():
@@ -8823,120 +8005,8 @@ def _render_nutrient_dashboard(day_data: dict, goals: dict,
         st.markdown("".join(micro_html_parts), unsafe_allow_html=True)
 
 
-def _load_food_image_bytes(img: dict) -> bytes | None:
-    """食事画像のバイトデータを取得する（ローカル or Drive）。"""
-    img_path = WEIGHT_UPLOADS_DIR / f"{img['id']}.{img['ext']}"
-    if img_path.exists():
-        return img_path.read_bytes()
-    if img.get("drive_file_id"):
-        try:
-            service = get_drive_service()
-            if service:
-                return download_image(service, img["drive_file_id"])
-        except Exception:
-            pass
-    return None
 
 
-def _render_food_thumbnails(day_data: dict):
-    """当日の食事画像をサムネイルギャラリーとして表示する。
-    ローカルにファイルがない場合は drive_file_id 経由で Google Drive から取得。"""
-    day_items = _get_day_items(day_data)
-
-    # ユニークな image_id を収集（drive_file_id も保持）
-    seen_ids: set[str] = set()
-    images_info: list[dict] = []
-    for it in day_items:
-        img_id = it.get("image_id")
-        img_ext = it.get("image_ext", "png")
-        if img_id and img_id not in seen_ids:
-            seen_ids.add(img_id)
-            meal_label = MEAL_TYPE_LABELS.get(it.get("meal_type", ""), "")
-            images_info.append({
-                "id": img_id, "ext": img_ext,
-                "meal_label": meal_label,
-                "drive_file_id": it.get("drive_file_id", ""),
-            })
-
-    if not images_info:
-        return
-
-    # --- 拡大表示モード ---
-    _enlarged_id = st.session_state.get("_food_enlarged_id")
-    if _enlarged_id:
-        # 対象画像を探す
-        target = next((im for im in images_info if im["id"] == _enlarged_id), None)
-        if target:
-            _fc1, _fc2, _fc3 = st.columns([2, 2, 6])
-            with _fc1:
-                if st.button("✖ 閉じる", key="food_enlarge_close"):
-                    st.session_state.pop("_food_enlarged_id", None)
-                    st.rerun()
-            with _fc2:
-                # 前後ナビゲーション
-                idx = next((i for i, im in enumerate(images_info) if im["id"] == _enlarged_id), 0)
-                nav_label = f"{idx + 1} / {len(images_info)}"
-                st.caption(nav_label)
-            img_bytes = _load_food_image_bytes(target)
-            if img_bytes:
-                st.markdown(
-                    f"<p style='text-align:center; font-size:16px; margin:4px 0 8px;'>"
-                    f"🍽️ {target['meal_label']}</p>",
-                    unsafe_allow_html=True,
-                )
-                st.image(img_bytes, use_container_width=True)
-            else:
-                st.warning("画像の読み込みに失敗しました。")
-            # 前・次ボタン
-            if len(images_info) > 1:
-                _np1, _np2, _np3 = st.columns([1, 1, 3])
-                with _np1:
-                    if idx > 0:
-                        if st.button("◀ 前", key="food_enlarge_prev"):
-                            st.session_state["_food_enlarged_id"] = images_info[idx - 1]["id"]
-                            st.rerun()
-                with _np2:
-                    if idx < len(images_info) - 1:
-                        if st.button("次 ▶", key="food_enlarge_next"):
-                            st.session_state["_food_enlarged_id"] = images_info[idx + 1]["id"]
-                            st.rerun()
-            return  # 拡大表示中はサムネイルを表示しない
-
-        # 対象が見つからない場合はリセット
-        st.session_state.pop("_food_enlarged_id", None)
-
-    # --- サムネイルグリッド ---
-    st.markdown("### 📸 食事の写真")
-    cols_per_row = 4
-    for row_start in range(0, len(images_info), cols_per_row):
-        row_imgs = images_info[row_start:row_start + cols_per_row]
-        cols = st.columns(cols_per_row)
-        for ci, img in enumerate(row_imgs):
-            img_path = WEIGHT_UPLOADS_DIR / f"{img['id']}.{img['ext']}"
-            with cols[ci]:
-                if img_path.exists():
-                    st.image(str(img_path), width=100, caption=img["meal_label"])
-                elif img.get("drive_file_id"):
-                    # Cloud環境: Google Driveからダウンロード（キャッシュ付き）
-                    try:
-                        service = get_drive_service()
-                        if service:
-                            img_bytes = download_thumbnail(service, img["drive_file_id"])
-                            if img_bytes:
-                                st.image(img_bytes, width=100, caption=img["meal_label"])
-                            else:
-                                st.caption(f"🖼️ {img['meal_label']}")
-                        else:
-                            st.caption(f"🖼️ {img['meal_label']}")
-                    except Exception:
-                        st.caption(f"🖼️ {img['meal_label']}")
-                else:
-                    # 画像なし — プレースホルダー
-                    st.caption(f"🖼️ {img['meal_label']}")
-                # 拡大ボタン
-                if st.button("🔍", key=f"food_enlarge_{img['id']}", width="stretch"):
-                    st.session_state["_food_enlarged_id"] = img["id"]
-                    st.rerun()
 
 
 def _count_first_block(items: list[dict], fid: str) -> int:
@@ -9619,7 +8689,7 @@ def page_weight_management():
 def _page_weight_management_inner():
     """体重管理ページ内部実装。"""
     _inject_wm_css()
-    st.markdown("## 🍽️ 食事記録")
+    st.markdown("## ⚖️ 体重・カロリー")
 
     weight_data = load_weight_data()
     api_key = get_gemini_api_key()
@@ -9661,9 +8731,6 @@ def _page_weight_management_inner():
 
         # ====== ダッシュボードカード ======
         _render_dashboard_card(day_data, goals, records)
-
-        # ====== 食事の写真 ======
-        _render_food_thumbnails(day_data)
 
         # ====== 体重入力（±ボタン式） ======
         st.markdown("### ⚖️ 体重を入力")
@@ -10190,896 +9257,6 @@ def _page_weight_management_inner():
                     )
 
 
-# ===========================================================================
-# 復習機能（フラッシュカード＋症例クイズ）
-# ===========================================================================
-
-_REVIEW_DATA_EMPTY = {
-    "flashcard_reviews": {},
-    "case_quiz_history": {},
-    "stats": {
-        "total_flashcard_reviews": 0,
-        "total_case_attempts": 0,
-        "total_case_correct": 0,
-        "last_session_date": "",
-        "streak_days": 0,
-    },
-}
-
-
-def _load_review_data() -> dict:
-    """review_data.json を読み込む。セッションキャッシュ付き。"""
-    cached = st.session_state.get("_cache_review_data")
-    if cached is not None:
-        return cached
-    data = copy.deepcopy(_REVIEW_DATA_EMPTY)
-    if REVIEW_DATA_PATH.exists():
-        try:
-            with open(REVIEW_DATA_PATH, "r", encoding="utf-8") as f:
-                loaded = json.load(f)
-            if "questions" in loaded:
-                _log.info("[Review] 旧クイズ形式を検知 → 新形式にリセット")
-                _atomic_json_write(REVIEW_DATA_PATH, data)
-            else:
-                data = loaded
-        except Exception as e:
-            _log.warning(f"[Review] データ読み込み失敗: {e}")
-    st.session_state["_cache_review_data"] = data
-    return data
-
-
-def _save_review_data(data: dict) -> bool:
-    """review_data.json を保存する。セッションキャッシュも更新。"""
-    st.session_state["_cache_review_data"] = data
-    return _atomic_json_write(REVIEW_DATA_PATH, data)
-
-
-def _update_streak(stats: dict):
-    """連続学習日数を更新する。"""
-    today_str = date.today().isoformat()
-    last = stats.get("last_session_date", "")
-    if last == today_str:
-        return  # 同日は変更なし
-    if last:
-        try:
-            last_date = date.fromisoformat(last)
-            if (date.today() - last_date).days == 1:
-                stats["streak_days"] = stats.get("streak_days", 0) + 1
-            else:
-                stats["streak_days"] = 1
-        except ValueError:
-            stats["streak_days"] = 1
-    else:
-        stats["streak_days"] = 1
-    stats["last_session_date"] = today_str
-
-
-# --- アイテム選出（間隔反復） ---
-
-def _pick_flashcard_items(metadata: dict, review_data: dict, count: int = 10,
-                          filter_mode: str = "all") -> list[tuple[str, dict]]:
-    """教科書データから優先度順にcount件を選出する。
-
-    filter_mode: "all"=全体, "new_only"=未レビューのみ, "review_only"=要復習のみ
-    """
-    reviews = review_data.get("flashcard_reviews", {})
-    all_textbook = [
-        (fid, m) for fid, m in metadata.items()
-        if m.get("folder") != PATIENT_DATA_FOLDER and m.get("summary")
-    ]
-    if not all_textbook:
-        return []
-
-    if filter_mode == "new_only":
-        candidates = [(fid, m) for fid, m in all_textbook if fid not in reviews]
-        random.shuffle(candidates)
-        return candidates[:count]
-    elif filter_mode == "review_only":
-        candidates = [
-            (fid, m) for fid, m in all_textbook
-            if reviews.get(fid, {}).get("status") == "review"
-        ]
-        candidates.sort(key=lambda x: reviews.get(x[0], {}).get("last_reviewed", ""))
-        return candidates[:count]
-
-    # filter_mode == "all": 優先度順
-    def priority_key(item):
-        fid = item[0]
-        r = reviews.get(fid)
-        if not r:
-            return (0, 0, "")
-        status = r.get("status", "new")
-        if status == "review":
-            return (0, 1, r.get("last_reviewed", ""))
-        consec = r.get("consecutive_remembered", 0)
-        return (1, consec, r.get("last_reviewed", ""))
-
-    all_textbook.sort(key=priority_key)
-    return all_textbook[:count]
-
-
-def _pick_case_quiz_items(metadata: dict, review_data: dict, count: int = 10) -> list[tuple[str, dict]]:
-    """患者データから優先度順にcount件を選出する。"""
-    history = review_data.get("case_quiz_history", {})
-    candidates = [
-        (fid, m) for fid, m in metadata.items()
-        if m.get("folder") == PATIENT_DATA_FOLDER
-    ]
-    if not candidates:
-        return []
-
-    def priority_key(item):
-        fid = item[0]
-        h = history.get(fid)
-        if not h:
-            return (0, "")  # 未回答: 最優先
-        if not h.get("last_correct", True):
-            return (0, h.get("last_attempted", ""))  # 前回不正解: 高優先
-        return (1, h.get("last_attempted", ""))
-
-    candidates.sort(key=priority_key)
-    return candidates[:count]
-
-
-# --- Gemini クイズデータ生成 ---
-
-def _generate_quiz_data_batch(items: list[tuple[str, dict]], api_key: str,
-                              quiz_type: str = "case") -> dict[str, dict]:
-    """クイズデータを一括生成する。
-    症例: {fid: {"distractors": [d1,d2,d3]}}
-    教科書: {fid: {"question":"...", "choices":[...], "correct_index":0}}
-    """
-    if not items or not api_key:
-        return {}
-    if quiz_type == "case":
-        return _generate_case_distractors(items, api_key)
-    return _generate_textbook_questions(items, api_key)
-
-
-def _generate_case_distractors(items: list[tuple[str, dict]], api_key: str) -> dict[str, dict]:
-    """症例クイズ用: 誤答3つを生成。"""
-    entries = []
-    for i, (fid, meta) in enumerate(items):
-        title = meta.get("title", "不明")
-        folder = meta.get("folder", "未分類")
-        keywords = ", ".join(meta.get("keywords", [])[:5])
-        entries.append(f'{i+1}. 正解="{title}" 分野="{folder}" キーワード=[{keywords}]')
-    prompt = f"""あなたは医学教育の専門家です。4択クイズの誤答選択肢を作成してください。
-
-各正解に対して、**同じ解剖学的部位・同じ検査モダリティ**の鑑別疾患を3つずつ生成してください。
-
-{chr(10).join(entries)}
-
-【ルール】
-- 誤答は正解と同じ身体部位・同じ画像検査の疾患にすること
-- 誤答の文体・長さを正解と揃えること
-- 医師国家試験レベルの難易度
-- 全く異なる臓器の疾患を混ぜないこと
-
-JSON配列で返してください。他のテキスト不要:
-[["1の誤答A","1の誤答B","1の誤答C"],["2の誤答A","2の誤答B","2の誤答C"]]"""
-    try:
-        resp = _gemini_generate(api_key, [{"text": prompt}])
-        clean = resp.strip()
-        start = clean.find("[")
-        end = clean.rfind("]") + 1
-        if start >= 0 and end > start:
-            parsed = json.loads(clean[start:end])
-            result = {}
-            for i, (fid, _) in enumerate(items):
-                if i < len(parsed) and isinstance(parsed[i], list) and len(parsed[i]) >= 3:
-                    result[fid] = {"distractors": [str(d) for d in parsed[i][:3]]}
-            if result:
-                return result
-    except Exception as e:
-        _log.warning(f"[Review] 症例誤答一括生成失敗: {e}")
-    return {}
-
-
-def _generate_textbook_questions(items: list[tuple[str, dict]], api_key: str) -> dict[str, dict]:
-    """教科書クイズ用: 問題文＋4択＋正解indexを生成。"""
-    entries = []
-    for i, (fid, meta) in enumerate(items):
-        title = meta.get("title", "不明")
-        folder = meta.get("folder", "未分類")
-        keywords = ", ".join(meta.get("keywords", [])[:6])
-        summary = (meta.get("summary", "") or "")[:400]
-        ocr = (meta.get("ocr_text", "") or "")[:200]
-        entries.append(
-            f'{i+1}. タイトル="{title}" 分野="{folder}" '
-            f'キーワード=[{keywords}]\n   要約: {summary}\n   OCR: {ocr}'
-        )
-    prompt = f"""あなたは医師国家試験の出題委員です。以下の各医学知識について、一般問題（短文）形式の4択問題を1問ずつ作成してください。
-
-{chr(10).join(entries)}
-
-【ルール】
-- 問題文は1-2文の短文にすること（医師国試の一般問題スタイル）
-- 「正しいのはどれか」「誤っているのはどれか」「最も適切なのはどれか」等の形式を使用
-- 正解は要約やキーワードの核心知識から出題すること
-- 誤答3つは同分野で紛らわしいが明確に誤りである知識にすること
-- 4つの選択肢の文体・長さを揃えること
-- 画像は表示しないため、画像に依存しない純粋な知識問題にすること
-- correct_indexは正解の位置（0-3）
-
-JSON配列で返してください。他のテキスト不要:
-[
-  {{"question":"問題文","choices":["選択肢A","選択肢B","選択肢C","選択肢D"],"correct_index":0}},
-  {{"question":"問題文","choices":["選択肢A","選択肢B","選択肢C","選択肢D"],"correct_index":2}}
-]"""
-    try:
-        resp = _gemini_generate(api_key, [{"text": prompt}])
-        clean = resp.strip()
-        start = clean.find("[")
-        end = clean.rfind("]") + 1
-        if start >= 0 and end > start:
-            parsed = json.loads(clean[start:end])
-            result = {}
-            for i, (fid, _) in enumerate(items):
-                if i < len(parsed) and isinstance(parsed[i], dict):
-                    q = parsed[i]
-                    if (isinstance(q.get("question"), str) and
-                            isinstance(q.get("choices"), list) and len(q["choices"]) == 4 and
-                            isinstance(q.get("correct_index"), int) and 0 <= q["correct_index"] <= 3):
-                        result[fid] = {
-                            "question": q["question"],
-                            "choices": [str(c) for c in q["choices"]],
-                            "correct_index": q["correct_index"],
-                        }
-            if result:
-                return result
-    except Exception as e:
-        _log.warning(f"[Review] 教科書問題一括生成失敗: {e}")
-    return {}
-
-
-# --- 画像表示ヘルパー ---
-
-def _show_review_image(file_id: str):
-    """Drive画像を取得して表示する。"""
-    try:
-        service = get_drive_service()
-        img_bytes = download_image(service, file_id)
-        if img_bytes:
-            st.image(img_bytes, use_container_width=True)
-        else:
-            st.caption("📷 画像を読み込めませんでした")
-    except Exception:
-        st.caption("📷 画像を読み込めませんでした")
-
-
-# --- CSS ---
-
-_REVIEW_CSS = """<style>
-    .rv-stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px; padding: 20px; color: #ffffff;
-        text-align: center; margin-bottom: 8px;
-    }
-    .rv-stat-card .rv-num { font-size: 32px; font-weight: 800; color: #ffffff; }
-    .rv-stat-card .rv-label { font-size: 13px; color: rgba(255,255,255,0.9); }
-    .rv-streak-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        border-radius: 16px; padding: 20px; color: #ffffff;
-        text-align: center; margin-bottom: 8px;
-    }
-    .rv-streak-card .rv-num { font-size: 32px; font-weight: 800; color: #ffffff; }
-    .rv-streak-card .rv-label { font-size: 13px; color: rgba(255,255,255,0.9); }
-    .rv-flashcard {
-        background: #1e1e2e; border: 1px solid #3a3a4a;
-        border-radius: 20px; padding: 24px; margin: 16px 0;
-        color: #e0e0e0;
-    }
-    .rv-card-title {
-        font-size: 18px; font-weight: 700; color: #ffffff;
-        margin-bottom: 12px; line-height: 1.5;
-    }
-    .rv-reveal-box {
-        background: #2a2a3e; border-radius: 12px; padding: 16px;
-        margin: 12px 0; color: #d0d0e0; line-height: 1.7;
-        border-left: 4px solid #667eea;
-        animation: rv-fade-in 0.3s ease-out;
-    }
-    .rv-reveal-box strong { color: #a0c4ff; }
-    .rv-case-prompt {
-        background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
-        border-radius: 16px; padding: 20px; color: #ffffff;
-        text-align: center; font-size: 20px; font-weight: 700;
-        margin: 16px 0;
-    }
-    .rv-progress {
-        background: #3a3a4a; border-radius: 10px; height: 8px;
-        margin: 12px 0 20px 0; overflow: hidden;
-    }
-    .rv-progress-fill {
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        height: 100%; border-radius: 10px; transition: width 0.3s;
-    }
-    .rv-remembered-banner {
-        background: linear-gradient(90deg, #00b894, #00cec9);
-        color: #ffffff; padding: 16px; border-radius: 12px;
-        text-align: center; font-size: 20px; font-weight: 700;
-        margin: 12px 0; animation: rv-pop 0.3s ease-out;
-    }
-    .rv-review-banner {
-        background: linear-gradient(90deg, #fdcb6e, #e17055);
-        color: #ffffff; padding: 16px; border-radius: 12px;
-        text-align: center; font-size: 20px; font-weight: 700;
-        margin: 12px 0; animation: rv-pop 0.3s ease-out;
-    }
-    .rv-summary-score {
-        text-align: center; padding: 30px;
-        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
-        border-radius: 20px; color: #ffffff; margin: 16px 0;
-    }
-    .rv-summary-score .big-score { font-size: 48px; font-weight: 800; color: #ffffff; }
-    .rv-summary-score .sub-text { font-size: 16px; color: rgba(255,255,255,0.9); }
-    .rv-answer-box {
-        background: #1e1e2e; border: 2px solid #00b894;
-        border-radius: 16px; padding: 20px; margin: 12px 0;
-        color: #e0e0e0;
-    }
-    .rv-answer-box .rv-answer-title {
-        font-size: 20px; font-weight: 700; color: #00cec9; margin-bottom: 8px;
-    }
-    .rv-answer-box .rv-keywords { font-size: 14px; color: #aaa; }
-    @keyframes rv-pop {
-        0% { transform: scale(0.8); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes rv-fade-in {
-        0% { opacity: 0; transform: translateY(8px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-    </style>"""
-
-
-def _review_css():
-    """復習画面用のCSS注入。"""
-    st.markdown(_REVIEW_CSS, unsafe_allow_html=True)
-
-
-# --- ホーム画面 ---
-
-def _review_home(review_data: dict):
-    """復習のホーム画面。"""
-    st.markdown("## 🧠 復習")
-    metadata = load_metadata()
-    reviews = review_data.get("flashcard_reviews", {})
-    case_hist = review_data.get("case_quiz_history", {})
-    stats = review_data.get("stats", {})
-
-    # 教科書データ数
-    textbook_count = sum(
-        1 for m in metadata.values()
-        if m.get("folder") != PATIENT_DATA_FOLDER and m.get("summary")
-    )
-    patient_count = sum(
-        1 for m in metadata.values()
-        if m.get("folder") == PATIENT_DATA_FOLDER
-    )
-    reviewed_count = sum(1 for r in reviews.values() if r.get("status") == "remembered")
-    need_review = sum(1 for r in reviews.values() if r.get("status") == "review")
-    never_seen = textbook_count - len(reviews)
-    streak = stats.get("streak_days", 0)
-
-    # 統計カード
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown(f"""<div class="rv-stat-card">
-            <div class="rv-num">{reviewed_count}</div>
-            <div class="rv-label">覚えた</div>
-        </div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"""<div class="rv-stat-card" style="background: linear-gradient(135deg, #e17055, #d63031);">
-            <div class="rv-num">{need_review + never_seen}</div>
-            <div class="rv-label">要復習</div>
-        </div>""", unsafe_allow_html=True)
-    with c3:
-        st.markdown(f"""<div class="rv-streak-card">
-            <div class="rv-num">{streak}</div>
-            <div class="rv-label">連続日数</div>
-        </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # --- フラッシュカード ---
-    st.markdown("#### 📖 フラッシュカード")
-    fc1, fc2, fc3 = st.columns(3)
-
-    def _start_flashcard(mode: str):
-        items = _pick_flashcard_items(metadata, review_data, count=10, filter_mode=mode)
-        if items:
-            st.session_state["review_session"] = {
-                "items": items, "current_index": 0, "results": [], "type": "flashcard",
-            }
-            st.session_state["review_mode"] = "flashcard_playing"
-            _update_streak(review_data.setdefault("stats", {}))
-            _save_review_data(review_data)
-            st.rerun()
-
-    with fc1:
-        if st.button("🆕 新しいカード", key="rv_start_new", use_container_width=True,
-                      type="primary", disabled=never_seen == 0):
-            _start_flashcard("new_only")
-        st.caption(f"{never_seen} 件")
-    with fc2:
-        if st.button("🔄 要復習", key="rv_start_review", use_container_width=True,
-                      disabled=need_review == 0):
-            _start_flashcard("review_only")
-        st.caption(f"{need_review} 件")
-    with fc3:
-        if st.button("📚 すべて", key="rv_start_all", use_container_width=True,
-                      disabled=textbook_count == 0):
-            _start_flashcard("all")
-        st.caption(f"{textbook_count} 件")
-
-    st.markdown("---")
-
-    # --- クイズ（教科書＋患者データ共通） ---
-    st.markdown("#### 🎯 クイズ")
-
-    def _start_quiz(quiz_type: str):
-        """クイズセッションを開始する（Gemini誤答生成付き）。"""
-        if quiz_type == "textbook":
-            items = _pick_flashcard_items(metadata, review_data, count=10, filter_mode="all")
-        else:
-            items = _pick_case_quiz_items(metadata, review_data, count=10)
-        if not items:
-            return
-        # Gemini でクイズデータを生成
-        api_key = get_gemini_api_key()
-        if api_key:
-            st.session_state["_quiz_generating"] = True
-        st.session_state["_quiz_pending"] = {
-            "items": items, "quiz_type": quiz_type,
-        }
-        st.rerun()
-
-    qz1, qz2 = st.columns(2)
-    with qz1:
-        if st.button("📖 教科書クイズ", key="rv_start_textbook_quiz", use_container_width=True,
-                      disabled=textbook_count == 0):
-            _start_quiz("textbook")
-        st.caption(f"📚 {textbook_count} 件")
-    with qz2:
-        if st.button("🩺 症例クイズ", key="rv_start_case_quiz", use_container_width=True,
-                      disabled=patient_count == 0):
-            _start_quiz("case")
-        st.caption(f"🏥 {patient_count} 件")
-
-    # クイズ生成処理（Gemini呼び出し）
-    pending = st.session_state.pop("_quiz_pending", None)
-    if pending:
-        st.markdown(
-            '<div class="loading-banner">🧠 クイズを準備中… しばらくお待ちください</div>',
-            unsafe_allow_html=True,
-        )
-        items = pending["items"]
-        quiz_type = pending["quiz_type"]
-        api_key = get_gemini_api_key()
-        quiz_data_map = _generate_quiz_data_batch(items, api_key, quiz_type) if api_key else {}
-        st.session_state.pop("_quiz_generating", None)
-        st.session_state["review_session"] = {
-            "items": items, "current_index": 0, "results": [],
-            "type": "quiz",
-            "quiz_type": quiz_type,
-            "quiz_data_map": quiz_data_map,
-        }
-        st.session_state["review_mode"] = "quiz_playing"
-        _update_streak(review_data.setdefault("stats", {}))
-        _save_review_data(review_data)
-        st.rerun()
-
-    if textbook_count == 0 and patient_count == 0:
-        st.info("📝 画像ライブラリにデータを登録すると、ここで復習できます。")
-
-
-# --- フラッシュカード ---
-
-def _flashcard_session(review_data: dict):
-    """フラッシュカード出題画面（画像+タイトル+「確認」ボタン）。"""
-    session = st.session_state.get("review_session", {})
-    items = session.get("items", [])
-    idx = session.get("current_index", 0)
-
-    if idx >= len(items):
-        st.session_state["review_mode"] = "session_summary"
-        st.rerun()
-        return
-
-    fid, meta = items[idx]
-    total = len(items)
-
-    # プログレス
-    st.markdown(f"### 📖 {idx + 1} / {total}")
-    pct = (idx / total) * 100
-    st.markdown(f"""<div class="rv-progress">
-        <div class="rv-progress-fill" style="width: {pct}%;"></div>
-    </div>""", unsafe_allow_html=True)
-
-    # 画像＋タイトル
-    _show_review_image(fid)
-    st.markdown(f'<div class="rv-card-title">{html.escape(meta.get("title", "無題"))}</div>',
-                unsafe_allow_html=True)
-
-    # 確認ボタン
-    if st.button("👁️ タップして要点を確認", key=f"rv_reveal_{idx}", use_container_width=True,
-                  type="primary"):
-        st.session_state["review_mode"] = "flashcard_revealed"
-        st.rerun()
-
-    if st.button("🏠 ホームに戻る", key="rv_flash_back"):
-        st.session_state["review_mode"] = "home"
-        st.rerun()
-
-
-def _flashcard_revealed(review_data: dict):
-    """フラッシュカード確認画面（サマリー展開+覚えた/もう一回）。"""
-    session = st.session_state.get("review_session", {})
-    items = session.get("items", [])
-    idx = session.get("current_index", 0)
-
-    if idx >= len(items):
-        st.session_state["review_mode"] = "session_summary"
-        st.rerun()
-        return
-
-    fid, meta = items[idx]
-    total = len(items)
-
-    st.markdown(f"### 📖 {idx + 1} / {total}")
-    pct = ((idx + 1) / total) * 100
-    st.markdown(f"""<div class="rv-progress">
-        <div class="rv-progress-fill" style="width: {pct}%;"></div>
-    </div>""", unsafe_allow_html=True)
-
-    # 画像＋タイトル
-    _show_review_image(fid)
-    st.markdown(f'<div class="rv-card-title">{html.escape(meta.get("title", "無題"))}</div>',
-                unsafe_allow_html=True)
-
-    # サマリー展開
-    summary = meta.get("summary", "")
-    if summary:
-        # サマリーを整形して表示（改行をHTML <br> に変換）
-        formatted = html.escape(summary).replace("\n", "<br>")
-        st.markdown(f'<div class="rv-reveal-box">{formatted}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="rv-reveal-box">サマリーがありません</div>', unsafe_allow_html=True)
-
-    # キーワード
-    keywords = meta.get("keywords", [])
-    if keywords:
-        st.markdown(" ".join(f"`{kw}`" for kw in keywords[:10]))
-
-    # 覚えた / もう一回
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ 覚えた", key=f"rv_remembered_{idx}", use_container_width=True, type="primary"):
-            _record_flashcard_result(review_data, fid, remembered=True)
-            session["results"].append({"fid": fid, "remembered": True})
-            session["current_index"] = idx + 1
-            st.session_state["review_session"] = session
-            st.session_state["review_mode"] = "flashcard_playing"
-            st.rerun()
-    with col2:
-        if st.button("🔄 もう一回", key=f"rv_review_{idx}", use_container_width=True):
-            _record_flashcard_result(review_data, fid, remembered=False)
-            session["results"].append({"fid": fid, "remembered": False})
-            session["current_index"] = idx + 1
-            st.session_state["review_session"] = session
-            st.session_state["review_mode"] = "flashcard_playing"
-            st.rerun()
-
-
-def _record_flashcard_result(review_data: dict, fid: str, remembered: bool):
-    """フラッシュカードの結果を記録する。"""
-    reviews = review_data.setdefault("flashcard_reviews", {})
-    r = reviews.setdefault(fid, {"review_count": 0, "last_reviewed": "", "status": "new", "consecutive_remembered": 0})
-    r["review_count"] = r.get("review_count", 0) + 1
-    r["last_reviewed"] = datetime.now().isoformat()
-    if remembered:
-        r["status"] = "remembered"
-        r["consecutive_remembered"] = r.get("consecutive_remembered", 0) + 1
-    else:
-        r["status"] = "review"
-        r["consecutive_remembered"] = 0
-    stats = review_data.setdefault("stats", {})
-    stats["total_flashcard_reviews"] = stats.get("total_flashcard_reviews", 0) + 1
-    _save_review_data(review_data)
-
-
-# --- クイズ（教科書＋症例 共通） ---
-
-def _quiz_playing(review_data: dict):
-    """クイズ出題画面（教科書: 知識問題 / 症例: 画像問題）。"""
-    session = st.session_state.get("review_session", {})
-    items = session.get("items", [])
-    idx = session.get("current_index", 0)
-    quiz_data_map = session.get("quiz_data_map", {})
-    quiz_type = session.get("quiz_type", "case")
-
-    if idx >= len(items):
-        st.session_state["review_mode"] = "session_summary"
-        st.rerun()
-        return
-
-    fid, meta = items[idx]
-    total = len(items)
-    icon = "🩺" if quiz_type == "case" else "📖"
-    correct_title = meta.get("title", "不明")
-    qdata = quiz_data_map.get(fid, {})
-
-    st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
-    pct = (idx / total) * 100
-    st.markdown(f"""<div class="rv-progress">
-        <div class="rv-progress-fill" style="width: {pct}%;"></div>
-    </div>""", unsafe_allow_html=True)
-
-    if quiz_type == "textbook" and "question" in qdata:
-        # --- 教科書クイズ: 画像なし、知識問題 ---
-        st.markdown(
-            f'<div class="rv-case-prompt" style="text-align:left;font-size:17px;font-weight:500;">'
-            f'{html.escape(qdata["question"])}</div>',
-            unsafe_allow_html=True,
-        )
-        choices = qdata["choices"]
-        correct_idx = qdata["correct_index"]
-        # シャッフル（rerun対応）
-        shuffle_key = f"rv_qshuffle_{idx}"
-        if shuffle_key not in st.session_state:
-            order = list(range(4))
-            random.shuffle(order)
-            st.session_state[shuffle_key] = order
-        order = st.session_state[shuffle_key]
-        shuffled = [choices[order[i]] for i in range(4)]
-        correct_shuffled_idx = next(i for i, o in enumerate(order) if o == correct_idx)
-
-        labels = ["A", "B", "C", "D"]
-        for i, choice in enumerate(shuffled):
-            if st.button(f"{labels[i]}. {choice}", key=f"rv_quiz_choice_{idx}_{i}",
-                         use_container_width=True):
-                is_correct = (i == correct_shuffled_idx)
-                st.session_state["review_quiz_answer"] = {
-                    "fid": fid, "correct_title": correct_title,
-                    "selected": choice, "is_correct": is_correct,
-                    "correct_choice": choices[correct_idx],
-                    "question": qdata["question"],
-                    "keywords": meta.get("keywords", []),
-                    "summary": meta.get("summary", ""),
-                }
-                _record_quiz_result(review_data, fid, is_correct, quiz_type)
-                session["results"].append({"fid": fid, "correct": is_correct})
-                st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "quiz_revealed"
-                st.rerun()
-    elif quiz_type == "case" and "distractors" in qdata:
-        # --- 症例クイズ: 画像あり、所見を当てる ---
-        _show_review_image(fid)
-        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
-
-        distractors = qdata["distractors"]
-        choices = [correct_title] + distractors[:3]
-        shuffle_key = f"rv_qshuffle_{idx}"
-        if shuffle_key not in st.session_state:
-            order = list(range(4))
-            random.shuffle(order)
-            st.session_state[shuffle_key] = order
-        order = st.session_state[shuffle_key]
-        shuffled = [choices[order[i]] for i in range(4)]
-        correct_shuffled_idx = next(i for i, o in enumerate(order) if o == 0)
-
-        labels = ["A", "B", "C", "D"]
-        for i, choice in enumerate(shuffled):
-            if st.button(f"{labels[i]}. {choice}", key=f"rv_quiz_choice_{idx}_{i}",
-                         use_container_width=True):
-                is_correct = (i == correct_shuffled_idx)
-                st.session_state["review_quiz_answer"] = {
-                    "fid": fid, "correct_title": correct_title,
-                    "selected": choice, "is_correct": is_correct,
-                    "correct_choice": correct_title,
-                    "keywords": meta.get("keywords", []),
-                    "summary": meta.get("summary", ""),
-                }
-                _record_quiz_result(review_data, fid, is_correct, quiz_type)
-                session["results"].append({"fid": fid, "correct": is_correct})
-                st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "quiz_revealed"
-                st.rerun()
-    else:
-        # --- フォールバック: タップ確認 ---
-        _show_review_image(fid)
-        st.markdown('<div class="rv-case-prompt">この所見は何？</div>', unsafe_allow_html=True)
-        if st.button("👁️ タップして答えを確認", key=f"rv_quiz_reveal_{idx}",
-                      use_container_width=True, type="primary"):
-            st.session_state["review_quiz_answer"] = {
-                "fid": fid, "correct_title": correct_title,
-                "selected": None, "is_correct": None,
-                "keywords": meta.get("keywords", []),
-                "summary": meta.get("summary", ""),
-            }
-            st.session_state["review_mode"] = "quiz_revealed"
-            st.rerun()
-
-    if st.button("🏠 ホームに戻る", key="rv_quiz_back"):
-        st.session_state["review_mode"] = "home"
-        st.rerun()
-
-
-def _quiz_revealed(review_data: dict):
-    """クイズ解答画面（教科書・患者データ共通）。"""
-    session = st.session_state.get("review_session", {})
-    idx = session.get("current_index", 0)
-    total = len(session.get("items", []))
-    quiz_type = session.get("quiz_type", "case")
-    answer = st.session_state.get("review_quiz_answer", {})
-
-    correct_title = answer.get("correct_title", "不明")
-    is_correct = answer.get("is_correct")
-    keywords = answer.get("keywords", [])
-    summary = answer.get("summary", "")
-    fid = answer.get("fid", "")
-    icon = "🩺" if quiz_type == "case" else "📖"
-
-    st.markdown(f"### {icon} 問題 {idx + 1} / {total}")
-
-    # バナー
-    if is_correct is True:
-        st.markdown('<div class="rv-remembered-banner">⭕ 正解！</div>', unsafe_allow_html=True)
-    elif is_correct is False:
-        st.markdown('<div class="rv-review-banner">❌ 不正解</div>', unsafe_allow_html=True)
-
-    # 教科書クイズ: 出題した問題文を再表示
-    question = answer.get("question", "")
-    if question:
-        st.markdown(f"**💬 問題:** {html.escape(question)}")
-
-    # 不正解時は正解の選択肢を明示
-    if is_correct is False:
-        correct_choice = answer.get("correct_choice", correct_title)
-        st.success(f"正解: **{correct_choice}**")
-
-    # 元画像を表示
-    if fid:
-        _show_review_image(fid)
-
-    # 正解タイトル＋キーワード
-    kw_str = "、".join(keywords[:6]) if keywords else ""
-    st.markdown(f"""<div class="rv-answer-box">
-        <div class="rv-answer-title">📋 {html.escape(correct_title)}</div>
-        <div class="rv-keywords">キーワード: {html.escape(kw_str)}</div>
-    </div>""", unsafe_allow_html=True)
-
-    # サマリー表示（教科書・症例両方）
-    if summary:
-        formatted = html.escape(summary).replace("\n", "<br>")
-        st.markdown(f'<div class="rv-reveal-box">{formatted}</div>', unsafe_allow_html=True)
-
-    # 自己評価（タップ確認モードの場合）
-    if is_correct is None:
-        st.markdown("**自己評価:**")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("⭕ 正解だった", key=f"rv_quiz_self_correct_{idx}", use_container_width=True,
-                          type="primary"):
-                _record_quiz_result(review_data, fid, True, quiz_type)
-                session["results"].append({"fid": fid, "correct": True})
-                session["current_index"] = idx + 1
-                st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "quiz_playing"
-                st.rerun()
-        with col2:
-            if st.button("❌ 不正解だった", key=f"rv_quiz_self_wrong_{idx}", use_container_width=True):
-                _record_quiz_result(review_data, fid, False, quiz_type)
-                session["results"].append({"fid": fid, "correct": False})
-                session["current_index"] = idx + 1
-                st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "quiz_playing"
-                st.rerun()
-    else:
-        if idx + 1 < total:
-            if st.button("次の問題へ →", key="rv_quiz_next", use_container_width=True, type="primary"):
-                session["current_index"] = idx + 1
-                st.session_state["review_session"] = session
-                st.session_state["review_mode"] = "quiz_playing"
-                st.rerun()
-        else:
-            if st.button("📊 結果を見る", key="rv_quiz_to_summary", use_container_width=True,
-                          type="primary"):
-                st.session_state["review_mode"] = "session_summary"
-                st.rerun()
-
-
-def _record_quiz_result(review_data: dict, fid: str, correct: bool, quiz_type: str):
-    """クイズの結果を記録する（教科書・症例共通）。"""
-    history = review_data.setdefault("case_quiz_history", {})
-    h = history.setdefault(fid, {"attempts": 0, "correct": 0, "last_attempted": "", "last_correct": False})
-    h["attempts"] = h.get("attempts", 0) + 1
-    if correct:
-        h["correct"] = h.get("correct", 0) + 1
-    h["last_attempted"] = datetime.now().isoformat()
-    h["last_correct"] = correct
-    stats = review_data.setdefault("stats", {})
-    stats["total_case_attempts"] = stats.get("total_case_attempts", 0) + 1
-    if correct:
-        stats["total_case_correct"] = stats.get("total_case_correct", 0) + 1
-    _save_review_data(review_data)
-
-
-# --- セッションサマリー ---
-
-def _session_summary(review_data: dict):
-    """セッション結果サマリー画面。"""
-    session = st.session_state.get("review_session", {})
-    results = session.get("results", [])
-    session_type = session.get("type", "flashcard")
-
-    total = len(results)
-    if total == 0:
-        st.session_state["review_mode"] = "home"
-        st.rerun()
-        return
-
-    if session_type == "flashcard":
-        remembered = sum(1 for r in results if r.get("remembered"))
-        pct = (remembered / total * 100) if total > 0 else 0
-        st.markdown(f"""<div class="rv-summary-score">
-            <div class="big-score">{remembered} / {total}</div>
-            <div class="sub-text">覚えた率 {pct:.0f}%</div>
-        </div>""", unsafe_allow_html=True)
-
-        review_again = [r for r in results if not r.get("remembered")]
-        if review_again:
-            st.markdown(f"🔄 **{len(review_again)} 件**を「もう一回」にマークしました。次回優先的に出題されます。")
-        else:
-            st.balloons()
-            st.markdown("🎉 全問覚えていました！")
-    else:
-        correct = sum(1 for r in results if r.get("correct"))
-        pct = (correct / total * 100) if total > 0 else 0
-        st.markdown(f"""<div class="rv-summary-score">
-            <div class="big-score">{correct} / {total}</div>
-            <div class="sub-text">正答率 {pct:.0f}%</div>
-        </div>""", unsafe_allow_html=True)
-
-        wrong = [r for r in results if not r.get("correct")]
-        if wrong:
-            st.markdown(f"❌ **{len(wrong)} 件**不正解。次回優先的に出題されます。")
-        else:
-            st.balloons()
-
-    if st.button("🏠 ホームに戻る", key="rv_summary_home", use_container_width=True, type="primary"):
-        st.session_state["review_mode"] = "home"
-        st.rerun()
-
-
-# --- メインルーター ---
-
-def page_quiz():
-    """復習ページのメインルーター。"""
-    _review_css()
-    review_data = _load_review_data()
-
-    if "review_mode" not in st.session_state:
-        st.session_state["review_mode"] = "home"
-
-    mode = st.session_state["review_mode"]
-    if mode == "home":
-        _review_home(review_data)
-    elif mode == "flashcard_playing":
-        _flashcard_session(review_data)
-    elif mode == "flashcard_revealed":
-        _flashcard_revealed(review_data)
-    elif mode == "quiz_playing":
-        _quiz_playing(review_data)
-    elif mode == "quiz_revealed":
-        _quiz_revealed(review_data)
-    elif mode == "session_summary":
-        _session_summary(review_data)
-    else:
-        st.session_state["review_mode"] = "home"
-        st.rerun()
 
 
 
@@ -11117,20 +9294,24 @@ def main():
     </style>""", unsafe_allow_html=True)
 
     # アクティブタブの管理（5タブ構成）
-    TAB_NAMES = ["💬 チャット", "📸 画像ライブラリ", "⚡ 取り込み・解析", "🍽️ 食事記録", "🧠 クイズ", "⚙️ 設定"]
+    TAB_NAMES = ["🏥 患者データ", "🍽️ 食事画像", "⚖️ 体重・カロリー", "⚡ 取り込み・解析", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
     # 旧タブ名からのマイグレーション
     old_tab_map = {
+        "💬 チャット": TAB_NAMES[0],
         "💬 チャット検索": TAB_NAMES[0],
-        "📸 画像管理": TAB_NAMES[1],
-        "📂 手動整理": TAB_NAMES[1],
-        "🤖 AI整理": TAB_NAMES[1],
-        "⚡ 一括解析": TAB_NAMES[2],
-        "🗂️ フォルダ設定": TAB_NAMES[5],
-        "🗑️ ゴミ箱": TAB_NAMES[5],
-        "⚙️ 設定": TAB_NAMES[5],
-        "⚖️ 体重管理": TAB_NAMES[3],
+        "📸 画像ライブラリ": TAB_NAMES[0],
+        "📸 画像管理": TAB_NAMES[0],
+        "📂 手動整理": TAB_NAMES[0],
+        "🤖 AI整理": TAB_NAMES[0],
+        "🧠 クイズ": TAB_NAMES[0],
+        "🍽️ 食事記録": TAB_NAMES[2],
+        "⚖️ 体重管理": TAB_NAMES[2],
+        "⚡ 一括解析": TAB_NAMES[3],
+        "🗂️ フォルダ設定": TAB_NAMES[4],
+        "🗑️ ゴミ箱": TAB_NAMES[4],
+        "⚙️ 設定": TAB_NAMES[4],
     }
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
@@ -11157,10 +9338,10 @@ def main():
     )
     if home_clicked:
         st.session_state["active_tab"] = TAB_NAMES[0]
-        st.session_state["active_session_id"] = None
-        st.session_state["chat_messages"] = []
         st.session_state.pop("lib_selected_id", None)
         st.session_state.pop("last_upload_id", None)
+        st.session_state.pop("pat_gal_loaded", None)
+        st.session_state.pop("food_gal_loaded", None)
         st.rerun()
 
     # ─── サイドバー: ページ切り替え（4ボタンのみ）───
@@ -11175,12 +9356,6 @@ def main():
         ):
             st.session_state["active_tab"] = tab_name
             st.rerun()
-
-    # ─── サイドバー: 患者データ快速アクセス ───
-    if st.sidebar.button("🏥 患者データ", key="sidebar_patient_data", width="stretch"):
-        st.session_state["active_tab"] = TAB_NAMES[1]  # 📸 画像ライブラリ
-        st.session_state["lib_folder_filter"] = PATIENT_DATA_FOLDER
-        st.rerun()
 
     st.sidebar.markdown("---")
 
@@ -11235,6 +9410,17 @@ def main():
         key="auto_scan_toggle_main",
     )
     st.session_state["auto_scan_enabled"] = auto_scan_val
+
+    # 外部スキャナ (scan_food_images.py) の最終実行時刻を表示
+    _ext_log = Path(__file__).parent / "scan_food_images.log"
+    if _ext_log.exists():
+        try:
+            _mt = datetime.fromtimestamp(_ext_log.stat().st_mtime)
+            st.sidebar.caption(
+                f"🛰️ 外部スキャナ最終実行: {format_relative_time(_mt.isoformat())}"
+            )
+        except OSError:
+            pass
 
     _scan_busy = st.session_state.get("_food_scan_running", False)
     _scan_label = "⏳ スキャン中..." if _scan_busy else "🔄 今すぐスキャン"
@@ -11293,16 +9479,14 @@ def main():
     # ─── ページ表示 ───
     active = st.session_state["active_tab"]
     if active == TAB_NAMES[0]:
-        page_chat()
+        page_patient_gallery()
     elif active == TAB_NAMES[1]:
-        page_image_library()
+        page_food_gallery()
     elif active == TAB_NAMES[2]:
-        page_import_analyze()
-    elif active == TAB_NAMES[3]:
         page_weight_management()
+    elif active == TAB_NAMES[3]:
+        page_import_analyze()
     elif active == TAB_NAMES[4]:
-        page_quiz()
-    elif active == TAB_NAMES[5]:
         page_settings_all()
 
 
