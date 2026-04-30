@@ -9413,25 +9413,25 @@ def main():
     @keyframes loading-pulse { 0%,100%{opacity:1;} 50%{opacity:0.65;} }
     </style>""", unsafe_allow_html=True)
 
-    # アクティブタブの管理（5タブ構成）
-    TAB_NAMES = ["🏥 患者データ", "🍽️ 食事画像", "⚖️ 体重・カロリー", "⚡ 取り込み・解析", "⚙️ 設定"]
+    # アクティブタブの管理（6タブ構成）
+    TAB_NAMES = ["🏥 患者データ", "🍽️ 食事画像", "📱 スクショ", "⚖️ 体重・カロリー", "⚡ 取り込み・解析", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
     # 旧タブ名からのマイグレーション
     old_tab_map = {
-        "💬 チャット": TAB_NAMES[0],
-        "💬 チャット検索": TAB_NAMES[0],
-        "📸 画像ライブラリ": TAB_NAMES[0],
-        "📸 画像管理": TAB_NAMES[0],
-        "📂 手動整理": TAB_NAMES[0],
-        "🤖 AI整理": TAB_NAMES[0],
+        "💬 チャット": TAB_NAMES[2],
+        "💬 チャット検索": TAB_NAMES[2],
+        "📸 画像ライブラリ": TAB_NAMES[2],
+        "📸 画像管理": TAB_NAMES[2],
+        "📂 手動整理": TAB_NAMES[2],
+        "🤖 AI整理": TAB_NAMES[2],
         "🧠 クイズ": TAB_NAMES[0],
-        "🍽️ 食事記録": TAB_NAMES[2],
-        "⚖️ 体重管理": TAB_NAMES[2],
-        "⚡ 一括解析": TAB_NAMES[3],
-        "🗂️ フォルダ設定": TAB_NAMES[4],
-        "🗑️ ゴミ箱": TAB_NAMES[4],
-        "⚙️ 設定": TAB_NAMES[4],
+        "🍽️ 食事記録": TAB_NAMES[3],
+        "⚖️ 体重管理": TAB_NAMES[3],
+        "⚡ 一括解析": TAB_NAMES[4],
+        "🗂️ フォルダ設定": TAB_NAMES[5],
+        "🗑️ ゴミ箱": TAB_NAMES[5],
+        "⚙️ 設定": TAB_NAMES[5],
     }
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
