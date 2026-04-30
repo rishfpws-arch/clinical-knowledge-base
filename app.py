@@ -7151,6 +7151,52 @@ def _build_patient_entries(metadata: dict, drive_files: list[dict]) -> list[dict
     return entries
 
 
+def _render_day_food_thumbnails(day_data: dict, date_key: str,
+                                key_prefix: str, per_row: int = 6) -> None:
+    """その日の食事画像を小さなサムネイル行として表示。タップで拡大ダイアログ。"""
+    items = _get_day_items(day_data)
+    seen: set[str] = set()
+    entries: list[dict] = []
+    for it in items:
+        iid = it.get("image_id")
+        if not iid or iid in seen:
+            continue
+        seen.add(iid)
+        entries.append({
+            "fid": iid,
+            "ext": it.get("image_ext", "jpg"),
+            "drive_file_id": it.get("drive_file_id", ""),
+            "ts": date_key,
+            "title": it.get("name", ""),
+            "kind": "food",
+        })
+    if not entries:
+        return
+    for row_start in range(0, len(entries), per_row):
+        row = entries[row_start:row_start + per_row]
+        cols = st.columns(per_row)
+        for ci, e in enumerate(row):
+            with cols[ci]:
+                try:
+                    thumb = _load_food_thumbnail_bytes(
+                        e["fid"], e["ext"], e["drive_file_id"],
+                    )
+                except Exception:
+                    thumb = None
+                if thumb:
+                    st.image(thumb, use_container_width=True)
+                else:
+                    st.markdown(
+                        '<div style="aspect-ratio:1/1;background:#222;'
+                        'border-radius:4px;display:flex;align-items:center;'
+                        'justify-content:center;font-size:20px;">🖼️</div>',
+                        unsafe_allow_html=True,
+                    )
+                if st.button("🔍", key=f"{key_prefix}_{date_key}_{e['fid']}",
+                             use_container_width=True):
+                    _open_photo_dialog(e)
+
+
 def _build_food_entries(weight_data: dict) -> list[dict]:
     """食事画像のエントリを日付降順で返す。"""
     entries: list[dict] = []
