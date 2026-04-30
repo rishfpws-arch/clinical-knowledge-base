@@ -7197,6 +7197,48 @@ def _render_day_food_thumbnails(day_data: dict, date_key: str,
                     _open_photo_dialog(e)
 
 
+def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[dict]:
+    """スクショ（clinical-kb 直下、患者データ以外）のエントリを modifiedTime 降順で返す。"""
+    entries: list[dict] = []
+    seen_ids: set[str] = set()
+    for f in drive_files:
+        fid = f.get("id")
+        if not fid:
+            continue
+        meta = metadata.get(fid, {})
+        if is_patient_data(meta):
+            continue
+        ts = f.get("modifiedTime") or f.get("createdTime") or ""
+        title = meta.get("title") or f.get("name", "")
+        entries.append({
+            "fid": fid,
+            "title": title,
+            "ts": ts,
+            "kind": "screenshot",
+        })
+        seen_ids.add(fid)
+    # ローカルアップロードのスクショもフォールバック
+    for fid, meta in metadata.items():
+        if fid in seen_ids or is_patient_data(meta):
+            continue
+        ts = ""
+        for ext in ("png", "jpg", "jpeg"):
+            p = UPLOADS_DIR / f"{fid}.{ext}"
+            if p.exists():
+                ts = datetime.fromtimestamp(p.stat().st_mtime).isoformat() + "Z"
+                break
+        if not ts:
+            continue
+        entries.append({
+            "fid": fid,
+            "title": meta.get("title") or fid,
+            "ts": ts,
+            "kind": "screenshot",
+        })
+    entries.sort(key=lambda x: x["ts"] or "", reverse=True)
+    return entries
+
+
 def _build_food_entries(weight_data: dict) -> list[dict]:
     """食事画像のエントリを日付降順で返す。"""
     entries: list[dict] = []
