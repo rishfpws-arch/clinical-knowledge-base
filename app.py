@@ -7391,10 +7391,21 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                         '<div class="g-placeholder">🖼️</div>',
                         unsafe_allow_html=True,
                     )
-                btn_label = "🔍 ⭐" if e["fid"] in favs else "🔍"
-                if st.button(btn_label, key=f"{key_prefix}_btn_{e['fid']}",
-                             use_container_width=True):
-                    _open_photo_dialog(e)
+                bcol1, bcol2 = st.columns(2)
+                with bcol1:
+                    if st.button("🔍", key=f"{key_prefix}_btn_{e['fid']}",
+                                 use_container_width=True,
+                                 help="拡大表示"):
+                        _open_photo_dialog(e)
+                with bcol2:
+                    is_fav = e["fid"] in favs
+                    fav_label = "⭐" if is_fav else "☆"
+                    if st.button(fav_label,
+                                 key=f"{key_prefix}_fav_{e['fid']}",
+                                 use_container_width=True,
+                                 help="お気に入り解除" if is_fav else "お気に入りに追加"):
+                        toggle_favorite(e["fid"])
+                        st.rerun()
 
     if loaded < len(entries):
         if st.button(f"もっと見る ({loaded} / {len(entries)})",
