@@ -7421,6 +7421,12 @@ def page_patient_gallery():
     drive_files = list_all_images(service, folder_id, metadata, patient_folder_id)
     entries = _build_patient_entries(metadata, drive_files)
 
+    favs = _ensure_favorites_loaded()
+    fav_only = st.toggle("⭐ お気に入りのみ", key="pat_gal_fav_only",
+                         help=f"お気に入り {len(favs)} 件")
+    if fav_only:
+        entries = [e for e in entries if e["fid"] in favs]
+
     st.caption(f"全 {len(entries)} 件")
 
     def _fetch(e):
