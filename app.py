@@ -6997,6 +6997,49 @@ _MONTH_LABELS_JA = ["1月", "2月", "3月", "4月", "5月", "6月",
 _WEEKDAY_LABELS_JA = ["月", "火", "水", "木", "金", "土", "日"]
 
 
+# --- お気に入り（Google Photos 風） ---
+def load_favorites() -> set[str]:
+    """お気に入り画像のIDセットを読み込む。"""
+    try:
+        if FAVORITES_PATH.exists():
+            data = json.loads(FAVORITES_PATH.read_text(encoding="utf-8"))
+            return set(data.get("fids", []))
+    except Exception as e:
+        _log.error(f"favorites load error: {e}")
+    return set()
+
+
+def save_favorites(fids: set[str]) -> None:
+    """お気に入り画像のIDセットを保存。"""
+    try:
+        FAVORITES_PATH.write_text(
+            json.dumps({"fids": sorted(fids)}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception as e:
+        _log.error(f"favorites save error: {e}")
+
+
+def _ensure_favorites_loaded() -> set[str]:
+    """セッション内でお気に入りが未ロードならロードして返す。"""
+    if "_favorites" not in st.session_state:
+        st.session_state["_favorites"] = load_favorites()
+    return st.session_state["_favorites"]
+
+
+def toggle_favorite(fid: str) -> bool:
+    """お気に入りをトグルし、新しい状態（True=追加）を返す。"""
+    favs = _ensure_favorites_loaded()
+    if fid in favs:
+        favs.discard(fid)
+        on = False
+    else:
+        favs.add(fid)
+        on = True
+    save_favorites(favs)
+    return on
+
+
 def _inject_gallery_css():
     """Google Photos 風ギャラリーの CSS を注入する。"""
     st.markdown("""
