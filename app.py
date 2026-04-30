@@ -7470,6 +7470,12 @@ def page_screenshot_gallery():
     drive_files = list_images(service, folder_id)
     entries = _build_screenshot_entries(metadata, drive_files)
 
+    favs = _ensure_favorites_loaded()
+    fav_only = st.toggle("⭐ お気に入りのみ", key="ss_gal_fav_only",
+                         help=f"お気に入り {len(favs)} 件")
+    if fav_only:
+        entries = [e for e in entries if e["fid"] in favs]
+
     st.caption(f"全 {len(entries)} 件")
 
     def _fetch(e):
