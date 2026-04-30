@@ -1689,66 +1689,15 @@ def get_gemini_api_key() -> str | None:
 # ---------------------------------------------------------------------------
 # Google Drive 操作
 # ---------------------------------------------------------------------------
-@st.cache_data(ttl=120, show_spinner="ファイル一覧を取得中...")
-def list_images(_service, folder_id: str) -> list[dict]:
-    """指定フォルダ内の画像ファイル一覧を取得する（2分キャッシュ、ページネーション対応）。"""
+def _list_drive_images_impl(_service, folder_id: str, *,
+                             show_errors: bool = True) -> list[dict]:
+    """Drive フォルダの画像一覧を取得する内部実装（リトライ・ページネーション対応）。"""
     mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
     query = f"'{folder_id}' in parents and ({mime_query}) and trashed=false"
     all_files: list[dict] = []
     page_token = None
-    max_retries = 3
-    while True:
-        for attempt in range(max_retries):
-            try:
-                params = dict(
-                    q=query,
-                    fields="nextPageToken, files(id, name, mimeType, createdTime, modifiedTime, thumbnailLink)",
-                    orderBy="modifiedTime desc",
-                    pageSize=100,
-                )
-                if page_token:
-                    params["pageToken"] = page_token
-                results = _service.files().list(**params).execute()
-                all_files.extend(results.get("files", []))
-                page_token = results.get("nextPageToken")
-                break  # 成功 → ページループ次へ
-            except HttpError as e:
-                if e.resp.status == 404:
-                    st.error(
-                        "指定されたフォルダが見つかりません。\n\n"
-                        "`folder_id` が正しいか、サービスアカウントにフォルダが"
-                        "共有されているか確認してください。"
-                    )
-                    return []
-                if attempt < max_retries - 1:
-                    time.sleep(2)
-                    continue
-                st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
-                return all_files  # 取得済み分を返す
-            except Exception:
-                if attempt < max_retries - 1:
-                    time.sleep(2)
-                    continue
-                st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
-                return all_files
-        else:
-            # for ループの else = 全リトライ失敗
-            return all_files
-        if not page_token:
-            break
-    return all_files
-
-
-@st.cache_data(ttl=120, show_spinner="患者データを取得中...")
-def list_patient_images(_service, patient_folder_id: str) -> list[dict]:
-    """患者データフォルダ内の画像ファイル一覧を取得する（2分キャッシュ、ページネーション対応）。"""
-    mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
-    query = f"'{patient_folder_id}' in parents and ({mime_query}) and trashed=false"
-    all_files: list[dict] = []
-    page_token = None
-    max_retries = 3
-    while True:
-        for attempt in range(max_retries):
+    for _ in range(1000):  # ページ数の上限（無限ループ防止）
+        for attempt in range(3):
             try:
                 params = dict(
                     q=query,
@@ -1764,21 +1713,43 @@ def list_patient_images(_service, patient_folder_id: str) -> list[dict]:
                 break
             except HttpError as e:
                 if e.resp.status == 404:
+                    if show_errors:
+                        st.error(
+                            "指定されたフォルダが見つかりません。\n\n"
+                            "`folder_id` が正しいか、サービスアカウントにフォルダが"
+                            "共有されているか確認してください。"
+                        )
                     return []
-                if attempt < max_retries - 1:
+                if attempt < 2:
                     time.sleep(2)
                     continue
+                if show_errors:
+                    st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
                 return all_files
             except Exception:
-                if attempt < max_retries - 1:
+                if attempt < 2:
                     time.sleep(2)
                     continue
+                if show_errors:
+                    st.warning("⚠️ Google Driveとの通信に失敗しました。ページを再読み込みしてください。")
                 return all_files
         else:
             return all_files
         if not page_token:
             break
     return all_files
+
+
+@st.cache_data(ttl=120, show_spinner="ファイル一覧を取得中...")
+def list_images(_service, folder_id: str) -> list[dict]:
+    """指定フォルダ内の画像ファイル一覧を取得する（2分キャッシュ）。"""
+    return _list_drive_images_impl(_service, folder_id)
+
+
+@st.cache_data(ttl=120, show_spinner="患者データを取得中...")
+def list_patient_images(_service, patient_folder_id: str) -> list[dict]:
+    """患者データフォルダ内の画像ファイル一覧を取得する（2分キャッシュ）。"""
+    return _list_drive_images_impl(_service, patient_folder_id, show_errors=False)
 
 
 def list_all_images(_service, folder_id: str, metadata: dict,
