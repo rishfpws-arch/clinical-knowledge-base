@@ -8874,6 +8874,11 @@ def _page_weight_management_inner():
         # ====== 栄養バランス ======
         _render_nutrient_dashboard(day_data, goals, weight_data, date_key)
 
+        # ====== 食事の写真 ======
+        if _get_day_items(day_data):
+            st.markdown("### 📸 食事の写真")
+            _render_day_food_thumbnails(day_data, date_key, "wm_day_thumb", per_row=4)
+
         # ====== カテゴリ別食事リスト ======
         _render_meal_groups(day_data, weight_data)
 
