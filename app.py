@@ -9604,10 +9604,12 @@ def main():
     elif active == TAB_NAMES[1]:
         page_food_gallery()
     elif active == TAB_NAMES[2]:
-        page_weight_management()
+        page_screenshot_gallery()
     elif active == TAB_NAMES[3]:
-        page_import_analyze()
+        page_weight_management()
     elif active == TAB_NAMES[4]:
+        page_import_analyze()
+    elif active == TAB_NAMES[5]:
         page_settings_all()
 
 
