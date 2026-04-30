@@ -1848,8 +1848,10 @@ def download_image(_service, file_id: str) -> bytes:
 
 
 @st.cache_data(ttl=600, show_spinner=False, max_entries=500)
-def download_thumbnail(_service, file_id: str, max_px: int = 400) -> bytes:
-    """サムネイル用に軽量化した画像を返す（最大300px, JPEG 70%）。"""
+def download_thumbnail(_service, file_id: str, max_px: int = 400,
+                       quality: int = 70) -> bytes:
+    """サムネイル用に軽量化した画像を返す（既定: 最大400px, JPEG 70%）。
+    ギャラリー用に大きく綺麗な画像が必要な場合は max_px=800, quality=88 等を指定する。"""
     raw = download_image(_service, file_id)
     if not raw:
         return raw
@@ -1857,7 +1859,7 @@ def download_thumbnail(_service, file_id: str, max_px: int = 400) -> bytes:
         img = Image.open(io.BytesIO(raw))
         img.thumbnail((max_px, max_px))
         buf = io.BytesIO()
-        img.convert("RGB").save(buf, format="JPEG", quality=70, optimize=True)
+        img.convert("RGB").save(buf, format="JPEG", quality=quality, optimize=True)
         return buf.getvalue()
     except Exception:
         return raw  # リサイズ失敗時はフル画像を返す
