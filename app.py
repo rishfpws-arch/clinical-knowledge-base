@@ -3401,6 +3401,88 @@ def _fuzzy_filter_entries(entries: list[dict], query: str) -> list[dict]:
     return out
 
 
+def _get_synonyms_cached(token: str, kind: str = "food") -> set[str]:
+    """単語の類義語・関連語を Gemini で取得し session_state にキャッシュ。
+
+    kind="food" の場合は料理関連のみ、それ以外は一般的な類義語。
+    Gemini が呼べない／失敗の場合は空集合を返す（呼び出し側で元語のみ使用）。
+    """
+    cache_key = f"_synonyms_{kind}_{token}"
+    cached = st.session_state.get(cache_key)
+    if cached is not None:
+        return cached
+
+    api_key = ""
+    try:
+        api_key = st.secrets.get("gemini_api_key", "") or ""
+    except Exception:
+        api_key = ""
+    if not api_key:
+        st.session_state[cache_key] = set()
+        return set()
+
+    if kind == "food":
+        prompt = (
+            f"「{token}」の関連する日本語の料理名・食べ物名を5〜20個、カンマ区切りで挙げてください。"
+            f"・上位カテゴリ(例: 「パスタ」→ パスタ全般), 下位の具体名(例: ナポリタン, カルボナーラ), "
+            f"同義語(例: スパゲッティ) を含む。"
+            f"・料理・食材と無関係な単語の場合は何も返さない。"
+            f"・説明や前置きは一切不要、純粋にカンマ区切りの単語のみ。\n"
+            f"入力例「パスタ」→ 出力例: スパゲッティ,ナポリタン,カルボナーラ,ペペロンチーノ,ボロネーゼ,ラザニア,マカロニ\n"
+            f"入力例「肉」→ 出力例: ステーキ,焼肉,ハンバーグ,鶏肉,豚肉,牛肉,唐揚げ,生姜焼き"
+        )
+    else:
+        prompt = (
+            f"「{token}」の関連語・類義語を5〜10個、カンマ区切りで挙げてください。"
+            f"説明や前置きは一切不要、純粋にカンマ区切りの単語のみ。"
+        )
+
+    synonyms: set[str] = set()
+    try:
+        text = _gemini_generate(api_key, [{"text": prompt}])
+        for raw in (text or "").replace("\n", ",").split(","):
+            s = raw.strip().lower()
+            # 余分な接頭辞/記号を弾く
+            s = s.lstrip("・- 　").rstrip("。 　")
+            if s and 1 <= len(s) <= 30 and s != token:
+                synonyms.add(s)
+    except Exception as e:
+        _log.warning(f"[synonyms] Gemini呼び出し失敗 token={token}: {e}")
+        synonyms = set()
+
+    st.session_state[cache_key] = synonyms
+    return synonyms
+
+
+def _fuzzy_filter_entries_semantic(entries: list[dict], query: str,
+                                   kind: str = "food") -> tuple[list[dict], list[set[str]]]:
+    """類義語展開つきあいまい検索。
+
+    各トークンを Gemini で類義語展開し、グループ間 AND・グループ内 OR でマッチさせる。
+    返り値: (フィルタ済みエントリ, 拡張されたトークン群)
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return entries, []
+    tokens = [t for t in q.split() if t]
+    if not tokens:
+        return entries, []
+
+    # 各トークンを類義語セットに拡張
+    expanded: list[set[str]] = []
+    for token in tokens:
+        synonyms = _get_synonyms_cached(token, kind)
+        group = {token} | synonyms
+        expanded.append(group)
+
+    out = []
+    for e in entries:
+        st_text = e.get("search_text", "") or ""
+        if all(any(s in st_text for s in group) for group in expanded):
+            out.append(e)
+    return out, expanded
+
+
 @st.dialog("画像", width="large")
 def _open_photo_dialog(entry: dict):
     """画像をモーダルで拡大表示する。ナレッジ画像はタイトル/要約/キーワードを直接編集できる。"""
@@ -3564,7 +3646,7 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
 
 
 def page_food_gallery():
-    """食事画像の Google Photos 風ギャラリー（品目あいまい検索付き）。"""
+    """食事画像の Google Photos 風ギャラリー（類義語展開つきあいまい検索）。"""
     _inject_gallery_css()
     st.markdown("## 🍽️ 食事")
 
@@ -3572,16 +3654,32 @@ def page_food_gallery():
     entries = _build_food_entries(weight_data)
 
     query = st.text_input(
-        "🔍 品目で検索",
+        "🔍 品目で検索（関連語も自動でヒット: パスタ → ナポリタン等）",
         key="food_gal_search",
-        placeholder="例: ご飯 / 鮭 / サラダ",
+        placeholder="例: パスタ / 肉 / 野菜",
         label_visibility="collapsed",
     )
-    filtered = _fuzzy_filter_entries(entries, query)
 
     if query:
-        st.caption(f"🔍 「{query}」: {len(filtered)} / {len(entries)} 件")
+        with st.spinner("関連語を展開中..."):
+            filtered, expanded = _fuzzy_filter_entries_semantic(entries, query, kind="food")
+        # 展開された語を表示（デバッグ・透明性のため）
+        if expanded:
+            term_strs = []
+            for group in expanded:
+                terms = sorted(group)
+                if len(terms) > 6:
+                    term_strs.append(" / ".join(terms[:6]) + f" 他{len(terms)-6}語")
+                else:
+                    term_strs.append(" / ".join(terms))
+            st.caption(
+                f"🔍 「{query}」→ {' & '.join(term_strs)}: "
+                f"{len(filtered)} / {len(entries)} 件"
+            )
+        else:
+            st.caption(f"🔍 「{query}」: {len(filtered)} / {len(entries)} 件")
     else:
+        filtered = entries
         st.caption(f"全 {len(entries)} 件")
 
     def _fetch(e):
