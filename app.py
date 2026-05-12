@@ -59,18 +59,16 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
 ]
 METADATA_PATH = Path(__file__).parent / "metadata.json"
-TRASH_PATH = Path(__file__).parent / "trash.json"
-IGNORE_LIST_PATH = Path(__file__).parent / "ignore_list.json"
 FOLDERS_PATH = Path(__file__).parent / "folders.json"
 UPLOADS_DIR = Path(__file__).parent / "uploads"
 WEIGHT_DATA_PATH = Path(__file__).parent / "weight_data.json"
 WEIGHT_UPLOADS_DIR = Path(__file__).parent / "weight_uploads"
+THUMB_CACHE_DIR = Path(__file__).parent / ".thumb_cache"
+OCR_BACKFILL_PENDING_PATH = Path(__file__).parent / ".ocr_backfill_pending.json"
 FOOD_IMAGES_PROCESSED_PATH = Path(__file__).parent / "food_images_processed.json"
-FAVORITES_PATH = Path(__file__).parent / "favorites.json"
 _AUTH_STATE_PATH = Path(__file__).parent / ".auth_state"
 FOOD_SCAN_INTERVAL = 300  # 食事画像スキャン間隔（秒）
 MAX_FOOD_SCAN_IMAGES = 10  # 1回のスキャンで処理する最大画像数
-TRASH_RETENTION_DAYS = 30  # ゴミ箱の保持日数
 _MAX_LOGIN_ATTEMPTS = 5   # ログイン試行上限
 _LOGIN_COOLDOWN_SECONDS = 60  # クールダウン秒数
 DEFAULT_FOLDER = "未分類"
@@ -138,7 +136,7 @@ def _check_auth() -> bool:
                 # URLからトークンを即削除（履歴・ログへの漏洩防止）
                 try:
                     del st.query_params["token"]
-                except Exception:
+                except (KeyError, AttributeError):
                     pass
                 return True
 
@@ -259,7 +257,7 @@ def _save_auth_to_file(username: str, token: str) -> None:
             json.dumps({"user": username, "token": token}),
             encoding="utf-8",
         )
-    except Exception:
+    except OSError:
         pass
 
 
@@ -271,7 +269,7 @@ def _load_auth_from_file() -> tuple[str, str] | None:
             u, t = data.get("user", ""), data.get("token", "")
             if u and t:
                 return (u, t)
-    except Exception:
+    except (OSError, json.JSONDecodeError):
         pass
     return None
 
@@ -280,13 +278,13 @@ def _clear_auth_file() -> None:
     """ログアウト時に認証状態ファイルを削除する。"""
     try:
         _AUTH_STATE_PATH.unlink(missing_ok=True)
-    except Exception:
+    except OSError:
         pass
 
 
-# 画像解析プロンプト
+# 画像解析プロンプト（タイトル + キーワードのみ。要約は不要）
 ANALYSIS_PROMPT = """あなたは臨床経験豊富な専門医レベルの医療アシスタントです。
-この画像を解析し、医師が臨床現場ですぐに活用できる形で、以下のJSON形式で出力してください。
+この画像を解析し、医師が後から検索しやすい形で、以下のJSON形式で出力してください。
 JSON以外のテキストは一切含めないでください。
 
 【重要】画像内の言語が英語やその他の言語であっても、出力はすべて日本語に翻訳してください。
@@ -295,7 +293,6 @@ JSON以外のテキストは一切含めないでください。
 
 {
   "title": "具体的で臨床的に有用なタイトル（疾患名・部位・画像種別を含む、日本語、30〜60文字程度）",
-  "summary": "臨床上重要なポイントを5項目の箇条書きで抽出（各項目は具体的な所見・数値・診断名を含む1〜2文）。以下の形式で出力：\\n• 【所見】具体的な画像所見（部位・範囲・性状を明記）\\n• 【診断】最も考えられる診断と主要な鑑別疾患\\n• 【臨床的意義】見逃した場合のリスクや緊急度\\n• 【次のアクション】追加検査・コンサルト・治療方針\\n• 【ピットフォール】注意すべき落とし穴や類似所見との鑑別ポイント",
   "keywords": ["疾患名", "解剖学的部位", "画像モダリティ", "臨床所見1", "臨床所見2", "鑑別診断", "関連する検査・治療"]
 }
 
@@ -306,173 +303,6 @@ JSON以外のテキストは一切含めないでください。
 - 主要所見（例: 骨髄浮腫、すりガラス影）
 - 鑑別疾患（例: 化膿性関節炎、関節リウマチ）
 - 関連する臨床情報（例: ステロイド内服歴、緊急手術適応）"""
-
-# ---------------------------------------------------------------------------
-# 体重管理用 Gemini プロンプト
-# ---------------------------------------------------------------------------
-QUANTITY_OPTIONS = ["半量", "少なめ", "ふつう", "多め"]
-
-# 食事タイプ（MoneyForward風カテゴリ分類）
-MEAL_TYPE_ORDER = ["breakfast", "lunch", "dinner", "snack"]
-MEAL_TYPE_LABELS = {
-    "breakfast": "🌅 朝食",
-    "lunch": "🌞 昼食",
-    "dinner": "🌙 夕食",
-    "snack": "🍪 間食",
-}
-MEAL_TYPE_COLORS = {
-    "breakfast": "#FF9800",
-    "lunch": "#2196F3",
-    "dinner": "#673AB7",
-    "snack": "#4CAF50",
-}
-
-FOOD_ANALYSIS_PROMPT = """あなたは管理栄養士です。この食事の画像（1枚または複数枚）を解析してください。
-
-写っている料理の品目名、推定量、それぞれの推定カロリー（kcal）、および主要栄養素を日本語で出力してください。
-複数の画像がある場合は、全ての画像に写っている品目をまとめて1つのリストで出力してください。
-JSON以外のテキストは一切含めないでください。
-
-出力形式:
-{
-    "items": [
-        {
-            "name": "品目名",
-            "quantity": "推定量",
-            "calories": 推定カロリー数値,
-            "nutrients": {
-                "protein": たんぱく質(g),
-                "fat": 脂質(g),
-                "carbs": 炭水化物(g),
-                "fiber": 食物繊維(g),
-                "salt": 食塩相当量(g),
-                "calcium": カルシウム(mg),
-                "iron": 鉄(mg),
-                "vitamin_a": ビタミンA(μgRAE),
-                "vitamin_c": ビタミンC(mg),
-                "vitamin_d": ビタミンD(μg)
-            }
-        }
-    ],
-    "total_calories": 合計カロリー数値
-}
-
-【ルール】
-- 品目名は日本語で記載
-- quantityは「少なめ」「ふつう」「多め」のいずれかで推定
-- 量が判断できない場合は「ふつう」とする
-- caloriesはquantityを考慮した整数値（kcalの数値のみ、単位は不要）
-- 「半量」は標準の約0.5倍、「少なめ」は標準の約0.6倍、「多め」は標準の約1.5倍のカロリー
-- 見える範囲の全ての品目を列挙
-- total_caloriesはitemsのcaloriesの合計と一致させること
-- 飲み物が見える場合はそれも含めること
-- 同じ料理が複数画像に写っている場合は重複カウントしないこと
-- 全ての栄養素は数値（小数可）で出力。単位は付けない
-- quantityに応じて栄養素もスケーリングすること（半量=0.5倍、少なめ=0.6倍、多め=1.5倍）
-- 推定が困難な場合は0とする
-- 日本食品標準成分表の値を参考に推定すること
-- nutrientsオブジェクトは必ず全品目に含めること"""
-
-WEIGHT_SCALE_PROMPT = """この画像は体重計の表示画面です。
-表示されている体重の数値を読み取ってください。
-JSON以外のテキストは一切含めないでください。
-
-出力形式:
-{
-    "weight_kg": 数値（kg単位、小数第1位まで）,
-    "confidence": "high" または "low"
-}
-
-【ルール】
-- 数値が明瞭に読み取れる場合は confidence: "high"
-- ぼやけていたり読み取りにくい場合は confidence: "low"
-- 数値が全く読み取れない場合は weight_kg: null, confidence: "none"
-- kg単位で出力（lbの場合はkgに変換）"""
-
-CALORIE_RECALC_PROMPT = """以下の食品・料理名と量のリストについて、それぞれのカロリー（kcal）と栄養素を推定してください。
-量を考慮してカロリーと栄養素を計算してください。
-JSON以外のテキストは一切含めないでください。
-
-入力:
-{items_json}
-
-出力形式:
-{{"items": [{{"name": "品目名", "quantity": "量", "calories": 推定カロリー数値, "nutrients": {{"protein": たんぱく質(g), "fat": 脂質(g), "carbs": 炭水化物(g), "fiber": 食物繊維(g), "salt": 食塩相当量(g), "calcium": カルシウム(mg), "iron": 鉄(mg), "vitamin_a": ビタミンA(μgRAE), "vitamin_c": ビタミンC(mg), "vitamin_d": ビタミンD(μg)}}}}, ...]}}
-
-【ルール】
-- カロリーは整数値（kcalの数値のみ）
-- 栄養素は数値（小数可）で出力。単位は付けない
-- caloriesと栄養素はquantityを考慮した値にすること（半量=標準の約0.5倍、少なめ=標準の約0.6倍、多め=標準の約1.5倍）
-- 入力の品目名と量をそのまま返すこと（変更しない）
-- 入力の順番を維持すること
-- 推定が困難な栄養素は0とする
-- 日本食品標準成分表の値を参考に推定すること"""
-
-ONEPOINT_ADVICE_PROMPT = """あなたは管理栄養士です。以下のデータに基づいて短いワンポイントアドバイスを日本語で作成してください。
-
-過去{days}日間のデータ:
-- 平均摂取カロリー: {avg_cal} kcal（目標: {target_cal} kcal）
-- 不足している栄養素: {deficient}
-- 過剰な栄養素: {excess}
-- 最近よく食べている食品: {recent_foods}
-
-以下の形式で簡潔に回答してください（合計200文字以内）:
-📊 総評（1文）
-🍽️ おすすめの食品・料理（2-3品、具体的に）
-👍 良い点（1文）"""
-
-HOME_ADVICE_PROMPT = """あなたは管理栄養士です。以下は実際の患者の食事記録です。
-
-【過去{days}日間の実データ】
-- 平均摂取カロリー: {avg_cal} kcal/日（目標: {target_cal} kcal）
-- 栄養素の実測値（1日平均）:
-{nutrient_detail}
-- 最近食べた食品: {recent_foods}
-
-上記データを踏まえ、この人だけに向けた具体的な1行アドバイスを書いてください。
-ルール:
-- 80文字以内
-- 実際に食べている食品名や具体的な数値に言及すること
-- 「〜を〜に置き換えると良いでしょう」「〜が目標の半分以下です」のように具体的に
-- 一般論（「バランスよく」「野菜を増やしましょう」等）は禁止
-- 絵文字不要"""
-
-# ---------------------------------------------------------------------------
-# 栄養素目標値（日本人の食事摂取基準 2020年版 — 成人男性18-64歳 目安）
-# target = 推奨量/目安量, upper = 耐容上限量 (None = 設定なし)
-# ---------------------------------------------------------------------------
-DEFAULT_NUTRIENT_TARGETS: dict[str, dict] = {
-    "protein":   {"label": "たんぱく質", "unit": "g",     "target": 65,   "upper": 130},
-    "fat":       {"label": "脂質",       "unit": "g",     "target": 65,   "upper": 90},
-    "carbs":     {"label": "炭水化物",   "unit": "g",     "target": 320,  "upper": 420},
-    "fiber":     {"label": "食物繊維",   "unit": "g",     "target": 21,   "upper": None},
-    "salt":      {"label": "食塩相当量", "unit": "g",     "target": None, "upper": 7.5},
-    "calcium":   {"label": "カルシウム", "unit": "mg",    "target": 750,  "upper": 2500},
-    "iron":      {"label": "鉄",         "unit": "mg",    "target": 7.5,  "upper": 50},
-    "vitamin_a": {"label": "ビタミンA",  "unit": "μgRAE", "target": 850,  "upper": 2700},
-    "vitamin_c": {"label": "ビタミンC",  "unit": "mg",    "target": 100,  "upper": None},
-    "vitamin_d": {"label": "ビタミンD",  "unit": "μg",    "target": 8.5,  "upper": 100},
-}
-
-# PFC（三大栄養素）のキー
-_PFC_KEYS = ["protein", "fat", "carbs"]
-# 微量栄養素のキー（PFC・食塩以外）
-_MICRO_KEYS = ["fiber", "calcium", "iron", "vitamin_a", "vitamin_c", "vitamin_d"]
-
-
-def _get_nutrient_targets(goals: dict) -> dict[str, dict]:
-    """ユーザー設定のある栄養素目標を返す。未設定ならデフォルト値。"""
-    user_targets = goals.get("nutrient_targets", {})
-    merged = {}
-    for key, default in DEFAULT_NUTRIENT_TARGETS.items():
-        merged[key] = {**default}
-        if key in user_targets:
-            if "target" in user_targets[key]:
-                merged[key]["target"] = user_targets[key]["target"]
-            if "upper" in user_targets[key]:
-                merged[key]["upper"] = user_targets[key]["upper"]
-    return merged
-
 
 OCR_EXTRACT_PROMPT = """画像内に表示されているすべてのテキストを正確に読み取り、
 そのまま改行区切りのプレーンテキストとして出力してください。
@@ -501,11 +331,11 @@ def _atomic_json_write(path: Path, data) -> bool:
                 _os.fsync(f.fileno())
             tmp.replace(path)
         return True
-    except Exception as e:
+    except (OSError, TypeError, ValueError) as e:
         _log.warning(f"ファイル書き込み失敗: {path.name}: {e}")
         try:
             tmp.unlink(missing_ok=True)
-        except Exception:
+        except OSError:
             pass
         return False
 
@@ -651,8 +481,7 @@ def _set_cache(cache_key: str, data):
 def _invalidate_cache(*cache_keys: str):
     """指定したキャッシュのみ無効化する。キー未指定なら全キャッシュを破棄。"""
     targets = cache_keys if cache_keys else (
-        "_cache_metadata", "_cache_trash", "_cache_ignore_list",
-        "_cache_folders",
+        "_cache_metadata", "_cache_folders",
         "_cache_weight_data", "_cache_food_processed",
     )
     for ck in targets:
@@ -1099,19 +928,6 @@ def _retry_pending_saves() -> None:
             else:
                 _log.warning("[retry] folders Sheets書き込み再失敗")
 
-    # trash のリトライ
-    pending_trash = st.session_state.get("_pending_trash")
-    if pending_trash is not None:
-        _log.info("[retry] pending trash")
-        sh = get_sheets_client()
-        if sh is not None:
-            ok = _write_json_to_sheet(sh, "trash", {"items": pending_trash})
-            if ok:
-                _log.info("[retry] trash Sheets書き込み成功")
-                st.session_state.pop("_pending_trash", None)
-            else:
-                _log.warning("[retry] trash Sheets書き込み再失敗")
-
 
 def get_status(meta: dict) -> str:
     """メタデータからステータスを取得する。"""
@@ -1136,167 +952,6 @@ def get_summary_label(meta: dict) -> str:
     if is_patient_data(meta):
         return "検査所見"
     return "要約"
-
-
-# ---------------------------------------------------------------------------
-# ゴミ箱管理
-# ---------------------------------------------------------------------------
-def load_trash() -> list:
-    """ゴミ箱データを読み込む。session_state → Sheets → ローカルの順。"""
-    ck = "_cache_trash"
-    if _is_cache_valid(ck):
-        return st.session_state[ck]
-    sh = get_sheets_client()
-    if sh is not None:
-        data = _read_json_from_sheet(sh, "trash")
-        if data is not None:
-            items = data.get("items", []) if isinstance(data, dict) else data
-            _set_cache(ck, items)
-            _atomic_json_write(TRASH_PATH, {"items": items})
-            return items
-    if TRASH_PATH.exists():
-        try:
-            with open(TRASH_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                items = data.get("items", [])
-                _set_cache(ck, items)
-                return items
-        except (json.JSONDecodeError, IOError):
-            pass
-    _set_cache(ck, [])
-    return []
-
-
-def save_trash(items: list) -> None:
-    """ゴミ箱データを保存する。session_state + Sheets + ローカル。"""
-    _set_cache("_cache_trash", items)
-    sheets_ok = False
-    sh = get_sheets_client()
-    if sh is not None:
-        sheets_ok = _write_json_to_sheet(sh, "trash", {"items": items})
-    _atomic_json_write(TRASH_PATH, {"items": items})
-    if not sheets_ok and sh is not None:
-        st.session_state["_pending_trash"] = items
-    elif sheets_ok:
-        st.session_state.pop("_pending_trash", None)
-
-
-# ---------------------------------------------------------------------------
-# 無視リスト管理（削除した画像の再取り込み防止）
-# ---------------------------------------------------------------------------
-def load_ignore_list() -> set[str]:
-    """無視リストを読み込む。session_state → Sheets → ローカルの順。"""
-    ck = "_cache_ignore_list"
-    if _is_cache_valid(ck):
-        return st.session_state[ck]
-    sh = get_sheets_client()
-    if sh is not None:
-        data = _read_json_from_sheet(sh, "ignore_list")
-        if data is not None:
-            ids = set(data.get("ids", []) if isinstance(data, dict) else data)
-            _set_cache(ck, ids)
-            _atomic_json_write(IGNORE_LIST_PATH, {"ids": sorted(ids)})
-            return ids
-    if IGNORE_LIST_PATH.exists():
-        try:
-            with open(IGNORE_LIST_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                ids = set(data.get("ids", []))
-                _set_cache(ck, ids)
-                return ids
-        except (json.JSONDecodeError, IOError):
-            pass
-    _set_cache(ck, set())
-    return set()
-
-
-def save_ignore_list(ids: set[str]) -> None:
-    """無視リストを保存する。session_state + Sheets + ローカル。"""
-    _set_cache("_cache_ignore_list", ids)
-    sh = get_sheets_client()
-    if sh is not None:
-        _write_json_to_sheet(sh, "ignore_list", {"ids": sorted(ids)})
-    _atomic_json_write(IGNORE_LIST_PATH, {"ids": sorted(ids)})
-
-
-def add_to_ignore_list(file_ids: list[str]) -> None:
-    """指定されたファイルIDを無視リストに追加する。"""
-    ids = load_ignore_list()
-    ids.update(file_ids)
-    save_ignore_list(ids)
-
-
-def remove_from_ignore_list(file_ids: list[str]) -> None:
-    """指定されたファイルIDを無視リストから除去する。"""
-    ids = load_ignore_list()
-    ids.difference_update(file_ids)
-    save_ignore_list(ids)
-
-
-def move_to_trash(file_ids: list[str], metadata: dict) -> int:
-    """指定されたファイルIDの解析データをゴミ箱に移動する。移動した件数を返す。
-    同時に無視リストにも追加し、再スキャンで再取り込みされないようにする。"""
-    trash = load_trash()
-    moved = 0
-    moved_ids: list[str] = []
-    for fid in file_ids:
-        if fid in metadata:
-            trash.append({
-                "file_id": fid,
-                "metadata": metadata[fid].copy(),
-                "deleted_at": datetime.now().isoformat(),
-            })
-            del metadata[fid]
-            moved_ids.append(fid)
-            moved += 1
-    save_metadata(metadata)
-    save_trash(trash)
-    # 無視リストに追加して再スキャン時の再取り込みを防止
-    if moved_ids:
-        add_to_ignore_list(moved_ids)
-    return moved
-
-
-def restore_from_trash(indices: list[int]) -> int:
-    """ゴミ箱の指定インデックスのアイテムを復元する。復元した件数を返す。"""
-    trash = load_trash()
-    metadata = load_metadata()
-    restored = 0
-    restored_ids: list[str] = []
-    # インデックスを降順にソートして削除時にずれないようにする
-    for idx in sorted(indices, reverse=True):
-        if 0 <= idx < len(trash):
-            item = trash.pop(idx)
-            fid = item["file_id"]
-            metadata[fid] = item["metadata"]
-            restored_ids.append(fid)
-            restored += 1
-    save_metadata(metadata)
-    save_trash(trash)
-    # 無視リストからも除去して再スキャン対象に戻す
-    if restored_ids:
-        remove_from_ignore_list(restored_ids)
-    return restored
-
-
-def purge_old_trash() -> int:
-    """保持期間を過ぎたゴミ箱アイテムを完全削除する。削除した件数を返す。"""
-    trash = load_trash()
-    now = datetime.now()
-    remaining = []
-    purged = 0
-    for item in trash:
-        try:
-            deleted_at = datetime.fromisoformat(item["deleted_at"])
-            if (now - deleted_at).days < TRASH_RETENTION_DAYS:
-                remaining.append(item)
-            else:
-                purged += 1
-        except (ValueError, KeyError):
-            remaining.append(item)
-    if purged > 0:
-        save_trash(remaining)
-    return purged
 
 
 # ---------------------------------------------------------------------------
@@ -1385,7 +1040,7 @@ def load_weight_data() -> dict:
     if sh is not None:
         try:
             sheets_data = _read_json_from_sheet(sh, "weight_data")
-        except Exception:
+        except gspread.exceptions.GSpreadException:
             pass
 
     # ローカルから読み込み
@@ -1429,7 +1084,7 @@ def load_weight_data() -> dict:
             _log.info(f"[load_weight_data] ローカルから {new_from_local} 件を補完")
             try:
                 _write_json_to_sheet(sh, "weight_data", merged)
-            except Exception:
+            except gspread.exceptions.GSpreadException:
                 pass
         data = merged
     elif sheets_data is not None:
@@ -1452,13 +1107,13 @@ def save_weight_data(weight_data: dict, show_error: bool = True) -> bool:
     if sh is not None:
         try:
             sheets_ok = _write_json_to_sheet(sh, "weight_data", weight_data)
-        except Exception:
+        except gspread.exceptions.GSpreadException:
             try:
                 st.session_state.pop("_sheets_conn", None)
                 sh2 = _new_sheets_connection()
                 if sh2 is not None:
                     sheets_ok = _write_json_to_sheet(sh2, "weight_data", weight_data)
-            except Exception:
+            except gspread.exceptions.GSpreadException:
                 pass
     _atomic_json_write(WEIGHT_DATA_PATH, weight_data)
     _sync_err = ""
@@ -1543,7 +1198,7 @@ def get_patient_folder_id() -> str | None:
         if not fid:
             return None
         return fid
-    except Exception:
+    except (KeyError, FileNotFoundError):
         return None
 
 
@@ -1554,7 +1209,7 @@ def get_food_folder_id() -> str | None:
         fid = st.secrets.get("food_images_folder_id", "")
         if fid:
             return fid
-    except Exception:
+    except (KeyError, FileNotFoundError):
         pass
 
     # 2. session_state にキャッシュがあればそれを使う（secrets書き込み後の再起動前対策）
@@ -1615,14 +1270,14 @@ def load_food_processed() -> dict:
     if sh is not None:
         try:
             sheets_data = _read_json_from_sheet(sh, "food_processed")
-        except Exception:
+        except gspread.exceptions.GSpreadException:
             pass
 
     try:
         if FOOD_IMAGES_PROCESSED_PATH.exists():
             with open(FOOD_IMAGES_PROCESSED_PATH, "r", encoding="utf-8") as f:
                 local_data = json.load(f)
-    except Exception:
+    except (OSError, json.JSONDecodeError):
         pass
 
     # マージ: Sheets をベースに、ローカルにしかないエントリを補完
@@ -1637,7 +1292,7 @@ def load_food_processed() -> dict:
             _log.info(f"[load_food_processed] ローカルから {new_from_local} 件を補完 → Sheets再同期")
             try:
                 _write_json_to_sheet(sh, "food_processed", merged)
-            except Exception:
+            except gspread.exceptions.GSpreadException:
                 pass
         data = merged
     elif sheets_data is not None:
@@ -1660,13 +1315,13 @@ def save_food_processed(data: dict) -> None:
     if sh is not None:
         try:
             sheets_ok = _write_json_to_sheet(sh, "food_processed", data)
-        except Exception:
+        except gspread.exceptions.GSpreadException:
             try:
                 st.session_state.pop("_sheets_conn", None)
                 sh2 = _new_sheets_connection()
                 if sh2 is not None:
                     sheets_ok = _write_json_to_sheet(sh2, "food_processed", data)
-            except Exception:
+            except gspread.exceptions.GSpreadException:
                 pass
     _atomic_json_write(FOOD_IMAGES_PROCESSED_PATH, data)
     # --- 同期ステータス記録 ---
@@ -1816,11 +1471,22 @@ def download_image(_service, file_id: str) -> bytes:
             raise
 
 
-@st.cache_data(ttl=600, show_spinner=False, max_entries=500)
+@st.cache_data(ttl=86400, show_spinner=False, max_entries=2000)
 def download_thumbnail(_service, file_id: str, max_px: int = 400,
                        quality: int = 70) -> bytes:
     """サムネイル用に軽量化した画像を返す（既定: 最大400px, JPEG 70%）。
-    ギャラリー用に大きく綺麗な画像が必要な場合は max_px=800, quality=88 等を指定する。"""
+    ギャラリー用に大きく綺麗な画像が必要な場合は max_px=800, quality=88 等を指定する。
+
+    永続ディスクキャッシュ (.thumb_cache/{file_id}_{max_px}.jpg) で
+    Drive ダウンロード + リサイズの繰り返しを回避する。
+    """
+    cache_path = THUMB_CACHE_DIR / f"ss_{file_id}_{max_px}.jpg"
+    if cache_path.exists():
+        try:
+            return cache_path.read_bytes()
+        except Exception:
+            pass
+
     raw = download_image(_service, file_id)
     if not raw:
         return raw
@@ -1829,7 +1495,13 @@ def download_thumbnail(_service, file_id: str, max_px: int = 400,
         img.thumbnail((max_px, max_px))
         buf = io.BytesIO()
         img.convert("RGB").save(buf, format="JPEG", quality=quality, optimize=True)
-        return buf.getvalue()
+        thumb_bytes = buf.getvalue()
+        try:
+            THUMB_CACHE_DIR.mkdir(exist_ok=True)
+            cache_path.write_bytes(thumb_bytes)
+        except Exception:
+            pass
+        return thumb_bytes
     except Exception:
         return raw  # リサイズ失敗時はフル画像を返す
 
@@ -1862,10 +1534,12 @@ def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> 
 # ---------------------------------------------------------------------------
 # Gemini AI 解析（画像）
 # ---------------------------------------------------------------------------
-def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint: str = "") -> dict | None:
+def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint: str = "",
+                              ocr_hint: str = "") -> dict | None:
     """Gemini 2.0 Flash で画像を解析し、結果辞書を返す。
 
     correction_hint が指定された場合、プロンプトに修正指示を追加する。
+    ocr_hint には事前にOCR抽出したテキストを渡すとタイトル/キーワード精度が上がる。
     """
     try:
         # 画像の MIME タイプを判定
@@ -1877,6 +1551,17 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         b64_data = base64.b64encode(image_bytes).decode("utf-8")
 
         prompt = ANALYSIS_PROMPT
+        if ocr_hint.strip():
+            # OCR テキストを参考情報として渡す（長すぎる場合は切り詰め）
+            ocr_excerpt = ocr_hint.strip()
+            if len(ocr_excerpt) > 4000:
+                ocr_excerpt = ocr_excerpt[:4000] + "...(以下略)"
+            prompt += (
+                "\n\n【参考：画像内テキスト（OCR抽出）】\n"
+                "以下は画像から自動抽出したテキストです。タイトルやキーワード生成の参考にしてください。"
+                "誤読が含まれる可能性があるので、画像本体の情報を優先してください。\n"
+                f"---\n{ocr_excerpt}\n---"
+            )
         if correction_hint.strip():
             prompt += (
                 "\n\n【修正指示】\n"
@@ -1906,11 +1591,12 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
             response_text = "\n".join(json_lines)
 
         result = json.loads(response_text)
-        required_keys = {"title", "summary", "keywords"}
+        required_keys = {"title", "keywords"}
         if not required_keys.issubset(result.keys()):
             st.warning("AI解析の結果に必要な項目が不足しています。再度お試しください。")
             return None
-
+        # 要約は使わないので念のため落としておく
+        result.pop("summary", None)
         result["status"] = STATUS_AUTO
         return result
 
@@ -1921,6 +1607,43 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         _log.error(f"AI解析エラー: {e}")
         st.error("AI解析中にエラーが発生しました。再度お試しください。")
         return None
+
+
+# ---------------------------------------------------------------------------
+# 食事画像: 品目名のみ抽出（カロリー/栄養素は扱わない）
+# ---------------------------------------------------------------------------
+_FOOD_ITEM_NAME_PROMPT = """この食事の画像に写っている料理・食品の名前だけを日本語で抽出してください。
+カロリー、栄養素、量などは一切不要です。料理名・食品名のみを以下のJSON形式で返してください。
+複数の料理が写っている場合は全て列挙してください。
+JSON以外のテキストは含めないでください。
+
+出力形式:
+{"items": ["品目1", "品目2"]}
+
+例: {"items": ["ご飯", "焼き鮭", "味噌汁"]}
+"""
+
+
+def extract_food_item_names(image_bytes: bytes, api_key: str) -> list[str]:
+    """食事画像から品目名のみ抽出する。失敗時は空リスト。"""
+    try:
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        fmt = pil_image.format or "PNG"
+        mime_type = f"image/{fmt.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+        parts = [
+            {"text": _FOOD_ITEM_NAME_PROMPT},
+            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
+        ]
+        response_text = _gemini_generate(api_key, parts)
+        parsed = _parse_gemini_json(response_text) or {}
+        items = parsed.get("items", [])
+        return [str(x).strip() for x in items if str(x).strip()]
+    except Exception as e:
+        _log.warning(f"[food item extract] 失敗: {e}")
+        return []
 
 
 # ---------------------------------------------------------------------------
@@ -1945,89 +1668,13 @@ def _parse_gemini_json(response_text: str) -> dict | None:
     return json.loads(text)
 
 
-def analyze_food_image(image_bytes: bytes, api_key: str) -> dict | None:
-    """食事画像を Gemini で解析し、品目とカロリーを推定する。"""
-    return analyze_food_images([image_bytes], api_key)
-
-
-def analyze_food_images(images_bytes_list: list[bytes], api_key: str) -> dict | None:
-    """複数の食事画像をまとめて Gemini で解析し、品目とカロリーを推定する。
-
-    戻り値:
-        - {"items": [...]}   : 解析成功（品目ありも空もあり得る）
-        - None               : 一時エラー（ネットワーク/レートリミット/パース失敗）→ 呼び出し側で再試行する
-    """
-    try:
-        parts = [{"text": FOOD_ANALYSIS_PROMPT}]
-        for img_bytes in images_bytes_list:
-            pil_image = Image.open(io.BytesIO(img_bytes))
-            fmt = pil_image.format or "PNG"
-            mime_type = f"image/{fmt.lower()}"
-            if mime_type == "image/jpg":
-                mime_type = "image/jpeg"
-            b64_data = base64.b64encode(img_bytes).decode("utf-8")
-            parts.append({"inline_data": {"mime_type": mime_type, "data": b64_data}})
-        response_text = _gemini_generate(api_key, parts)
-        result = _parse_gemini_json(response_text)
-        if not isinstance(result, dict):
-            return None
-        # "items" キーが無い場合は「食事なし」として空配列を返す（再試行不要）
-        if "items" not in result:
-            return {"items": []}
-        return result
-    except (json.JSONDecodeError, KeyError) as e:
-        _log.error(f"食事画像解析 パースエラー: {e}")
-        return None
-    except Exception as e:
-        _log.error(f"食事画像解析エラー: {e}")
-        return None
-
-
-def analyze_weight_scale_image(image_bytes: bytes, api_key: str) -> dict | None:
-    """体重計の画像から Gemini で数値を読み取る。"""
-    try:
-        pil_image = Image.open(io.BytesIO(image_bytes))
-        fmt = pil_image.format or "PNG"
-        mime_type = f"image/{fmt.lower()}"
-        if mime_type == "image/jpg":
-            mime_type = "image/jpeg"
-        b64_data = base64.b64encode(image_bytes).decode("utf-8")
-        parts = [
-            {"text": WEIGHT_SCALE_PROMPT},
-            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
-        ]
-        response_text = _gemini_generate(api_key, parts)
-        result = _parse_gemini_json(response_text)
-        return result
-    except (json.JSONDecodeError, KeyError):
-        st.error("体重計の読み取り結果をJSONとして解析できませんでした。")
-        return None
-    except Exception as e:
-        _log.error(f"体重計読み取りエラー: {e}")
-        st.error("体重計の読み取り中にエラーが発生しました。再度お試しください。")
-        return None
-
-
 def _generate_weight_comment(day_data: dict, goals: dict) -> str:
     """目標に対する日次コメントを生成する（ルールベース）。"""
     comments = []
-    target_cal = goals.get("daily_calorie_target")
     target_wt = goals.get("target_weight_kg")
     target_date_str = goals.get("target_date")
-    total_cal = day_data.get("total_calories", 0)
     weight = day_data.get("weight")
 
-    # カロリー目標コメント
-    if target_cal and target_cal > 0:
-        diff = target_cal - total_cal
-        if diff > 0:
-            comments.append(f"あと **{diff} kcal** 摂取できます。")
-        elif diff == 0:
-            comments.append("目標カロリーぴったりです！")
-        else:
-            comments.append(f"⚠️ 目標カロリーを **{abs(diff)} kcal** オーバーしています。")
-
-    # 体重目標コメント
     if target_wt and target_wt > 0 and weight:
         wt_diff = round(weight - target_wt, 1)
         if wt_diff > 0:
@@ -2037,7 +1684,6 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
         else:
             comments.append(f"🎉 目標体重を **{abs(wt_diff)} kg** 下回っています！")
 
-    # 目標期日コメント
     if target_date_str:
         try:
             target_dt = datetime.strptime(target_date_str, "%Y-%m-%d").date()
@@ -2056,94 +1702,9 @@ def _generate_weight_comment(day_data: dict, goals: dict) -> str:
             pass
 
     if not comments:
-        comments.append("🎯 目標を設定すると進捗コメントが表示されます。")
+        comments.append("🎯 目標体重を設定すると進捗コメントが表示されます。")
 
     return "  \n".join(comments)
-
-
-def _generate_onepoint_advice(
-    records: dict, goals: dict, selected_date, api_key: str | None,
-) -> str:
-    """過去7日間のデータからワンポイントアドバイスを生成する。"""
-    from datetime import timedelta
-
-    # 過去7日間のデータを収集
-    past_days: list[dict] = []
-    for i in range(7):
-        d = selected_date - timedelta(days=i)
-        dk = d.strftime("%Y-%m-%d")
-        if dk in records and records[dk].get("items"):
-            past_days.append(records[dk])
-
-    if len(past_days) < 2:
-        return "📊 まだデータが不足しています（2日以上の記録が必要です）。\n\n食事を記録していくと、ここにパーソナルなアドバイスが表示されます。"
-
-    # 平均カロリー計算
-    avg_cal = round(sum(d.get("total_calories", 0) for d in past_days) / len(past_days))
-    target_cal = goals.get("daily_calorie_target", 0) or "未設定"
-
-    # 平均栄養素計算
-    nutrient_sums: dict[str, float] = {}
-    for day in past_days:
-        day_nuts = _aggregate_day_nutrients(day)
-        for k, v in day_nuts.items():
-            nutrient_sums[k] = nutrient_sums.get(k, 0) + v
-    nutrient_avgs = {k: round(v / len(past_days), 1) for k, v in nutrient_sums.items()}
-
-    # 不足・過剰の判定
-    deficient: list[str] = []
-    excess: list[str] = []
-    for nut_key, nut_info in DEFAULT_NUTRIENT_TARGETS.items():
-        avg_val = nutrient_avgs.get(nut_key, 0)
-        target = nut_info.get("target")
-        upper = nut_info.get("upper")
-        label = nut_info.get("label", nut_key)
-        if target and avg_val < target * 0.6:
-            deficient.append(f"{label}（平均{avg_val}/{target}{nut_info.get('unit', '')}）")
-        if upper and avg_val > upper:
-            excess.append(f"{label}（平均{avg_val}/{upper}{nut_info.get('unit', '')}）")
-
-    # 最近の食品名を収集
-    food_names: list[str] = []
-    seen_names: set[str] = set()
-    for day in past_days:
-        for item in _get_day_items(day):
-            n = item.get("name", "")
-            if n and n not in seen_names:
-                seen_names.add(n)
-                food_names.append(n)
-            if len(food_names) >= 15:
-                break
-
-    deficient_str = "、".join(deficient) if deficient else "特になし"
-    excess_str = "、".join(excess) if excess else "特になし"
-    recent_str = "、".join(food_names[:10])
-
-    # Gemini でアドバイス生成
-    if api_key:
-        try:
-            prompt = ONEPOINT_ADVICE_PROMPT.format(
-                days=len(past_days),
-                avg_cal=avg_cal,
-                target_cal=target_cal,
-                deficient=deficient_str,
-                excess=excess_str,
-                recent_foods=recent_str,
-            )
-            result = _gemini_generate(api_key, [{"text": prompt}])
-            return result.strip()
-        except Exception:
-            pass  # フォールバック
-
-    # ルールベースのフォールバック
-    lines = [f"📊 過去{len(past_days)}日間の平均: **{avg_cal} kcal/日**"]
-    if deficient:
-        lines.append(f"⚠️ 不足気味: {deficient_str}")
-    if excess:
-        lines.append(f"⚠️ 過剰気味: {excess_str}")
-    if not deficient and not excess:
-        lines.append("👍 栄養バランスは概ね良好です。")
-    return "  \n".join(lines)
 
 
 def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
@@ -2158,7 +1719,7 @@ def _extract_exif_datetime(image_bytes: bytes) -> datetime | None:
             dt_str = exif.get(tag_id)
             if dt_str:
                 return datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S")
-    except Exception:
+    except (AttributeError, ValueError, OSError):
         pass
     return None
 
@@ -2196,171 +1757,153 @@ def _get_day_items(day_data: dict) -> list[dict]:
     return items
 
 
-def _aggregate_day_nutrients(day_data: dict) -> dict[str, float]:
-    """1日の全品目から栄養素を合算して返す。
-
-    Returns:
-        {"protein": 合計g, "fat": 合計g, ...}  キーがない場合は0。
-    """
-    totals: dict[str, float] = {}
-    for item in _get_day_items(day_data):
-        nuts = item.get("nutrients", {})
-        for key, val in nuts.items():
-            if isinstance(val, (int, float)):
-                totals[key] = totals.get(key, 0) + val
-    return totals
+_NDLOCR_AVAILABLE: bool | None = None  # None=未確認, True/False=確認済み
+_NDLOCR_ARGS_TEMPLATE = None  # argparse.Namespace のテンプレ（初回呼び出し時に構築）
+_NDLOCR_MODEL_CACHE: dict = {}  # ('detector'|'recognizer', weights_path, device) -> インスタンス
+_NDLOCR_PATCHED = False
 
 
-def _recompute_all_day_totals(records: dict) -> int:
-    """全日分の total_calories を items から再計算する。
-
-    items 追加/削除後に total_calories が古いままのケースを補正する。
-    戻り値: 値が変更された日数。
-    """
-    changed = 0
-    for dk, day in list(records.items()):
-        if not isinstance(day, dict):
-            continue
-        try:
-            items = _get_day_items(day)
-            new_total = sum(it.get("calories", 0) for it in items)
-            if day.get("total_calories") != new_total:
-                day["total_calories"] = new_total
-                changed += 1
-        except Exception:
-            continue
-    return changed
-
-
-def _guess_meal_type(hour: int | None = None) -> str:
-    """時刻から食事タイプを推定する。hourが省略された場合は現在時刻を使用。"""
-    if hour is None:
-        hour = datetime.now().hour
-    if 4 <= hour < 10:
-        return "breakfast"
-    elif 10 <= hour < 15:
-        return "lunch"
-    elif 15 <= hour < 21:
-        return "dinner"
-    else:
-        return "snack"
-
-
-def _guess_meal_type_from_dt(dt: datetime) -> str:
-    """datetime から食事タイプを推定する。"""
-    return _guess_meal_type(dt.hour)
-
-
-def _group_items_by_meal(items: list[dict]) -> dict:
-    """品目リストを meal_type でグループ化。OrderedDict で MEAL_TYPE_ORDER 順に返す。"""
-    from collections import OrderedDict
-    groups = OrderedDict()
-    for mt in MEAL_TYPE_ORDER:
-        groups[mt] = []
-    unset = []
-    for it in items:
-        mt = it.get("meal_type")
-        if mt in groups:
-            groups[mt].append(it)
-        else:
-            unset.append(it)
-    if unset:
-        groups["unset"] = unset
-    return groups
-
-
-def _recalc_calories(items_for_recalc: list[dict], api_key: str) -> list[dict] | None:
-    """品目名+量リストからGeminiでカロリーと栄養素を再推定する。
-
-    items_for_recalc: [{"name": "品目名", "quantity": "ふつう"}, ...]
-    Returns: [{"calories": int, "nutrients": dict}, ...] or None
-    """
+def _patch_ndlocr_model_cache():
+    """ocr.get_detector / ocr.get_recognizer をモンキーパッチして
+    検出器・認識器のロード結果をキャッシュする（毎回 15 秒のロードを回避）。"""
+    global _NDLOCR_PATCHED
+    if _NDLOCR_PATCHED:
+        return
     try:
-        items_json = json.dumps(items_for_recalc, ensure_ascii=False)
-        prompt = CALORIE_RECALC_PROMPT.replace("{items_json}", items_json)
-        parts = [{"text": prompt}]
-        response_text = _gemini_generate(api_key, parts)
-        result = _parse_gemini_json(response_text)
-        if result and "items" in result:
-            return [
-                {
-                    "calories": it.get("calories", 0),
-                    "nutrients": it.get("nutrients", {}),
-                }
-                for it in result["items"]
-            ]
+        import ocr as _ocr_mod
     except Exception:
-        pass
-    return None
+        return
+    orig_get_detector = _ocr_mod.get_detector
+    orig_get_recognizer = _ocr_mod.get_recognizer
+
+    def cached_get_detector(args):
+        key = ("detector", getattr(args, "det_weights", ""), getattr(args, "device", "cpu"))
+        if key not in _NDLOCR_MODEL_CACHE:
+            _NDLOCR_MODEL_CACHE[key] = orig_get_detector(args)
+        return _NDLOCR_MODEL_CACHE[key]
+
+    def cached_get_recognizer(args, weights_path=None):
+        wp = weights_path or getattr(args, "rec_weights", "")
+        key = ("recognizer", wp, getattr(args, "device", "cpu"))
+        if key not in _NDLOCR_MODEL_CACHE:
+            if weights_path:
+                _NDLOCR_MODEL_CACHE[key] = orig_get_recognizer(args=args, weights_path=weights_path)
+            else:
+                _NDLOCR_MODEL_CACHE[key] = orig_get_recognizer(args=args)
+        return _NDLOCR_MODEL_CACHE[key]
+
+    _ocr_mod.get_detector = cached_get_detector
+    _ocr_mod.get_recognizer = cached_get_recognizer
+    _NDLOCR_PATCHED = True
 
 
-def generate_keywords_with_gemini(image_bytes: bytes, api_key: str, title: str = "") -> list[str] | None:
-    """Gemini で画像からキーワード（タグ）のみを生成する。
+def _ndlocr_available() -> bool:
+    """NDLOCR-Lite (ocr モジュール) が import 可能か返す（結果はキャッシュ）。"""
+    global _NDLOCR_AVAILABLE
+    if _NDLOCR_AVAILABLE is not None:
+        return _NDLOCR_AVAILABLE
+    try:
+        import ocr  # noqa: F401
+        _NDLOCR_AVAILABLE = True
+        _patch_ndlocr_model_cache()
+    except Exception:
+        _NDLOCR_AVAILABLE = False
+    return _NDLOCR_AVAILABLE
 
-    患者データ用：フル解析ではなくキーワード抽出のみ。
+
+def _build_ndlocr_args(sourceimg: str, output_dir: str):
+    """NDLOCR-Lite ocr.process() に渡す argparse.Namespace を組み立てる。"""
+    global _NDLOCR_ARGS_TEMPLATE
+    import argparse
+    import ocr as _ocr_mod
+    if _NDLOCR_ARGS_TEMPLATE is None:
+        base = Path(_ocr_mod.__file__).parent
+        _NDLOCR_ARGS_TEMPLATE = {
+            "det_weights": str(base / "model" / "deim-s-1024x1024.onnx"),
+            "det_classes": str(base / "config" / "ndl.yaml"),
+            "det_score_threshold": 0.2,
+            "det_conf_threshold": 0.25,
+            "det_iou_threshold": 0.2,
+            "simple_mode": False,
+            "rec_weights30": str(base / "model" / "parseq-ndl-16x256-30-tiny-192epoch-tegaki3.onnx"),
+            "rec_weights50": str(base / "model" / "parseq-ndl-16x384-50-tiny-146epoch-tegaki2.onnx"),
+            "rec_weights": str(base / "model" / "parseq-ndl-16x768-100-tiny-165epoch-tegaki2.onnx"),
+            "rec_classes": str(base / "config" / "NDLmoji.yaml"),
+            "device": "cpu",
+            "viz": False,
+        }
+    return argparse.Namespace(
+        sourcedir=None,
+        sourceimg=sourceimg,
+        output=output_dir,
+        **_NDLOCR_ARGS_TEMPLATE,
+    )
+
+
+def _extract_ocr_text_ndlocr(image_bytes: bytes) -> str:
+    """NDLOCR-Lite で画像内テキストを抽出。失敗時は空文字。
+
+    バイト列を tempfile に書き出し → ocr.process() で OCR → 出力 .txt を読む。
     """
+    if not _ndlocr_available():
+        return ""
+    import tempfile
+    import ocr as _ocr_mod
+    # 画像形式判定（NDLOCR は JPG/PNG/TIFF/JP2/BMP 対応）
     try:
         pil_image = Image.open(io.BytesIO(image_bytes))
-        fmt = pil_image.format or "PNG"
-        mime_type = f"image/{fmt.lower()}"
-        if mime_type == "image/jpg":
-            mime_type = "image/jpeg"
-        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+        ext = (pil_image.format or "PNG").lower()
+        if ext == "jpeg":
+            ext = "jpg"
+        if ext not in ("jpg", "png", "tiff", "tif", "jp2", "bmp"):
+            # 未対応形式は PNG に正規化
+            buf = io.BytesIO()
+            pil_image.convert("RGB").save(buf, format="PNG")
+            image_bytes = buf.getvalue()
+            ext = "png"
+    except Exception:
+        ext = "png"
 
-        title_hint = f"\nこの画像のタイトル: 「{title}」" if title else ""
-        prompt = (
-            "あなたは臨床経験豊富な専門医です。\n"
-            "この医療画像に適切なキーワード（タグ）を6〜8個生成してください。\n"
-            f"{title_hint}\n\n"
-            "以下のカテゴリから幅広くタグ付けしてください：\n"
-            "- 疾患名・病態\n"
-            "- 解剖学的部位\n"
-            "- 画像モダリティ（MRI、CT、X線など）\n"
-            "- 主要所見\n"
-            "- 鑑別疾患\n"
-            "- 関連する臨床情報\n\n"
-            "【重要】出力はJSON配列のみ。他のテキストは一切不要。\n"
-            '例: ["大腿骨頭壊死", "股関節", "MRI T2強調", "骨髄浮腫", "ステロイド内服歴"]'
-        )
-
-        parts = [
-            {"text": prompt},
-            {"inline_data": {"mime_type": mime_type, "data": b64_data}},
-        ]
-        response_text = _gemini_generate(api_key, parts).strip()
-
-        # ```json ... ``` コードブロック対応
-        if response_text.startswith("```"):
-            lines = response_text.split("\n")
-            json_lines = []
-            inside_block = False
-            for line in lines:
-                if line.startswith("```") and not inside_block:
-                    inside_block = True
-                    continue
-                elif line.startswith("```") and inside_block:
-                    break
-                elif inside_block:
-                    json_lines.append(line)
-            response_text = "\n".join(json_lines)
-
-        result = json.loads(response_text)
-        if isinstance(result, list):
-            return [str(k) for k in result if k]
-        return None
-
-    except Exception as e:
-        _log.error(f"AIキーワード生成エラー: {e}")
-        st.error("AIキーワード生成中にエラーが発生しました。再度お試しください。")
-        return None
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        in_path = tdp / f"in.{ext}"
+        out_dir = tdp / "out"
+        out_dir.mkdir(exist_ok=True)
+        in_path.write_bytes(image_bytes)
+        args = _build_ndlocr_args(str(in_path), str(out_dir))
+        try:
+            _ocr_mod.process(args)
+        except Exception as e:
+            _log.warning(f"[ndlocr] process失敗: {e}")
+            return ""
+        # 出力 .txt を探して読む（in.txt またはサブディレクトリ内）
+        texts: list[str] = []
+        for txt in out_dir.rglob("*.txt"):
+            try:
+                t = txt.read_text(encoding="utf-8", errors="replace").strip()
+                if t:
+                    texts.append(t)
+            except Exception:
+                continue
+        return "\n".join(texts).strip()
 
 
 def extract_ocr_text(image_bytes: bytes, api_key: str) -> str:
-    """Gemini で画像内のテキストをOCR抽出する。
+    """画像内のテキストをOCR抽出する。NDLOCR-Lite 優先・Gemini フォールバック。
 
     臨床画像（教科書、スライド、検査レポート等）に含まれるテキストを読み取り、
     プレーンテキストとして返す。テキストがない場合やエラー時は空文字を返す。
     """
+    # 1) NDLOCR-Lite が使えればそちらを使う
+    if _ndlocr_available():
+        try:
+            txt = _extract_ocr_text_ndlocr(image_bytes)
+            if txt:
+                return txt
+        except Exception as e:
+            _log.warning(f"[ocr] NDLOCR失敗、Geminiフォールバック: {e}")
+
+    # 2) Gemini フォールバック
     try:
         pil_image = Image.open(io.BytesIO(image_bytes))
         fmt = pil_image.format or "PNG"
@@ -2386,39 +1929,46 @@ def extract_ocr_text(image_bytes: bytes, api_key: str) -> str:
 AUTO_SCAN_INTERVAL = 300  # 秒（5分おき）
 
 
-def _auto_classify_folder(meta: dict, api_key: str, folders: list[str]) -> str:
-    """AI解析結果のメタデータから、既存フォルダの中で最適なものを返す。
+def _analyze_and_register_screenshot(service, fid: str, api_key: str,
+                                     metadata: dict) -> dict | None:
+    """1枚のスクショ画像をAI解析し metadata に登録する。失敗時 None。
 
-    該当するフォルダがなければ DEFAULT_FOLDER（未分類）を返す。
-    フォルダが未分類しかない場合もそのまま未分類を返す。
+    フロー: ① OCR(NDLOCR-Lite優先) → ② OCRテキストを文脈として Gemini で
+    タイトル/キーワード生成 → ③ ocr_text を full-text 検索用に保存。
+    呼び出し側で save_metadata を一括実行する想定。
     """
-    # 未分類以外のフォルダが存在しなければ分類しない
-    real_folders = [f for f in folders if f != DEFAULT_FOLDER]
-    if not real_folders:
-        return DEFAULT_FOLDER
-
-    title = meta.get("title", "")
-    summary = meta.get("summary", "")
-    keywords = ", ".join(meta.get("keywords", []))
-    folder_names = ", ".join(real_folders)
-
-    prompt = (
-        f"以下の医療画像を最も適切なフォルダに分類してください。\n\n"
-        f"タイトル: {title}\n要約: {summary}\nキーワード: {keywords}\n\n"
-        f"選択肢: {folder_names}\n\n"
-        f"どの選択肢にも当てはまらない場合は「{DEFAULT_FOLDER}」と出力してください。\n"
-        f"フォルダ名のみを1つだけ出力してください。"
-    )
-
     try:
-        result = _gemini_generate(api_key, [{"text": prompt}]).strip()
-        # フォルダ名リストから最も近いものを選択
-        for f in folders:
-            if f in result or result in f:
-                return f
-        return DEFAULT_FOLDER
+        image_bytes = download_image(service, fid)
+    except Exception as e:
+        _log.error(f"画像ダウンロード失敗 fid={fid}: {e}")
+        return None
+
+    # 取り込み時に即サムネを生成（後の表示を瞬時にする）
+    try:
+        _save_ss_thumb(fid, image_bytes)
     except Exception:
-        return DEFAULT_FOLDER
+        pass
+
+    # ① 先に OCR テキストを抽出
+    ocr_text = ""
+    try:
+        ocr_text = extract_ocr_text(image_bytes, api_key)
+    except Exception as e:
+        _log.warning(f"[analyze] OCR失敗 fid={fid}: {e}")
+
+    # ② OCR テキストを参考情報として Gemini にタイトル/キーワードを生成させる
+    result = analyze_image_with_gemini(image_bytes, api_key, ocr_hint=ocr_text)
+    if not result:
+        return None
+    result["status"] = STATUS_REVIEWED
+    result["folder"] = DEFAULT_FOLDER
+
+    # ③ OCR テキストは全文検索用に保存（UI には表示しない）
+    if ocr_text:
+        result["ocr_text"] = ocr_text
+
+    metadata[fid] = result
+    return result
 
 
 def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
@@ -2465,8 +2015,7 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
         patient_registered_ids = {img["id"] for img in patient_images}
 
         metadata = load_metadata()
-        ignore_p = load_ignore_list()
-        new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
+        new_patient = [img for img in patient_images if img["id"] not in metadata]
 
         if new_patient:
             folders = load_folders()
@@ -2490,8 +2039,9 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
             if p_count > 0:
                 save_metadata(metadata)
                 _invalidate_all_caches()
-                st.sidebar.info(
-                    f"🏥 患者データ {p_count} 件を自動登録しました（AI解析なし）"
+                st.toast(
+                    f"🏥 患者データ {p_count} 件を自動登録しました",
+                    icon="🏥",
                 )
 
     # --- メインフォルダの新着画像スキャン ---
@@ -2513,12 +2063,10 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
 
     if drive_images:
         metadata = load_metadata()
-        ignore = load_ignore_list()
         # 患者データフォルダにあるファイルはメインスキャンから除外
         new_images = [
             img for img in drive_images
             if img["id"] not in metadata
-            and img["id"] not in ignore
             and img["id"] not in patient_registered_ids
         ]
 
@@ -2526,35 +2074,11 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
             batch = new_images[:MAX_AUTO_ANALYZE]
             remaining = len(new_images) - len(batch)
 
-            folders = load_folders()
-
             success_count = 0
-            classified_count = 0
-            scan_placeholder = st.sidebar.empty()
-            scan_placeholder.info(
-                f"🔄 新着画像 {len(new_images)} 件を検知。自動解析・登録中..."
-            )
-
             for img in batch:
                 fid = img["id"]
                 try:
-                    image_bytes = download_image(service, fid)
-
-                    result = analyze_image_with_gemini(image_bytes, api_key)
-                    if result:
-                        result["status"] = STATUS_REVIEWED
-                        assigned_folder = _auto_classify_folder(result, api_key, folders)
-                        result["folder"] = assigned_folder
-                        if assigned_folder != DEFAULT_FOLDER:
-                            classified_count += 1
-                        # OCRテキスト抽出
-                        try:
-                            ocr_text = extract_ocr_text(image_bytes, api_key)
-                            if ocr_text:
-                                result["ocr_text"] = ocr_text
-                        except Exception:
-                            pass
-                        metadata[fid] = result
+                    if _analyze_and_register_screenshot(service, fid, api_key, metadata):
                         success_count += 1
                 except Exception:
                     continue
@@ -2564,14 +2088,10 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
                 _invalidate_all_caches()
                 list_images.clear()
                 list_patient_images.clear()
-                msg = f"✅ 新着 {success_count} 件を自動登録しました！"
-                if classified_count > 0:
-                    msg += f"\n（{classified_count} 件をフォルダに自動分類）"
+                msg = f"✅ 新着 {success_count} 件を自動登録"
                 if remaining > 0:
-                    msg += f"\n（残り {remaining} 件は次回スキャン時に処理）"
-                scan_placeholder.success(msg)
-            else:
-                scan_placeholder.empty()
+                    msg += f"（残り {remaining} 件は次回処理）"
+                st.toast(msg, icon="✅")
 
 
 def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
@@ -2609,8 +2129,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         patient_registered_ids = {img["id"] for img in patient_images}
 
         metadata = load_metadata()
-        ignore_p = load_ignore_list()
-        new_patient = [img for img in patient_images if img["id"] not in metadata and img["id"] not in ignore_p]
+        new_patient = [img for img in patient_images if img["id"] not in metadata]
 
         if new_patient:
             folders = load_folders()
@@ -2655,12 +2174,10 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         return
 
     metadata = load_metadata()
-    ignore = load_ignore_list()
     # 患者データフォルダにあるファイルはメインスキャンから除外
     new_images = [
         img for img in drive_images
         if img["id"] not in metadata
-        and img["id"] not in ignore
         and img["id"] not in patient_registered_ids
     ]
 
@@ -2671,8 +2188,6 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         status_text.info(
             f"🆕 新着 **{len(new_images)}** 件を検出！ AI解析・自動登録を開始します..."
         )
-
-        folders = load_folders()
 
         progress_bar = st.progress(0, text="準備中...")
         results_container = st.container()
@@ -2690,26 +2205,12 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             )
 
             try:
-                image_bytes = download_image(service, fid)
-
-                result = analyze_image_with_gemini(image_bytes, api_key)
+                result = _analyze_and_register_screenshot(service, fid, api_key, metadata)
                 if result:
-                    result["status"] = STATUS_REVIEWED
-                    assigned_folder = _auto_classify_folder(result, api_key, folders)
-                    result["folder"] = assigned_folder
-                    # OCRテキスト抽出
-                    try:
-                        ocr_text = extract_ocr_text(image_bytes, api_key)
-                        if ocr_text:
-                            result["ocr_text"] = ocr_text
-                    except Exception:
-                        pass
-                    metadata[fid] = result
                     success_count += 1
-                    folder_label = f" → 📁 {assigned_folder}" if assigned_folder != DEFAULT_FOLDER else ""
                     with results_container:
                         st.markdown(
-                            f"✅ **{html.escape(result.get('title', fname))}**{html.escape(folder_label)}  \n"
+                            f"✅ **{html.escape(result.get('title', fname))}**  \n"
                             f"<span style='color:#b0b0b0;font-size:12px;'>"
                             f"{', '.join(html.escape(k) for k in result.get('keywords', [])[:4])}</span>",
                             unsafe_allow_html=True,
@@ -2751,44 +2252,35 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def scan_food_images(service, food_folder_id: str, api_key: str,
+def scan_food_images(service, food_folder_id: str, api_key: str | None = None,
                      manual: bool = False) -> int:
-    """Google Driveの食事画像フォルダをスキャンし、未処理画像をAI解析して仮登録する。
+    """Google Driveの食事画像フォルダをスキャンし、未処理画像をローカルに取り込む。
 
-    Args:
-        service: Google Drive API クライアント
-        food_folder_id: 食事画像フォルダID
-        api_key: Gemini API キー
-        manual: True=手動スキャン（件数制限なし）, False=自動スキャン
-
-    Returns:
-        処理した画像数
+    api_key があれば Gemini で品目名のみ抽出する（カロリー/栄養素は扱わない）。
+    api_key=None なら品目名抽出はスキップし、ファイル名のみ保存。
     """
-    # 排他ロック: 同時実行を防止
     if st.session_state.get("_food_scan_running"):
         return 0
     st.session_state["_food_scan_running"] = True
     try:
-        return _scan_food_images_inner(service, food_folder_id, api_key, manual)
+        return _scan_food_images_inner(service, food_folder_id, manual, api_key)
     finally:
         st.session_state["_food_scan_running"] = False
 
 
-def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
-                            manual: bool = False) -> int:
-    """scan_food_images の内部実装。"""
+def _scan_food_images_inner(service, food_folder_id: str,
+                            manual: bool = False,
+                            api_key: str | None = None) -> int:
+    """scan_food_images の内部実装（品目名のみ AI 抽出、カロリー/栄養素なし）。"""
     if not manual:
-        # 自動スキャン: クールダウンチェック
         now = time.time()
         last_scan = st.session_state.get("food_scan_last", 0)
         if now - last_scan < FOOD_SCAN_INTERVAL:
             return 0
         st.session_state["food_scan_last"] = now
 
-    # 処理済みリスト読み込み
     processed = load_food_processed()
 
-    # Google Driveから画像一覧を取得（ページネーション対応）
     all_files: list[dict] = []
     try:
         mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
@@ -2815,38 +2307,10 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
         if not all_files:
             return 0
 
-    # 未処理画像を抽出
-    # - 手動: no_items / error をすべて再処理
-    # - 自動: error は常に再処理、no_items は最後の処理から24h以上経過したもののみ再処理
-    #   （Gemini が一時的に食事を検出できなかった画像を日次でリトライし、自動で欠落日を復旧）
-    now_dt = datetime.now()
-
-    def _should_include(f: dict) -> bool:
-        fid = f["id"]
-        entry = processed.get(fid)
-        if entry is None:
-            return True
-        status = entry.get("status")
-        if status == "error":
-            return True
-        if status == "no_items":
-            if manual:
-                return True
-            # 自動スキャン: 24h以上経過していればリトライ
-            try:
-                last = datetime.fromisoformat(entry.get("processed_at", ""))
-                return (now_dt - last).total_seconds() >= 86400
-            except (ValueError, TypeError):
-                return True
-        return False
-
-    new_files = [f for f in all_files if _should_include(f)]
+    new_files = [f for f in all_files if f["id"] not in processed]
     if not new_files:
         return 0
 
-    # 件数制限
-    # - 自動: MAX_FOOD_SCAN_IMAGES
-    # - 手動: 30枚/クリック（UI がフリーズしないよう上限を設ける）
     _MANUAL_SCAN_LIMIT = 30
     _total_candidates = len(new_files)
     if manual:
@@ -2854,11 +2318,9 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
     else:
         new_files = new_files[:MAX_FOOD_SCAN_IMAGES]
 
-    # weight_data を読み込み
     weight_data = load_weight_data()
     records = weight_data.setdefault("records", {})
 
-    # 手動スキャン時は進捗表示
     _progress = None
     _progress_text = None
     if manual:
@@ -2876,19 +2338,15 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
         file_name = file_info.get("name", file_id)
 
         try:
-            # 画像をダウンロード
             img_bytes = download_image(service, file_id)
             if not img_bytes:
                 continue
 
-            # EXIF日時を取得 → フォールバック: Driveの modifiedTime → 今日
             photo_dt = _extract_exif_datetime(img_bytes)
             if photo_dt is None:
-                # Drive の modifiedTime を使用
                 mod_time_str = file_info.get("modifiedTime", "")
                 if mod_time_str:
                     try:
-                        # ISO 8601 format: 2026-02-26T09:12:43.000Z
                         photo_dt = datetime.fromisoformat(
                             mod_time_str.replace("Z", "+00:00")
                         )
@@ -2899,80 +2357,38 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
 
             date_key = photo_dt.strftime("%Y-%m-%d")
 
-            # 画像をローカル保存
             WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
             img_id = f"wm_{uuid.uuid4().hex[:12]}"
             ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "png"
             if ext not in ("jpg", "jpeg", "png"):
                 ext = "png"
             (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(img_bytes)
+            # 取り込み時に即サムネを生成しておく（後の表示を瞬時にする）
+            _save_food_thumb(img_id, img_bytes)
 
-            # AI解析
-            result = analyze_food_images([img_bytes], api_key)
-            if result is None:
-                # 一時エラー（API/ネットワーク/パース失敗）: 処理済みに記録せず次回再試行
-                _log.warning(f"食事画像AI解析 一時エラー（再試行予定）: {file_name}")
-                processed[file_id] = {
-                    "date": "",
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "error",
-                    "error": "AI解析に失敗（一時エラー）",
-                }
-                if manual:
-                    st.warning(f"⚠️ {file_name}: AI解析に失敗しました（次回自動再試行）")
-                continue
-
-            items_list = result.get("items") or []
-            if items_list:
-                day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
-                # 重複防止: この画像が既に取り込み済みならスキップ
-                existing_fids = {x.get("drive_file_id") for x in day_data.get("items", [])}
-                if file_id in existing_fids:
-                    processed[file_id] = {
-                        "date": date_key,
-                        "file_name": file_name,
-                        "processed_at": datetime.now().isoformat(),
-                        "status": "ok",
-                    }
-                    continue
-                for it in items_list:
-                    item_entry = {
-                        "id": f"item_{uuid.uuid4().hex[:12]}",
-                        "name": it.get("name", "不明"),
-                        "quantity": it.get("quantity", "ふつう"),
-                        "calories": it.get("calories", 0),
-                        "nutrients": it.get("nutrients", {}),
-                        "meal_type": _guess_meal_type_from_dt(photo_dt),
-                        "image_id": img_id,
-                        "image_ext": ext,
-                        "drive_file_id": file_id,
-                    }
-                    day_data["items"].append(item_entry)
-
-                # 合計カロリー再計算
-                all_items = _get_day_items(day_data)
-                day_data["total_calories"] = sum(
-                    it.get("calories", 0) for it in all_items
-                )
-
-                processed[file_id] = {
-                    "date": date_key,
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "ok",
-                }
+            day_data = records.setdefault(date_key, {"items": []})
+            existing_fids = {x.get("drive_file_id") for x in day_data.get("items", [])}
+            if file_id not in existing_fids:
+                item_names: list[str] = []
+                if api_key:
+                    item_names = extract_food_item_names(img_bytes, api_key)
+                display_name = "・".join(item_names) if item_names else file_name
+                day_data.setdefault("items", []).append({
+                    "id": f"item_{uuid.uuid4().hex[:12]}",
+                    "name": display_name,
+                    "items_extracted": item_names,
+                    "image_id": img_id,
+                    "image_ext": ext,
+                    "drive_file_id": file_id,
+                })
                 count += 1
-            else:
-                # AIが応答したが食事と判定されなかった（食事以外の画像）
-                processed[file_id] = {
-                    "date": date_key,
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "no_items",
-                }
-                if manual:
-                    st.warning(f"⚠️ {file_name}: 食事の品目を検出できませんでした")
+
+            processed[file_id] = {
+                "date": date_key,
+                "file_name": file_name,
+                "processed_at": datetime.now().isoformat(),
+                "status": "ok",
+            }
 
         except Exception as e:
             if manual:
@@ -2986,12 +2402,10 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
                 "error": str(e),
             }
 
-    # 保存
     if count > 0:
         save_weight_data(weight_data)
     save_food_processed(processed)
 
-    # 進捗表示のクリーンアップ
     if _progress is not None:
         _progress.progress(1.0)
         _progress.empty()
@@ -3004,223 +2418,6 @@ def _scan_food_images_inner(service, food_folder_id: str, api_key: str,
             _progress_text.empty()
 
     return count
-
-
-def rescan_zero_calorie_days(service, food_folder_id: str, api_key: str) -> dict:
-    """記録開始日以降で total_calories == 0 の日に紐づく Drive 画像を強制再解析する。
-
-    対象: 処理済みリスト内で date が 0kcal日 に該当するエントリ、
-          または status=="error" で date が空のエントリ。
-
-    Returns:
-        {"days": 対象日数, "files": 対象ファイル数, "imported": 新規取り込み数}
-    """
-    weight_data = load_weight_data()
-    records = weight_data.setdefault("records", {})
-    if not records:
-        return {"days": 0, "files": 0, "imported": 0}
-
-    # 記録開始日～今日 の範囲で 0kcal 日を抽出
-    sorted_keys = sorted(records.keys())
-    try:
-        first_d = date.fromisoformat(sorted_keys[0])
-    except (ValueError, TypeError):
-        return {"days": 0, "files": 0, "imported": 0}
-    today_d = date.today()
-    zero_days: set[str] = set()
-    cur = first_d
-    while cur <= today_d:
-        dk = cur.strftime("%Y-%m-%d")
-        day = records.get(dk)
-        if (not day) or (day.get("total_calories", 0) == 0) or (not _get_day_items(day)):
-            zero_days.add(dk)
-        cur += timedelta(days=1)
-
-    if not zero_days:
-        return {"days": 0, "files": 0, "imported": 0}
-
-    processed = load_food_processed()
-
-    # Drive 上の全画像を列挙（新規・既存を問わず）
-    all_drive_files: dict[str, dict] = {}
-    try:
-        mime_query = " or ".join(f"mimeType='{mt}'" for mt in IMAGE_MIME_TYPES)
-        query = f"'{food_folder_id}' in parents and ({mime_query}) and trashed=false"
-        _page_token = None
-        while True:
-            params = dict(
-                q=query,
-                fields="nextPageToken, files(id, name, mimeType, createdTime, modifiedTime)",
-                orderBy="modifiedTime desc",
-                pageSize=100,
-            )
-            if _page_token:
-                params["pageToken"] = _page_token
-            results = service.files().list(**params).execute()
-            for f in results.get("files", []):
-                all_drive_files[f["id"]] = f
-            _page_token = results.get("nextPageToken")
-            if not _page_token:
-                break
-    except Exception as e:
-        _log.error(f"Drive一覧取得失敗: {e}")
-
-    def _drive_date(f: dict) -> str | None:
-        for field in ("createdTime", "modifiedTime"):
-            t = f.get(field, "")
-            if t:
-                try:
-                    return datetime.fromisoformat(
-                        t.replace("Z", "+00:00")
-                    ).date().isoformat()
-                except (ValueError, TypeError):
-                    continue
-        return None
-
-    # 再処理対象を収集
-    # 1) processed の date が 0kcal日 に該当
-    # 2) processed で status=="error" かつ date が空
-    # 3) Drive上に存在するが processed に無く、Driveタイムスタンプが 0kcal日
-    # 4) Drive上に存在するが processed に無く、撮影日が記録開始日～今日 の範囲（Drive日付未取得時の保険）
-    target_set: set[str] = set()
-    for fid, entry in processed.items():
-        if entry.get("date") in zero_days:
-            target_set.add(fid)
-        elif entry.get("status") == "error" and not entry.get("date"):
-            target_set.add(fid)
-
-    first_iso = first_d.isoformat()
-    today_iso = today_d.isoformat()
-    for fid, f in all_drive_files.items():
-        if fid in processed:
-            continue
-        dd = _drive_date(f)
-        if dd is None:
-            # 日付不明だが未処理 → 範囲内の可能性があるので含める
-            target_set.add(fid)
-        elif dd in zero_days:
-            target_set.add(fid)
-        elif first_iso <= dd <= today_iso:
-            # 範囲内の未処理画像は念のため含める
-            target_set.add(fid)
-
-    target_fids = list(target_set)
-
-    if not target_fids:
-        return {"days": len(zero_days), "files": 0, "imported": 0}
-
-    # 進捗表示
-    progress_text = st.empty()
-    progress_bar = st.progress(0.0)
-    progress_text.caption(
-        f"🔁 {len(zero_days)} 日分 / {len(target_fids)} 枚の画像を再解析中…"
-    )
-
-    imported = 0
-    for idx, file_id in enumerate(target_fids):
-        progress_bar.progress(idx / max(len(target_fids), 1))
-        try:
-            # Drive からファイル情報取得
-            try:
-                file_info = service.files().get(
-                    fileId=file_id,
-                    fields="id,name,mimeType,modifiedTime,createdTime",
-                ).execute()
-            except Exception as e:
-                _log.warning(f"Drive get 失敗 {file_id}: {e}")
-                continue
-            file_name = file_info.get("name", file_id)
-
-            img_bytes = download_image(service, file_id)
-            if not img_bytes:
-                continue
-
-            # 撮影日決定（EXIF → modifiedTime → 今日）
-            photo_dt = _extract_exif_datetime(img_bytes)
-            if photo_dt is None:
-                mod_time_str = file_info.get("modifiedTime", "")
-                if mod_time_str:
-                    try:
-                        photo_dt = datetime.fromisoformat(
-                            mod_time_str.replace("Z", "+00:00")
-                        )
-                    except (ValueError, TypeError):
-                        pass
-            if photo_dt is None:
-                photo_dt = datetime.now()
-            date_key = photo_dt.strftime("%Y-%m-%d")
-
-            # ローカル保存
-            WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
-            img_id = f"wm_{uuid.uuid4().hex[:12]}"
-            ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "png"
-            if ext not in ("jpg", "jpeg", "png"):
-                ext = "png"
-            (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(img_bytes)
-
-            # AI 解析（強制リトライ）
-            result = analyze_food_images([img_bytes], api_key)
-            if result is None:
-                processed[file_id] = {
-                    "date": "",
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "error",
-                    "error": "AI解析に失敗（一時エラー）",
-                }
-                continue
-
-            items_list = result.get("items") or []
-            if items_list:
-                day_data = records.setdefault(
-                    date_key, {"items": [], "total_calories": 0}
-                )
-                # 同一 drive_file_id の既存 item を除外してから追加（重複防止）
-                day_data["items"] = [
-                    it for it in day_data.get("items", [])
-                    if it.get("drive_file_id") != file_id
-                ]
-                for it in items_list:
-                    item_entry = {
-                        "id": f"item_{uuid.uuid4().hex[:12]}",
-                        "name": it.get("name", "不明"),
-                        "quantity": it.get("quantity", "ふつう"),
-                        "calories": it.get("calories", 0),
-                        "nutrients": it.get("nutrients", {}),
-                        "meal_type": _guess_meal_type_from_dt(photo_dt),
-                        "image_id": img_id,
-                        "image_ext": ext,
-                        "drive_file_id": file_id,
-                    }
-                    day_data["items"].append(item_entry)
-                all_items = _get_day_items(day_data)
-                day_data["total_calories"] = sum(
-                    it.get("calories", 0) for it in all_items
-                )
-                processed[file_id] = {
-                    "date": date_key,
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "ok",
-                }
-                imported += 1
-            else:
-                processed[file_id] = {
-                    "date": date_key,
-                    "file_name": file_name,
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "no_items",
-                }
-        except Exception as e:
-            _log.error(f"再解析失敗 {file_id}: {e}")
-
-    save_weight_data(weight_data)
-    save_food_processed(processed)
-    progress_bar.progress(1.0)
-    progress_bar.empty()
-    progress_text.empty()
-
-    return {"days": len(zero_days), "files": len(target_fids), "imported": imported}
 
 
 # ---------------------------------------------------------------------------
@@ -3480,25 +2677,6 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
         ]
         _log.info(f"[display_edit_form] submit: file_id={file_id}, edited_keywords_str='{edited_keywords_str}', new_keywords={new_keywords}")
 
-        # --- 自動キーワード生成（タイトル/サマリー変更時） ---
-        title_changed = edited_title != meta.get("title", "")
-        summary_changed = edited_summary != meta.get(get_summary_label(meta), meta.get("summary", ""))
-        if title_changed or summary_changed:
-            try:
-                api_key = get_gemini_api_key()
-                if api_key:
-                    service = get_drive_service()
-                    image_bytes = download_image(service, file_id)
-                    if image_bytes:
-                        auto_kws = generate_keywords_with_gemini(
-                            image_bytes, api_key, title=edited_title,
-                        )
-                        if auto_kws:
-                            new_keywords = auto_kws
-                            st.toast("🤖 キーワードを自動生成しました", icon="✅")
-            except Exception as e:
-                _log.error(f"自動キーワード生成失敗: {e}")
-
         # 渡されたmetadata（現在のセッションのもの）を直接更新してsave
         # ※ load し直すとAPI呼び出しが増えレート制限に当たる可能性があるため
         existing = metadata.get(file_id, {})
@@ -3530,412 +2708,6 @@ def display_edit_form(file_id: str, meta: dict, metadata: dict) -> None:
 
 
 
-
-# ===========================================================================
-# ページ: 画像管理
-# ===========================================================================
-
-
-# ===========================================================================
-# ページ: 一括解析
-# ===========================================================================
-def _ensure_patient_data_folder(metadata: dict) -> bool:
-    """患者データのfolder値が正しいか確認し、修正があればTrueを返す。"""
-    fixed = False
-    for fid, meta in metadata.items():
-        if is_patient_data(meta) and get_folder(meta) != PATIENT_DATA_FOLDER:
-            meta["folder"] = PATIENT_DATA_FOLDER
-            fixed = True
-    if fixed:
-        save_metadata(metadata)
-        _invalidate_all_caches()
-        # フォルダリストにも追加
-        folders = load_folders()
-        if PATIENT_DATA_FOLDER not in folders:
-            folders.append(PATIENT_DATA_FOLDER)
-            save_folders(folders)
-    return fixed
-
-
-def _run_batch_analyze(service, target_images, metadata, api_key, is_reanalyze=False, correction_hint=""):
-    """一括解析 / 一括再解析の共通実行処理。
-
-    新規解析の場合: 確認済み（STATUS_REVIEWED）として登録し、既存フォルダへ自動分類する。
-    再解析の場合: 既存のfolder, sourceを保持する。
-    correction_hint が指定された場合、AIに修正指示を渡す。
-    """
-    total = len(target_images)
-    label = "指示付き再解析" if correction_hint else ("再解析" if is_reanalyze else "解析・登録")
-    progress_bar = st.progress(0, text="解析を開始...")
-    success_count = 0
-    fail_count = 0
-    folders = load_folders()
-
-    for i, img in enumerate(target_images):
-        fid = img["id"]
-        fname = img["name"]
-        # 患者データはAI解析をスキップ
-        if fid in metadata and is_patient_data(metadata[fid]):
-            continue
-        progress_bar.progress(
-            i / total,
-            text=f"{label}中... ({i + 1}/{total}) {fname}",
-        )
-
-        try:
-            image_bytes = download_image(service, fid)
-
-            result = analyze_image_with_gemini(image_bytes, api_key, correction_hint=correction_hint)
-            if result:
-                if is_reanalyze and fid in metadata:
-                    # 再解析: 既存のfolder, sourceを保持
-                    old = metadata[fid]
-                    for keep_key in ("folder", "source"):
-                        if keep_key in old:
-                            result[keep_key] = old[keep_key]
-                else:
-                    # 新規解析: 確認済みとして登録 & フォルダ自動分類
-                    result["status"] = STATUS_REVIEWED
-                    assigned_folder = _auto_classify_folder(result, api_key, folders)
-                    result["folder"] = assigned_folder
-                metadata[fid] = result
-                save_metadata(metadata)
-                success_count += 1
-            else:
-                fail_count += 1
-        except Exception as e:
-            _log.error(f"解析失敗 {fname}: {e}")
-            st.warning(f"⚠️ {html.escape(fname)} の解析に失敗しました。")
-            fail_count += 1
-
-        if i < total - 1:
-            time.sleep(1)
-
-    progress_bar.progress(1.0, text="完了！")
-    action_name = "再解析" if is_reanalyze else "一括解析・登録"
-    st.success(f"{action_name}が完了しました！ 成功: {success_count} 件 / 失敗: {fail_count} 件")
-    st.rerun()
-
-
-def _run_batch_ocr(service, target_images, metadata, api_key):
-    """一括OCRテキスト抽出の実行処理。"""
-    total = len(target_images)
-    progress_bar = st.progress(0, text="OCR抽出を開始...")
-    success_count = 0
-    fail_count = 0
-
-    for i, img in enumerate(target_images):
-        fid = img["id"]
-        fname = img["name"]
-        progress_bar.progress(
-            i / total,
-            text=f"OCR抽出中... ({i + 1}/{total}) {fname}",
-        )
-
-        try:
-            image_bytes = download_image(service, fid)
-            if image_bytes:
-                ocr_text = extract_ocr_text(image_bytes, api_key)
-                if fid in metadata:
-                    metadata[fid]["ocr_text"] = ocr_text
-                    save_metadata(metadata)
-                    success_count += 1
-                else:
-                    fail_count += 1
-            else:
-                fail_count += 1
-        except Exception as e:
-            _log.error(f"OCR抽出失敗 {fname}: {e}")
-            st.warning(f"⚠️ {html.escape(fname)} のOCR抽出に失敗しました。")
-            fail_count += 1
-
-        if i < total - 1:
-            time.sleep(1)
-
-    progress_bar.progress(1.0, text="完了！")
-    st.success(f"OCRテキスト抽出が完了しました！ 成功: {success_count} 件 / 失敗: {fail_count} 件")
-    st.rerun()
-
-
-# ===========================================================================
-# ページ: ゴミ箱
-# ===========================================================================
-def page_trash():
-    """ゴミ箱ページ — 削除した解析データの復元・完全削除を行う。"""
-    # 起動時に古いアイテムを自動パージ
-    purged = purge_old_trash()
-    if purged > 0:
-        st.toast(f"🧹 {purged} 件の期限切れデータを自動削除しました")
-
-    trash = load_trash()
-
-    # --- サイドバー ---
-    st.sidebar.header("🗑️ ゴミ箱")
-    st.sidebar.write(f"ゴミ箱内: **{len(trash)}** 件")
-    ignore_count = len(load_ignore_list())
-    if ignore_count > 0:
-        st.sidebar.caption(f"🚫 再取り込み防止中: {ignore_count} 件")
-    st.sidebar.caption(f"削除後 {TRASH_RETENTION_DAYS} 日で自動的に完全削除されます")
-
-    if not trash:
-        st.info("ゴミ箱は空です。")
-        return
-
-    # --- 全選択 / 全解除 ---
-    _apply_batch_checkbox("_trash_sel_flag", [f"trash_sel_{i}" for i in range(len(trash))])
-    act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
-    with act_col1:
-        if st.button(f"✅ 全選択（全{len(trash)}件）", key="trash_sel_all"):
-            _set_batch_checkbox("_trash_sel_flag", True)
-    with act_col2:
-        if st.button("🔄 全解除", key="trash_sel_none"):
-            _set_batch_checkbox("_trash_sel_flag", False)
-
-    # --- アイテム一覧 ---
-    selected_indices = []
-
-    cols_per_row = 3
-    for row_start in range(0, len(trash), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for col_idx in range(cols_per_row):
-            item_idx = row_start + col_idx
-            if item_idx >= len(trash):
-                break
-            item = trash[item_idx]
-            meta = item["metadata"]
-            fid = item["file_id"]
-            title = meta.get("title", fid[:20])
-            keywords = meta.get("keywords", [])
-            status = get_status(meta)
-            status_icon = "✅" if status == STATUS_REVIEWED else "🆕"
-
-            # 残り日数を計算
-            try:
-                deleted_at = datetime.fromisoformat(item["deleted_at"])
-                remaining_days = TRASH_RETENTION_DAYS - (datetime.now() - deleted_at).days
-                time_label = f"あと {remaining_days} 日"
-            except (ValueError, KeyError):
-                time_label = "不明"
-
-            with cols[col_idx]:
-                # カード風表示
-                kw_html = ""
-                if keywords:
-                    kw_tags = " ".join(
-                        f'<span style="background:#1a5276;color:#d6eaf8;'
-                        f'padding:2px 8px;border-radius:10px;font-size:11px;'
-                        f'margin:1px 2px;display:inline-block;">{kw}</span>'
-                        for kw in keywords[:3]
-                    )
-                    kw_html = f'<div style="margin-top:6px;">{kw_tags}</div>'
-
-                st.markdown(
-                    f'<div style="border:2px solid #e74c3c;border-radius:10px;'
-                    f'padding:14px;margin-bottom:8px;min-height:100px;'
-                    f'opacity:0.8;">'
-                    f'<p style="font-size:13px;font-weight:600;margin:0 0 4px 0;'
-                    f'line-height:1.3;">{status_icon} {title}</p>'
-                    f'<p style="font-size:11px;color:#e74c3c;margin:0;">⏳ {time_label}</p>'
-                    f'{kw_html}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-                checked = st.checkbox(
-                    "選択",
-                    value=st.session_state.get(f"trash_sel_{item_idx}", False),
-                    key=f"trash_sel_{item_idx}",
-                )
-                if checked:
-                    selected_indices.append(item_idx)
-
-    # --- 操作ボタン ---
-    st.markdown("---")
-    sel_count = len(selected_indices)
-
-    btn_col1, btn_col2 = st.columns(2)
-    with btn_col1:
-        if st.button(
-            f"♻️ 選択した {sel_count} 件を復元",
-            type="primary",
-            key="trash_restore",
-            disabled=(sel_count == 0),
-        ):
-            restored = restore_from_trash(selected_indices)
-            for i in range(len(trash)):
-                st.session_state.pop(f"trash_sel_{i}", None)
-            st.success(f"✅ {restored} 件を復元しました。")
-            st.rerun()
-
-    with btn_col2:
-        if sel_count > 0:
-            st.error(f"⚠️ {sel_count} 件を完全削除すると元に戻せません。")
-        if st.button(
-            f"🔥 選択した {sel_count} 件を完全削除",
-            key="trash_purge",
-            disabled=(sel_count == 0),
-        ):
-            trash_items = load_trash()
-            for idx in sorted(selected_indices, reverse=True):
-                if 0 <= idx < len(trash_items):
-                    trash_items.pop(idx)
-            save_trash(trash_items)
-            for i in range(len(trash)):
-                st.session_state.pop(f"trash_sel_{i}", None)
-            st.success(f"🔥 {sel_count} 件を完全削除しました。")
-            st.rerun()
-
-
-# ===========================================================================
-# ページ: フォルダ設定
-# ===========================================================================
-def page_folder_settings():
-    """フォルダの追加・名前変更・削除を行う管理ページ。"""
-    metadata = load_metadata()
-    folders = load_folders()
-
-    st.subheader("🗂️ フォルダ設定")
-    st.caption("フォルダの追加・名前変更・削除ができます。")
-
-    # --- フォルダ新規作成 ---
-    st.markdown("#### ➕ フォルダを追加")
-    add_c1, add_c2 = st.columns([4, 1])
-    with add_c1:
-        new_folder_name = st.text_input(
-            "新しいフォルダ名",
-            placeholder="例: 股関節、脊椎、心臓...",
-            key="fs_new_folder",
-            label_visibility="collapsed",
-        )
-    with add_c2:
-        if st.button("➕ 作成", key="fs_create_btn", width="stretch"):
-            name = new_folder_name.strip()
-            if not name:
-                st.warning("フォルダ名を入力してください。")
-            elif name in folders:
-                st.warning(f"「{name}」は既に存在します。")
-            else:
-                folders.append(name)
-                save_folders(folders)
-                st.success(f"「{name}」を作成しました！")
-                st.rerun()
-
-    st.markdown("---")
-
-    # --- フォルダ一覧（件数・名前変更・削除） ---
-    st.markdown("#### 📁 フォルダ一覧")
-
-    # 件数集計
-    folder_counts = {}
-    for meta in metadata.values():
-        f = get_folder(meta)
-        folder_counts[f] = folder_counts.get(f, 0) + 1
-
-    if not folders:
-        st.info("フォルダがありません。上の入力欄から作成してください。")
-        return
-
-    for i, fname in enumerate(folders):
-        cnt = folder_counts.get(fname, 0)
-        is_default = fname == DEFAULT_FOLDER
-
-        with st.container():
-            col_icon, col_name, col_count, col_rename, col_del = st.columns(
-                [0.5, 3, 1, 1.5, 1]
-            )
-
-            with col_icon:
-                st.markdown(f"### 📁")
-
-            with col_name:
-                st.markdown(f"**{fname}**")
-                if is_default:
-                    st.caption("（デフォルト — 削除不可）")
-
-            with col_count:
-                st.metric("画像数", cnt)
-
-            with col_rename:
-                if not is_default:
-                    if st.button("✏️ 名前変更", key=f"fs_rename_btn_{i}", width="stretch"):
-                        st.session_state["fs_renaming"] = fname
-                        st.rerun()
-
-            with col_del:
-                if not is_default:
-                    if st.button("🗑️ 削除", key=f"fs_del_btn_{i}", width="stretch"):
-                        st.session_state["fs_deleting"] = fname
-                        st.rerun()
-
-        # --- 名前変更ダイアログ ---
-        if st.session_state.get("fs_renaming") == fname:
-            with st.container():
-                st.markdown(f"**「{fname}」の名前を変更:**")
-                rc1, rc2, rc3 = st.columns([3, 1, 1])
-                with rc1:
-                    new_name = st.text_input(
-                        "新しい名前",
-                        value=fname,
-                        key=f"fs_rename_input_{i}",
-                        label_visibility="collapsed",
-                    )
-                with rc2:
-                    if st.button("✅ 変更", key=f"fs_rename_ok_{i}", width="stretch"):
-                        new_name = new_name.strip()
-                        if not new_name:
-                            st.error("名前を入力してください。")
-                        elif new_name == fname:
-                            st.session_state.pop("fs_renaming", None)
-                            st.rerun()
-                        elif new_name in folders:
-                            st.error(f"「{new_name}」は既に存在します。")
-                        else:
-                            # フォルダ名を更新
-                            idx = folders.index(fname)
-                            folders[idx] = new_name
-                            save_folders(folders)
-                            # メタデータ内のフォルダ名も更新
-                            for fid, meta in metadata.items():
-                                if get_folder(meta) == fname:
-                                    meta["folder"] = new_name
-                            save_metadata(metadata)
-                            st.session_state.pop("fs_renaming", None)
-                            st.success(f"「{fname}」→「{new_name}」に変更しました！")
-                            st.rerun()
-                with rc3:
-                    if st.button("キャンセル", key=f"fs_rename_cancel_{i}", width="stretch"):
-                        st.session_state.pop("fs_renaming", None)
-                        st.rerun()
-
-        # --- 削除確認 ---
-        if st.session_state.get("fs_deleting") == fname:
-            with st.container():
-                if cnt > 0:
-                    st.warning(
-                        f"「{fname}」には **{cnt} 件**の画像があります。"
-                        f"削除すると画像は「{DEFAULT_FOLDER}」に移動されます。"
-                    )
-                else:
-                    st.info(f"「{fname}」を削除しますか？（画像はありません）")
-                dc1, dc2 = st.columns(2)
-                with dc1:
-                    if st.button("🗑️ 削除する", key=f"fs_del_ok_{i}", type="primary", width="stretch"):
-                        # 画像を未分類に移動
-                        for fid, meta in metadata.items():
-                            if get_folder(meta) == fname:
-                                meta["folder"] = DEFAULT_FOLDER
-                        save_metadata(metadata)
-                        folders.remove(fname)
-                        save_folders(folders)
-                        st.session_state.pop("fs_deleting", None)
-                        st.success(f"「{fname}」を削除しました。")
-                        st.rerun()
-                with dc2:
-                    if st.button("キャンセル", key=f"fs_del_cancel_{i}", width="stretch"):
-                        st.session_state.pop("fs_deleting", None)
-                        st.rerun()
-
-        st.markdown("---")
 
 
 # ===========================================================================
@@ -4044,15 +2816,6 @@ def _migrate_local_to_sheets():
                 migrated.append("folders")
         except Exception as e:
             st.warning(f"folders移行失敗: {e}")
-    # trash
-    if TRASH_PATH.exists():
-        try:
-            with open(TRASH_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if _write_json_to_sheet(sh, "trash", data):
-                migrated.append("trash")
-        except Exception as e:
-            st.warning(f"trash移行失敗: {e}")
     # weight_data
     if WEIGHT_DATA_PATH.exists():
         try:
@@ -4066,1017 +2829,11 @@ def _migrate_local_to_sheets():
     if migrated:
         st.success(f"✅ 移行完了: {', '.join(migrated)}")
         # キャッシュクリア
-        for ck in ["_cache_metadata", "_cache_folders", "_cache_trash", "_cache_weight_data"]:
+        for ck in ["_cache_metadata", "_cache_folders", "_cache_weight_data"]:
             st.session_state.pop(ck, None)
             st.session_state.pop(f"{ck}_ts", None)
     else:
         st.warning("移行するローカルデータがありませんでした。")
-
-
-# ===========================================================================
-# 患者データ タイトル一括保存ヘルパー（取り込み・解析タブで使用）
-# ===========================================================================
-def _save_all_patient_titles(patient_data_images: list, metadata: dict) -> int:
-    """session_state の pd_title_{fid} からタイトルを読み取り metadata に保存。
-
-    変更があった件数を返す。
-    """
-    changed = 0
-    for img in patient_data_images:
-        fid = img["id"]
-        key = f"pd_title_{fid}"
-        if key in st.session_state:
-            new_title = st.session_state[key].strip()
-            m = metadata.get(fid, {})
-            old_title = m.get("title", img.get("name", ""))
-            if new_title and new_title != old_title:
-                if fid not in metadata:
-                    metadata[fid] = {}
-                metadata[fid]["title"] = new_title
-                changed += 1
-    return changed
-
-
-# ===========================================================================
-# 統合ページ: ⚡ 取り込み・解析（一括解析 + AI整理の分類 + 患者データ 統合）
-# ===========================================================================
-def page_import_analyze():
-    """取り込み・解析ページ — 3つのサブタブで構成。"""
-    service = get_drive_service()
-    folder_id = get_folder_id()
-    api_key = get_gemini_api_key()
-    metadata = load_metadata()
-
-    _ensure_patient_data_folder(metadata)
-
-    images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
-    if not images:
-        st.info("フォルダ内に画像が見つかりませんでした。")
-        return
-
-    if not api_key:
-        st.warning(
-            "この機能を使用するには `GOOGLE_API_KEY` を "
-            "`.streamlit/secrets.toml` に設定してください。"
-        )
-        return
-
-    # --- 画像分類 ---
-    unanalyzed = [
-        img for img in images
-        if img["id"] not in metadata
-        and not is_patient_data(metadata.get(img["id"], {}))
-    ]
-    unreviewed = [
-        img for img in images
-        if img["id"] in metadata
-        and not is_patient_data(metadata[img["id"]])
-        and get_status(metadata[img["id"]]) == STATUS_AUTO
-    ]
-    reviewed = [
-        img for img in images
-        if img["id"] in metadata
-        and not is_patient_data(metadata[img["id"]])
-        and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-    ]
-    analyzed_all = [
-        img for img in images
-        if img["id"] in metadata
-        and not is_patient_data(metadata[img["id"]])
-    ]
-    patient_data_images = [
-        img for img in images
-        if img["id"] in metadata
-        and is_patient_data(metadata[img["id"]])
-    ]
-
-    # --- サイドバー: 進捗のみ（詳細はメインエリアに表示） ---
-    if images:
-        done_count = len(reviewed)
-        progress = done_count / len(images)
-        st.sidebar.progress(progress, text=f"確認済み: {done_count}/{len(images)}")
-
-    # --- 3つのサブタブ ---
-    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
-        "📥 新規取り込み", "🏥 患者データ", "🔧 詳細操作"
-    ])
-
-    # =======================================================================
-    # サブタブ1: 📥 新規取り込み
-    # =======================================================================
-    with sub_tab1:
-        st.subheader("📥 新規取り込み")
-
-        # 処理状況サマリー
-        sum_c1, sum_c2, sum_c3 = st.columns(3)
-        with sum_c1:
-            st.metric("未解析", f"{len(unanalyzed)} 件")
-        with sum_c2:
-            st.metric("未確認", f"{len(unreviewed)} 件")
-        with sum_c3:
-            st.metric("確認済み", f"{len(reviewed)} 件")
-
-        st.markdown("---")
-
-        # スキャン＆解析
-        if not unanalyzed:
-            st.success("すべての画像が解析済みです ✅")
-        else:
-            st.info(f"**{len(unanalyzed)} 件**の未解析画像があります。")
-
-            _apply_batch_checkbox("_imp_sel_flag", [f"imp_sel_{img['id']}" for img in unanalyzed])
-            sel_col1, sel_col2, sel_col3 = st.columns([1, 1, 3])
-            with sel_col1:
-                if st.button(f"✅ 全選択（全{len(unanalyzed)}件）", key="imp_sel_all"):
-                    _set_batch_checkbox("_imp_sel_flag", True)
-            with sel_col2:
-                if st.button("🔄 全解除", key="imp_desel_all"):
-                    _set_batch_checkbox("_imp_sel_flag", False)
-
-            batch_page_items, batch_cur, batch_total_pages = _paginate(unanalyzed, "imp_new_page")
-            _render_pagination_controls("imp_new_page", batch_cur, batch_total_pages, len(unanalyzed))
-
-            selected_ids = []
-            cols_per_row = 4
-            for row_start in range(0, len(batch_page_items), cols_per_row):
-                cols = st.columns(cols_per_row)
-                for col_idx in range(cols_per_row):
-                    img_idx = row_start + col_idx
-                    if img_idx >= len(batch_page_items):
-                        break
-                    img = batch_page_items[img_idx]
-                    fid = img["id"]
-                    with cols[col_idx]:
-                        try:
-                            thumb_bytes = download_thumbnail(service, fid)
-                            st.image(thumb_bytes, use_container_width=True)
-                        except Exception:
-                            st.markdown(
-                                '<div style="background:#333;border-radius:8px;'
-                                'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                unsafe_allow_html=True,
-                            )
-                        st.caption(f"📄 {img['name']}")
-                        if st.checkbox("解析する", value=st.session_state.get(f"imp_sel_{fid}", False), key=f"imp_sel_{fid}"):
-                            selected_ids.append(fid)
-
-            st.markdown("---")
-            selected_count = len(selected_ids)
-            if st.button(
-                f"🤖 選択した {selected_count} 件を解析",
-                type="primary", key="imp_run",
-                disabled=(selected_count == 0),
-            ):
-                target = [img for img in unanalyzed if img["id"] in selected_ids]
-                _run_batch_analyze(service, target, metadata, api_key)
-
-    # =======================================================================
-    # サブタブ2: 🏥 患者データ
-    # =======================================================================
-    with sub_tab2:
-        st.subheader(f"🏥 患者データ管理（{len(patient_data_images)} 件）")
-
-        # --- 成功メッセージ表示 ---
-        if st.session_state.get("_pd_save_success"):
-            st.success(st.session_state["_pd_save_success"])
-            del st.session_state["_pd_save_success"]
-
-        if not patient_data_images:
-            st.info("🏥 患者データはまだ取り込まれていません。")
-        else:
-            # --- 選択ヘルパーボタン ---
-            _pd_sel_keys = [f"pd_sel_{img['id']}" for img in patient_data_images]
-            _apply_batch_checkbox("_pd_sel_flag", _pd_sel_keys)
-
-            sel_c1, sel_c2, sel_c3, sel_c4 = st.columns([1, 1, 1.5, 3.5])
-            with sel_c1:
-                if st.button(f"✅ 全選択（全{len(patient_data_images)}件）", key="pd_sel_all"):
-                    _set_batch_checkbox("_pd_sel_flag", True)
-            with sel_c2:
-                if st.button("🔄 全解除", key="pd_desel_all"):
-                    _set_batch_checkbox("_pd_sel_flag", False)
-            with sel_c3:
-                no_kw_imgs = [
-                    img for img in patient_data_images
-                    if not metadata.get(img["id"], {}).get("keywords")
-                ]
-                if st.button(f"🏷️ タグなし({len(no_kw_imgs)})", key="pd_sel_no_kw"):
-                    batch_map = {}
-                    for img in patient_data_images:
-                        has_kw = bool(metadata.get(img["id"], {}).get("keywords"))
-                        batch_map[f"pd_sel_{img['id']}"] = not has_kw
-                    _set_batch_checkbox("_pd_sel_flag", batch_map)
-
-            # --- サムネイルグリッド（4列 × 2行 = 8件/ページ） ---
-            pd_page_items, pd_cur, pd_total_pages = _paginate(
-                patient_data_images, "pd_grid_page", per_page=8
-            )
-            _render_pagination_controls(
-                "pd_grid_page", pd_cur, pd_total_pages, len(patient_data_images)
-            )
-
-            cols_per_row = 4
-            for row_start in range(0, len(pd_page_items), cols_per_row):
-                cols = st.columns(cols_per_row)
-                for col_idx in range(cols_per_row):
-                    img_idx = row_start + col_idx
-                    if img_idx >= len(pd_page_items):
-                        break
-                    img = pd_page_items[img_idx]
-                    fid = img["id"]
-                    m = metadata.get(fid, {})
-                    fname = img.get("name", fid)
-                    current_title = m.get("title", fname)
-                    kws = m.get("keywords", [])
-
-                    with cols[col_idx]:
-                        # サムネイル
-                        try:
-                            thumb = download_image(service, fid)
-                            st.image(thumb, use_container_width=True)
-                        except Exception:
-                            st.markdown(
-                                '<div style="background:#333;border-radius:8px;'
-                                'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                unsafe_allow_html=True,
-                            )
-                        # AI解析チェックボックス — session_state にデフォルト設定
-                        if f"pd_sel_{fid}" not in st.session_state:
-                            st.session_state[f"pd_sel_{fid}"] = False
-                        st.checkbox("AI解析", key=f"pd_sel_{fid}")
-                        # タイトル入力 — session_state にデフォルト設定
-                        if f"pd_title_{fid}" not in st.session_state:
-                            st.session_state[f"pd_title_{fid}"] = current_title
-                        st.text_input(
-                            "タイトル",
-                            key=f"pd_title_{fid}",
-                            label_visibility="collapsed",
-                            placeholder="タイトルを入力",
-                        )
-                        # キーワード表示
-                        if kws:
-                            st.caption(f"🏷️ {', '.join(kws[:4])}")
-                        else:
-                            st.caption("🏷️ ---")
-
-            st.markdown("---")
-
-            # --- アクションボタン ---
-            selected_count = sum(
-                1 for img in patient_data_images
-                if st.session_state.get(f"pd_sel_{img['id']}", False)
-            )
-            btn_c1, btn_c2 = st.columns(2)
-            with btn_c1:
-                if st.button("💾 タイトルを一括保存", key="pd_save_titles",
-                             width="stretch"):
-                    saved = _save_all_patient_titles(patient_data_images, metadata)
-                    if saved > 0:
-                        save_metadata(metadata)
-                        _invalidate_all_caches()
-                        # session_state のタイトルキーをクリア（再読み込みのため）
-                        for img in patient_data_images:
-                            st.session_state.pop(f"pd_title_{img['id']}", None)
-                        st.session_state["_pd_save_success"] = (
-                            f"✅ {saved} 件のタイトルを保存しました"
-                        )
-                        st.rerun()
-                    else:
-                        st.info("変更されたタイトルはありません。")
-
-            with btn_c2:
-                if st.button(
-                    f"💾 保存 & 🤖 AI一括タグ付け（{selected_count} 件）",
-                    key="pd_save_and_ai", type="primary",
-                    width="stretch",
-                    disabled=(selected_count == 0),
-                ):
-                    # まずタイトルを保存
-                    title_saved = _save_all_patient_titles(patient_data_images, metadata)
-
-                    # 選択された画像のAIキーワード生成
-                    target_imgs = [
-                        img for img in patient_data_images
-                        if st.session_state.get(f"pd_sel_{img['id']}", False)
-                    ]
-                    if not api_key:
-                        st.warning("Gemini API キーが必要です。")
-                    elif not target_imgs:
-                        st.info("AI解析する画像が選択されていません。")
-                    else:
-                        progress_bar = st.progress(0, text="🤖 AIタグ付け中...")
-                        generated = 0
-                        for i, img in enumerate(target_imgs):
-                            fid = img["id"]
-                            m = metadata.get(fid, {})
-                            progress_bar.progress(
-                                (i + 1) / len(target_imgs),
-                                text=f"🤖 {i + 1}/{len(target_imgs)}: {m.get('title', img.get('name', '')[:20])}...",
-                            )
-                            try:
-                                ib = download_image(service, fid)
-                                kws = generate_keywords_with_gemini(
-                                    ib, api_key, title=m.get("title", ""),
-                                )
-                                if kws:
-                                    if fid not in metadata:
-                                        metadata[fid] = {}
-                                    metadata[fid]["keywords"] = kws
-                                    generated += 1
-                            except Exception:
-                                pass
-                        progress_bar.empty()
-
-                        if title_saved > 0 or generated > 0:
-                            save_metadata(metadata)
-                            _invalidate_all_caches()
-                            # session_state クリーンアップ
-                            for img in patient_data_images:
-                                st.session_state.pop(f"pd_title_{img['id']}", None)
-                                st.session_state.pop(f"pd_sel_{img['id']}", None)
-                            parts = []
-                            if title_saved > 0:
-                                parts.append(f"タイトル {title_saved} 件保存")
-                            if generated > 0:
-                                parts.append(f"AIタグ {generated} 件生成")
-                            st.session_state["_pd_save_success"] = f"✅ {' / '.join(parts)}"
-                            st.rerun()
-                        else:
-                            st.warning("変更やキーワード生成がありませんでした。")
-
-            # --- 個別の検査所見を編集 ---
-            with st.expander("📝 個別の検査所見を編集", expanded=False):
-                if not patient_data_images:
-                    st.info("患者データがありません。")
-                else:
-                    # ドロップダウンで画像を選択
-                    pd_options = []
-                    for i, img in enumerate(patient_data_images):
-                        m = metadata.get(img["id"], {})
-                        title = m.get("title", img.get("name", img["id"]))
-                        kw_tag = " 🏷️" if m.get("keywords") else ""
-                        pd_options.append(f"{i + 1}. {title}{kw_tag}")
-
-                    selected_idx = st.selectbox(
-                        "画像を選択",
-                        range(len(pd_options)),
-                        format_func=lambda i: pd_options[i],
-                        key="pd_detail_select",
-                    )
-                    sel_img = patient_data_images[selected_idx]
-                    sel_fid = sel_img["id"]
-                    sel_meta = metadata.get(sel_fid, {})
-                    sel_fname = sel_img.get("name", sel_fid)
-
-                    detail_col_img, detail_col_form = st.columns([1, 2])
-                    with detail_col_img:
-                        try:
-                            detail_bytes = download_image(service, sel_fid)
-                            st.image(detail_bytes, use_container_width=True)
-                        except Exception:
-                            st.caption("（画像を読み込めません）")
-
-                    with detail_col_form:
-                        with st.form(key=f"pd_detail_edit_{sel_fid}"):
-                            new_title = st.text_input(
-                                "📌 タイトル",
-                                value=sel_meta.get("title", sel_fname),
-                                key=f"pd_det_title_{sel_fid}",
-                            )
-                            new_summary = st.text_area(
-                                "📝 検査所見（任意）",
-                                value=sel_meta.get("summary", ""),
-                                height=80,
-                                placeholder="所見があれば入力（空欄でもOK）",
-                                key=f"pd_det_summary_{sel_fid}",
-                            )
-                            new_keywords = st.text_input(
-                                "🏷️ キーワード（カンマ区切り）",
-                                value=", ".join(sel_meta.get("keywords", [])),
-                                key=f"pd_det_kw_{sel_fid}",
-                            )
-                            submitted = st.form_submit_button(
-                                "💾 保存", type="primary", width="stretch",
-                            )
-                            if submitted:
-                                kw_list = [
-                                    k.strip()
-                                    for k in new_keywords.replace("、", ",").split(",")
-                                    if k.strip()
-                                ]
-                                if sel_fid not in metadata:
-                                    metadata[sel_fid] = {}
-                                metadata[sel_fid]["title"] = new_title
-                                metadata[sel_fid]["summary"] = new_summary
-                                metadata[sel_fid]["keywords"] = kw_list
-                                metadata[sel_fid]["status"] = STATUS_REVIEWED
-                                save_metadata(metadata)
-                                _invalidate_all_caches()
-                                st.session_state["_pd_save_success"] = (
-                                    f"✅ 「{new_title}」を保存しました"
-                                )
-                                st.rerun()
-
-    # =======================================================================
-    # サブタブ3: 🔧 詳細操作
-    # =======================================================================
-    with sub_tab3:
-        st.subheader("🔧 詳細操作")
-
-        adv_mode = st.selectbox(
-            "操作を選択",
-            ["一括再解析", "指示付き再解析", "AI自動フォルダ分類",
-             "レビュー（1枚ずつ確認）", "一括レビュー済みに変更", "OCRテキスト抽出"],
-            key="imp_adv_mode",
-        )
-
-        st.markdown("---")
-
-        # --- 一括再解析 ---
-        if adv_mode == "一括再解析":
-            st.caption("プロンプト改善後などに、解析済みの画像をまとめて再解析できます。")
-            if not analyzed_all:
-                st.info("解析済みの画像がありません。")
-            else:
-                filter_choice = st.radio(
-                    "対象を絞る",
-                    ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
-                    horizontal=True, key="imp_reanalyze_filter",
-                )
-                if filter_choice == "未確認のみ（📝）":
-                    target_list = unreviewed
-                elif filter_choice == "確認済みのみ（✅）":
-                    target_list = reviewed
-                else:
-                    target_list = analyzed_all
-
-                if not target_list:
-                    st.info("該当する画像がありません。")
-                else:
-                    st.info(f"**{len(target_list)} 件**が対象です。")
-                    _apply_batch_checkbox("_imp_ra_sel_flag", [f"imp_ra_sel_{img['id']}" for img in target_list])
-                    rc1, rc2, rc3 = st.columns([1, 1, 3])
-                    with rc1:
-                        if st.button(f"✅ 全選択（全{len(target_list)}件）", key="imp_ra_sel_all"):
-                            _set_batch_checkbox("_imp_ra_sel_flag", True)
-                    with rc2:
-                        if st.button("🔄 全解除", key="imp_ra_sel_none"):
-                            _set_batch_checkbox("_imp_ra_sel_flag", False)
-
-                    ra_page_items, ra_cur, ra_total_pages = _paginate(target_list, "imp_reanalyze_page")
-                    _render_pagination_controls("imp_reanalyze_page", ra_cur, ra_total_pages, len(target_list))
-
-                    reanalyze_ids = []
-                    cols_per_row = 4
-                    for row_start in range(0, len(ra_page_items), cols_per_row):
-                        cols = st.columns(cols_per_row)
-                        for col_idx in range(cols_per_row):
-                            img_idx = row_start + col_idx
-                            if img_idx >= len(ra_page_items):
-                                break
-                            img = ra_page_items[img_idx]
-                            fid = img["id"]
-                            meta = metadata[fid]
-                            title = meta.get("title", img["name"])
-                            status_icon = get_status_icon(meta)
-                            with cols[col_idx]:
-                                try:
-                                    thumb_bytes = download_thumbnail(service, fid)
-                                    st.image(thumb_bytes, use_container_width=True)
-                                except Exception:
-                                    st.markdown(
-                                        '<div style="background:#333;border-radius:8px;'
-                                        'height:80px;display:flex;align-items:center;'
-                                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                        unsafe_allow_html=True,
-                                    )
-                                st.caption(f"{status_icon} {title}")
-                                if st.checkbox("再解析", value=st.session_state.get(f"imp_ra_sel_{fid}", True), key=f"imp_ra_sel_{fid}"):
-                                    reanalyze_ids.append(fid)
-
-                    st.markdown("---")
-                    reanalyze_count = len(reanalyze_ids)
-                    if reanalyze_count > 0:
-                        st.warning("⚠️ 再解析すると現在の解析データが上書きされます。")
-                    if st.button(
-                        f"🔄 選択した {reanalyze_count} 件を再解析",
-                        type="primary", key="imp_reanalyze_run",
-                        disabled=(reanalyze_count == 0),
-                    ):
-                        target = [img for img in target_list if img["id"] in reanalyze_ids]
-                        _run_batch_analyze(service, target, metadata, api_key, is_reanalyze=True)
-
-        # --- 指示付き再解析 ---
-        elif adv_mode == "指示付き再解析":
-            st.caption("修正指示を入力してまとめて再解析できます。")
-            if not analyzed_all:
-                st.info("解析済みの画像がありません。")
-            else:
-                hint_filter = st.radio(
-                    "対象を絞る",
-                    ["すべて", "未確認のみ（📝）", "確認済みのみ（✅）"],
-                    horizontal=True, key="imp_hint_filter",
-                )
-                if hint_filter == "未確認のみ（📝）":
-                    hint_target_list = unreviewed
-                elif hint_filter == "確認済みのみ（✅）":
-                    hint_target_list = reviewed
-                else:
-                    hint_target_list = analyzed_all
-
-                if not hint_target_list:
-                    st.info("該当する画像がありません。")
-                else:
-                    st.info(f"**{len(hint_target_list)} 件**が対象です。")
-                    _apply_batch_checkbox("_imp_hint_sel_flag", [f"imp_hint_sel_{img['id']}" for img in hint_target_list])
-                    hc1, hc2, hc3 = st.columns([1, 1, 3])
-                    with hc1:
-                        if st.button(f"✅ 全選択（全{len(hint_target_list)}件）", key="imp_hint_sel_all"):
-                            _set_batch_checkbox("_imp_hint_sel_flag", True)
-                    with hc2:
-                        if st.button("🔄 全解除", key="imp_hint_sel_none"):
-                            _set_batch_checkbox("_imp_hint_sel_flag", False)
-
-                    hint_page_items, hint_cur, hint_total_pages = _paginate(hint_target_list, "imp_hint_page")
-                    _render_pagination_controls("imp_hint_page", hint_cur, hint_total_pages, len(hint_target_list))
-
-                    hint_ids = []
-                    cols_per_row = 4
-                    for row_start in range(0, len(hint_page_items), cols_per_row):
-                        cols = st.columns(cols_per_row)
-                        for col_idx in range(cols_per_row):
-                            img_idx = row_start + col_idx
-                            if img_idx >= len(hint_page_items):
-                                break
-                            img = hint_page_items[img_idx]
-                            fid = img["id"]
-                            meta = metadata[fid]
-                            title = meta.get("title", img["name"])
-                            status_icon = get_status_icon(meta)
-                            kw = meta.get("keywords", [])
-                            with cols[col_idx]:
-                                try:
-                                    thumb_bytes = download_thumbnail(service, fid)
-                                    st.image(thumb_bytes, use_container_width=True)
-                                except Exception:
-                                    st.markdown(
-                                        '<div style="background:#333;border-radius:8px;'
-                                        'height:80px;display:flex;align-items:center;'
-                                        'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                        unsafe_allow_html=True,
-                                    )
-                                st.caption(f"{status_icon} {title}")
-                                if kw:
-                                    st.caption(" ".join(f"`{k}`" for k in kw[:5]))
-                                if st.checkbox(
-                                    "修正する",
-                                    value=st.session_state.get(f"imp_hint_sel_{fid}", False),
-                                    key=f"imp_hint_sel_{fid}",
-                                ):
-                                    hint_ids.append(fid)
-
-                    st.markdown("---")
-                    correction_hint = st.text_area(
-                        "🔧 修正指示（選択した全画像に共通で適用）",
-                        placeholder="例:\n・「骨折」ではなく「ストレス骨折」が正しいです\n・キーワードに「シンスプリント」を追加してください",
-                        height=120, key="imp_correction_hint",
-                    )
-                    hint_count = len(hint_ids)
-                    if hint_count > 0 and not correction_hint.strip():
-                        st.warning("⚠️ 修正指示を入力してください。")
-                    can_run = hint_count > 0 and bool(correction_hint.strip())
-                    if st.button(
-                        f"🤖 選択した {hint_count} 件を指示付きで再解析",
-                        type="primary", key="imp_hint_run",
-                        disabled=(not can_run),
-                    ):
-                        target = [img for img in hint_target_list if img["id"] in hint_ids]
-                        _run_batch_analyze(
-                            service, target, metadata, api_key,
-                            is_reanalyze=True, correction_hint=correction_hint,
-                        )
-
-        # --- AI自動フォルダ分類 ---
-        elif adv_mode == "AI自動フォルダ分類":
-            folders = load_folders()
-            analyzed = [img for img in images if img["id"] in metadata]
-            if not analyzed:
-                st.info("解析済みの画像がありません。先に画像をAI解析してください。")
-            else:
-                # 整理方針
-                st.markdown("#### 📝 整理方針")
-                st.caption("AIにどのような観点で整理してほしいかを指示できます。空欄の場合はAIが自動判断します。")
-                user_instruction = st.text_area(
-                    "整理の指示（任意）",
-                    value=st.session_state.get("imp_ai_folder_instruction", ""),
-                    placeholder="例:\n・解剖学的部位で分けて\n・疾患カテゴリで分類して",
-                    height=100, key="imp_ai_folder_instruction",
-                )
-
-                st.markdown("---")
-                st.markdown("#### ① フォルダ設定")
-                mode = st.radio(
-                    "フォルダの決め方",
-                    ["既存フォルダを使う", "AIに新しいフォルダを提案させる"],
-                    key="imp_ai_folder_mode", horizontal=True,
-                )
-
-                if mode == "AIに新しいフォルダを提案させる":
-                    if st.button("🤖 フォルダ名を提案", key="imp_ai_suggest"):
-                        with st.spinner("AIがフォルダ構成を考えています..."):
-                            try:
-                                summaries = []
-                                for img in analyzed:
-                                    meta = metadata[img["id"]]
-                                    t = meta.get("title", "")
-                                    kw = ", ".join(meta.get("keywords", []))
-                                    summaries.append(f"- {t} [{kw}]")
-                                instruction_part = ""
-                                if user_instruction.strip():
-                                    instruction_part = (
-                                        f"\n\n【ユーザーからの整理方針】\n{user_instruction.strip()}\n"
-                                        "上記の方針に従ってフォルダ名を提案してください。"
-                                    )
-                                else:
-                                    instruction_part = "\n解剖学的部位、疾患カテゴリ、画像モダリティなどで分類してください。"
-                                prompt = (
-                                    "以下は医療画像の解析データ一覧です。\n"
-                                    + "\n".join(summaries)
-                                    + f"\n\nこれらを整理するための最適なフォルダ名を5〜10個提案してください。"
-                                    + instruction_part
-                                    + "\nフォルダ名のみをカンマ区切りで出力してください。日本語で。"
-                                )
-                                resp_text = _gemini_generate(api_key, [{"text": prompt}])
-                                suggested = [s.strip() for s in resp_text.strip().split(",") if s.strip()]
-                                st.session_state["imp_ai_suggested_folders"] = suggested
-                            except Exception as e:
-                                _log.error(f"フォルダ提案失敗: {e}")
-                    st.error("フォルダ提案に失敗しました。")
-
-                    if "imp_ai_suggested_folders" in st.session_state:
-                        suggested = st.session_state["imp_ai_suggested_folders"]
-                        st.markdown("**AIの提案（編集できます）:**")
-                        edited_folders = []
-                        remove_idx = None
-                        for i, fname in enumerate(suggested):
-                            ec1, ec2 = st.columns([5, 1])
-                            with ec1:
-                                edited = st.text_input(
-                                    f"フォルダ {i + 1}", value=fname,
-                                    key=f"imp_ai_edit_folder_{i}", label_visibility="collapsed",
-                                )
-                            with ec2:
-                                if st.button("✖", key=f"imp_ai_remove_folder_{i}"):
-                                    remove_idx = i
-                            if edited.strip():
-                                edited_folders.append(edited.strip())
-
-                        if remove_idx is not None:
-                            new_suggested = []
-                            for i in range(len(suggested)):
-                                val = st.session_state.get(f"imp_ai_edit_folder_{i}", suggested[i]).strip()
-                                if i != remove_idx and val:
-                                    new_suggested.append(val)
-                            for i in range(len(suggested)):
-                                st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
-                            st.session_state["imp_ai_suggested_folders"] = new_suggested
-                            st.rerun()
-
-                        ac1, ac2 = st.columns([5, 1])
-                        with ac1:
-                            new_name = st.text_input(
-                                "追加するフォルダ名", placeholder="フォルダ名を入力…",
-                                key="imp_ai_add_folder_input", label_visibility="collapsed",
-                            )
-                        with ac2:
-                            if st.button("➕", key="imp_ai_add_folder_btn") and new_name.strip():
-                                new_suggested = []
-                                for i in range(len(suggested)):
-                                    val = st.session_state.get(f"imp_ai_edit_folder_{i}", suggested[i]).strip()
-                                    if val:
-                                        new_suggested.append(val)
-                                new_suggested.append(new_name.strip())
-                                for i in range(len(suggested)):
-                                    st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
-                                st.session_state["imp_ai_suggested_folders"] = new_suggested
-                                st.rerun()
-
-                        if st.button("✅ これらのフォルダを作成して使用", key="imp_ai_create_suggested"):
-                            for f in edited_folders:
-                                if f not in folders:
-                                    folders.append(f)
-                            save_folders(folders)
-                            for i in range(len(suggested)):
-                                st.session_state.pop(f"imp_ai_edit_folder_{i}", None)
-                            st.success(f"フォルダを作成しました！（{len(edited_folders)} 件）")
-                            st.session_state.pop("imp_ai_suggested_folders", None)
-                            st.rerun()
-
-                folders = load_folders()
-                st.markdown("**現在のフォルダ:**")
-                st.write(" / ".join(f"📁 {f}" for f in folders))
-
-                st.markdown("---")
-                st.markdown("#### ② AI自動分類を実行")
-                target_choice = st.radio(
-                    "分類対象",
-                    ["未分類の画像のみ", "すべての画像（再分類）"],
-                    key="imp_ai_target", horizontal=True,
-                )
-                if target_choice == "未分類の画像のみ":
-                    targets = [img for img in analyzed if get_folder(metadata[img["id"]]) == DEFAULT_FOLDER]
-                else:
-                    targets = analyzed
-
-                st.write(f"対象: **{len(targets)}** 件")
-                if not targets:
-                    st.success("分類対象の画像がありません。")
-                elif st.button(
-                    f"🤖 {len(targets)} 件をAIで自動分類",
-                    type="primary", key="imp_ai_classify_run",
-                ):
-                    folder_names = ", ".join(folders)
-                    progress_bar = st.progress(0, text="AI分類を開始...")
-                    classified = 0
-                    errors = 0
-                    for i, img in enumerate(targets):
-                        fid = img["id"]
-                        meta = metadata[fid]
-                        title = meta.get("title", "")
-                        summary = meta.get("summary", "")
-                        keywords = ", ".join(meta.get("keywords", []))
-                        progress_bar.progress(i / len(targets), text=f"分類中... ({i + 1}/{len(targets)}) {title}")
-
-                        instruction_hint = ""
-                        if user_instruction.strip():
-                            instruction_hint = (
-                                f"\n【整理方針】{user_instruction.strip()}\n"
-                                "上記の方針を考慮して最適なフォルダを選んでください。\n"
-                            )
-                        prompt = (
-                            f"以下の医療画像を最も適切なフォルダに分類してください。\n\n"
-                            f"タイトル: {title}\n要約: {summary}\nキーワード: {keywords}\n\n"
-                            f"選択肢: {folder_names}\n{instruction_hint}\n"
-                            f"必ず上記の選択肢の中から1つだけ選び、フォルダ名のみを出力してください。"
-                        )
-                        try:
-                            result = _gemini_generate(api_key, [{"text": prompt}]).strip()
-                            matched = None
-                            for f in folders:
-                                if f in result or result in f:
-                                    matched = f
-                                    break
-                            if matched is None:
-                                matched = DEFAULT_FOLDER
-                            metadata[fid]["folder"] = matched
-                            classified += 1
-                        except Exception:
-                            errors += 1
-                        if i < len(targets) - 1:
-                            time.sleep(0.5)
-
-                    save_metadata(metadata)
-                    progress_bar.progress(1.0, text="完了！")
-                    st.success(f"✅ 分類完了！ 成功: {classified} 件 / 失敗: {errors} 件")
-                    st.rerun()
-
-        # --- レビュー ---
-        elif adv_mode == "レビュー（1枚ずつ確認）":
-            metadata = load_metadata()
-            unreviewed_now = [
-                img for img in images
-                if img["id"] in metadata
-                and get_status(metadata[img["id"]]) == STATUS_AUTO
-            ]
-            if not unreviewed_now:
-                if reviewed:
-                    st.success("すべての画像がレビュー済みです 🎉")
-                else:
-                    st.info("まず「新規取り込み」で一括AI解析を実行してください。")
-            else:
-                st.info(f"**{len(unreviewed_now)} 件**の未確認画像があります。")
-                if "imp_review_index" not in st.session_state:
-                    st.session_state["imp_review_index"] = 0
-                if st.session_state["imp_review_index"] >= len(unreviewed_now):
-                    st.session_state["imp_review_index"] = 0
-
-                current_idx = st.session_state["imp_review_index"]
-                current_img = unreviewed_now[current_idx]
-                current_fid = current_img["id"]
-                current_meta = metadata[current_fid]
-
-                nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
-                with nav_col1:
-                    if st.button("⬅️ 前へ", disabled=(current_idx == 0), key="imp_rev_prev"):
-                        st.session_state["imp_review_index"] = current_idx - 1
-                        st.session_state.pop("editing_file_id", None)
-                        st.rerun()
-                with nav_col2:
-                    st.write(f"**{current_idx + 1} / {len(unreviewed_now)}** 件目")
-                with nav_col3:
-                    if st.button("次へ ➡️", disabled=(current_idx >= len(unreviewed_now) - 1), key="imp_rev_next"):
-                        st.session_state["imp_review_index"] = current_idx + 1
-                        st.session_state.pop("editing_file_id", None)
-                        st.rerun()
-
-                st.markdown("---")
-                try:
-                    image_bytes = download_image(service, current_fid)
-                except Exception as e:
-                    _log.error(f"画像読み込み失敗: {e}")
-                    st.error("画像の読み込みに失敗しました。")
-                    return
-
-                rev_col_img, rev_col_info = st.columns([1, 1])
-                with rev_col_img:
-                    st.image(image_bytes, use_container_width=True)
-                with rev_col_info:
-                    title = current_meta.get("title", current_img.get("name", "不明"))
-                    st.subheader(title)
-                    render_summary(current_meta.get("summary", ""))
-                    keywords = current_meta.get("keywords", [])
-                    if keywords:
-                        render_keyword_tags(keywords)
-
-                display_edit_form(current_fid, current_meta, metadata)
-
-                st.markdown("---")
-                if st.button("⏭️ スキップして次へ", key="imp_rev_skip"):
-                    if current_idx < len(unreviewed_now) - 1:
-                        st.session_state["imp_review_index"] = current_idx + 1
-                    else:
-                        st.session_state["imp_review_index"] = 0
-                    st.session_state.pop("editing_file_id", None)
-                    st.rerun()
-
-        # --- 一括レビュー済みに変更 ---
-        elif adv_mode == "一括レビュー済みに変更":
-            st.caption("未確認の画像をまとめて確認済みに変更、または確認済みを未確認に戻せます。")
-            metadata = load_metadata()
-            review_filter = st.radio(
-                "対象",
-                ["未確認→確認済み（📝→✅）", "確認済み→未確認に戻す（✅→📝）"],
-                horizontal=True, key="imp_bulk_review_filter",
-            )
-            if review_filter == "未確認→確認済み（📝→✅）":
-                target_list = [
-                    img for img in images
-                    if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_AUTO
-                ]
-                action_label = "確認済みにする"
-                action_key_prefix = "imp_bulkrev"
-            else:
-                target_list = [
-                    img for img in images
-                    if img["id"] in metadata and get_status(metadata[img["id"]]) == STATUS_REVIEWED
-                ]
-                action_label = "未確認に戻す"
-                action_key_prefix = "imp_bulkunrev"
-
-            if not target_list:
-                st.success("該当する画像がありません。")
-            else:
-                st.info(f"**{len(target_list)} 件**が対象です。")
-                bc1, bc2, bc3 = st.columns([1, 1, 3])
-                with bc1:
-                    if st.button(f"✅ 全選択（全{len(target_list)}件）", key=f"{action_key_prefix}_sel_all"):
-                        for img in target_list:
-                            st.session_state[f"{action_key_prefix}_{img['id']}"] = True
-                        st.rerun()
-                with bc2:
-                    if st.button("🔄 全解除", key=f"{action_key_prefix}_sel_none"):
-                        for img in target_list:
-                            st.session_state[f"{action_key_prefix}_{img['id']}"] = False
-                        st.rerun()
-
-                br_page_items, br_cur, br_total_pages = _paginate(target_list, "imp_bulkreview_page")
-                _render_pagination_controls("imp_bulkreview_page", br_cur, br_total_pages, len(target_list))
-
-                action_ids = []
-                cols_per_row = 4
-                for row_start in range(0, len(br_page_items), cols_per_row):
-                    cols = st.columns(cols_per_row)
-                    for col_idx in range(cols_per_row):
-                        img_idx = row_start + col_idx
-                        if img_idx >= len(br_page_items):
-                            break
-                        img = br_page_items[img_idx]
-                        fid = img["id"]
-                        meta = metadata[fid]
-                        title = meta.get("title", img["name"])
-                        status_icon = get_status_icon(meta)
-                        with cols[col_idx]:
-                            try:
-                                thumb_bytes = download_thumbnail(service, fid)
-                                st.image(thumb_bytes, use_container_width=True)
-                            except Exception:
-                                st.markdown(
-                                    '<div style="background:#333;border-radius:8px;'
-                                    'height:80px;display:flex;align-items:center;'
-                                    'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                    unsafe_allow_html=True,
-                                )
-                            st.caption(f"{status_icon} {title}")
-                            kw = meta.get("keywords", [])
-                            if kw:
-                                st.caption(" ".join(f"`{k}`" for k in kw[:3]))
-                            if st.checkbox(action_label, value=st.session_state.get(f"{action_key_prefix}_{fid}", False), key=f"{action_key_prefix}_{fid}"):
-                                action_ids.append(fid)
-
-                st.markdown("---")
-                action_count = len(action_ids)
-                if review_filter == "未確認→確認済み（📝→✅）":
-                    if st.button(
-                        f"✅ 選択した {action_count} 件を確認済みにする",
-                        type="primary", key="imp_bulk_review_run",
-                        disabled=(action_count == 0),
-                    ):
-                        for fid in action_ids:
-                            if fid in metadata:
-                                metadata[fid]["status"] = STATUS_REVIEWED
-                        save_metadata(metadata)
-                        for fid in action_ids:
-                            st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                        st.success(f"✅ {action_count} 件を確認済みにしました。")
-                        st.rerun()
-                else:
-                    if st.button(
-                        f"🆕 選択した {action_count} 件を未確認に戻す",
-                        type="primary", key="imp_bulk_unreview_run",
-                        disabled=(action_count == 0),
-                    ):
-                        for fid in action_ids:
-                            if fid in metadata:
-                                metadata[fid]["status"] = STATUS_AUTO
-                        save_metadata(metadata)
-                        for fid in action_ids:
-                            st.session_state.pop(f"{action_key_prefix}_{fid}", None)
-                        st.success(f"🆕 {action_count} 件を未確認に戻しました。")
-                        st.rerun()
-
-        # --- OCRテキスト抽出 ---
-        elif adv_mode == "OCRテキスト抽出":
-            st.caption("解析済み画像からテキスト情報を読み取り、全文検索を可能にします。")
-            metadata = load_metadata()
-            ocr_pending = [
-                img for img in images
-                if img["id"] in metadata
-                and not is_patient_data(metadata[img["id"]])
-                and not metadata[img["id"]].get("ocr_text")
-            ]
-            ocr_done = [
-                img for img in images
-                if img["id"] in metadata
-                and not is_patient_data(metadata[img["id"]])
-                and metadata[img["id"]].get("ocr_text")
-            ]
-            st.info(f"OCR未実施: **{len(ocr_pending)}** 件 ／ OCR済み: **{len(ocr_done)}** 件")
-
-            if not ocr_pending:
-                st.success("✅ すべての解析済み画像のOCRが完了しています。")
-            else:
-                _apply_batch_checkbox("_imp_ocr_sel_flag", [f"imp_ocr_sel_{img['id']}" for img in ocr_pending])
-                oc1, oc2, oc3 = st.columns(3)
-                with oc1:
-                    if st.button(f"✅ すべて選択（全{len(ocr_pending)}件）", key="imp_ocr_sel_all"):
-                        _set_batch_checkbox("_imp_ocr_sel_flag", True)
-                with oc2:
-                    if st.button("🔄 すべて解除", key="imp_ocr_desel_all"):
-                        _set_batch_checkbox("_imp_ocr_sel_flag", False)
-
-                ocr_page_items, ocr_cur, ocr_total_pages = _paginate(ocr_pending, "imp_ocr_page")
-                _render_pagination_controls("imp_ocr_page", ocr_cur, ocr_total_pages, len(ocr_pending))
-
-                cols = st.columns(4)
-                for idx, img in enumerate(ocr_page_items):
-                    fid = img["id"]
-                    meta = metadata.get(fid, {})
-                    with cols[idx % 4]:
-                        thumb = download_thumbnail(service, fid)
-                        if thumb:
-                            st.image(thumb, use_container_width=True)
-                        else:
-                            st.markdown(
-                                f"<div style='height:100px;background:#2a2a3a;display:flex;"
-                                f"align-items:center;justify-content:center;color:#b0b0b0;'>"
-                                f"📷</div>",
-                                unsafe_allow_html=True,
-                            )
-                        st.checkbox(
-                            meta.get("title", img["name"])[:30],
-                            key=f"imp_ocr_sel_{fid}",
-                            value=st.session_state.get(f"imp_ocr_sel_{fid}", False),
-                        )
-
-                st.markdown("---")
-                if st.button("🚀 OCRテキスト抽出を実行", type="primary", key="imp_ocr_run"):
-                    target = [img for img in ocr_pending if st.session_state.get(f"imp_ocr_sel_{img['id']}")]
-                    if not target:
-                        st.warning("⚠️ 画像を選択してください。")
-                    else:
-                        _run_batch_ocr(service, target, metadata, api_key)
 
 
 # ===========================================================================
@@ -5087,49 +2844,6 @@ GALLERY_COLS = 3
 _MONTH_LABELS_JA = ["1月", "2月", "3月", "4月", "5月", "6月",
                     "7月", "8月", "9月", "10月", "11月", "12月"]
 _WEEKDAY_LABELS_JA = ["月", "火", "水", "木", "金", "土", "日"]
-
-
-# --- お気に入り（Google Photos 風） ---
-def load_favorites() -> set[str]:
-    """お気に入り画像のIDセットを読み込む。"""
-    try:
-        if FAVORITES_PATH.exists():
-            data = json.loads(FAVORITES_PATH.read_text(encoding="utf-8"))
-            return set(data.get("fids", []))
-    except Exception as e:
-        _log.error(f"favorites load error: {e}")
-    return set()
-
-
-def save_favorites(fids: set[str]) -> None:
-    """お気に入り画像のIDセットを保存。"""
-    try:
-        FAVORITES_PATH.write_text(
-            json.dumps({"fids": sorted(fids)}, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-    except Exception as e:
-        _log.error(f"favorites save error: {e}")
-
-
-def _ensure_favorites_loaded() -> set[str]:
-    """セッション内でお気に入りが未ロードならロードして返す。"""
-    if "_favorites" not in st.session_state:
-        st.session_state["_favorites"] = load_favorites()
-    return st.session_state["_favorites"]
-
-
-def toggle_favorite(fid: str) -> bool:
-    """お気に入りをトグルし、新しい状態（True=追加）を返す。"""
-    favs = _ensure_favorites_loaded()
-    if fid in favs:
-        favs.discard(fid)
-        on = False
-    else:
-        favs.add(fid)
-        on = True
-    save_favorites(favs)
-    return on
 
 
 def _inject_gallery_css():
@@ -5159,11 +2873,40 @@ def _inject_gallery_css():
         align-items: center; justify-content: center;
         color: #888; font-size: 24px;
     }
+    .g-caption {
+        font-size: 11px; color: #d0d0d0;
+        padding: 2px 4px 0; margin-top: 2px;
+        line-height: 1.35; max-height: 5.4em;
+        overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+    }
+    .g-caption .g-chip {
+        display: inline-block; margin: 1px 3px 1px 0;
+        padding: 1px 6px; border-radius: 8px;
+        background: rgba(255,122,60,0.15);
+        color: #ffb27a; font-size: 10.5px;
+        white-space: nowrap;
+    }
+    .g-badge {
+        position: absolute; top: 4px; left: 4px;
+        background: rgba(220,53,69,0.85);
+        color: #fff; font-size: 10px;
+        padding: 1px 6px; border-radius: 6px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .g-thumb-wrap { position: relative; }
+    .g-search {
+        margin: 4px 0 10px;
+    }
     [data-testid="stHorizontalBlock"] { gap: 4px !important; }
     [data-testid="column"] { padding: 0 2px !important; }
-    [data-testid="stImage"] img {
+    [data-testid="stHorizontalBlock"] [data-testid="stImage"] img {
         aspect-ratio: 1/1;
-        object-fit: cover;
+        object-fit: contain;
+        background: #1a1a1a;
         border-radius: 4px;
     }
     @media (max-width: 600px) {
@@ -5206,10 +2949,264 @@ def _fmt_day(ts_day: str) -> str:
         return ts_day
 
 
-@st.cache_data(ttl=600, show_spinner=False, max_entries=500)
+def _make_thumb_bytes(raw: bytes, max_px: int = 400, quality: int = 70) -> bytes | None:
+    """生画像バイトを JPEG サムネに変換。失敗時 None。"""
+    if not raw:
+        return None
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img.thumbnail((max_px, max_px))
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, format="JPEG", quality=quality, optimize=True)
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
+def _food_thumb_path(image_id: str) -> Path:
+    return THUMB_CACHE_DIR / f"food_{image_id}.jpg"
+
+
+def _ss_thumb_path(file_id: str, max_px: int = 800) -> Path:
+    return THUMB_CACHE_DIR / f"ss_{file_id}_{max_px}.jpg"
+
+
+def _save_food_thumb(image_id: str, raw_bytes: bytes) -> bool:
+    """食事画像のサムネを永続キャッシュに保存。既存なら何もしない。"""
+    cache_path = _food_thumb_path(image_id)
+    if cache_path.exists():
+        return True
+    thumb = _make_thumb_bytes(raw_bytes, max_px=400, quality=70)
+    if not thumb:
+        return False
+    try:
+        THUMB_CACHE_DIR.mkdir(exist_ok=True)
+        cache_path.write_bytes(thumb)
+        return True
+    except Exception:
+        return False
+
+
+def _save_ss_thumb(file_id: str, raw_bytes: bytes, max_px: int = 800,
+                   quality: int = 88) -> bool:
+    """スクショ/ナレッジ画像のサムネを永続キャッシュに保存。既存なら何もしない。"""
+    cache_path = _ss_thumb_path(file_id, max_px)
+    if cache_path.exists():
+        return True
+    thumb = _make_thumb_bytes(raw_bytes, max_px=max_px, quality=quality)
+    if not thumb:
+        return False
+    try:
+        THUMB_CACHE_DIR.mkdir(exist_ok=True)
+        cache_path.write_bytes(thumb)
+        return True
+    except Exception:
+        return False
+
+
+_THUMB_BACKFILL_STARTED = False
+
+
+def _bg_get_drive_service():
+    """バックグラウンドスレッド安全な Drive サービス取得（st.error/stop なし）。"""
+    try:
+        creds = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=SCOPES,
+        )
+        return build("drive", "v3", credentials=creds)
+    except Exception as e:
+        _log.warning(f"[bg] Drive 認証失敗: {e}")
+        return None
+
+
+def _bg_load_metadata_local() -> dict:
+    """バックグラウンド用にローカル metadata.json を直接読み込む（Sheets/セッションを触らない）。"""
+    if not METADATA_PATH.exists():
+        return {}
+    try:
+        with open(METADATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _bg_append_ocr_pending(fid: str, ocr_text: str) -> None:
+    """バックグラウンドで抽出した OCR テキストを保留ファイルに追記する。
+    main() 起動時にメインスレッドが取り込んで save_metadata で永続化する。"""
+    if not ocr_text:
+        return
+    try:
+        pending: dict = {}
+        if OCR_BACKFILL_PENDING_PATH.exists():
+            try:
+                with open(OCR_BACKFILL_PENDING_PATH, "r", encoding="utf-8") as f:
+                    pending = json.load(f)
+                if not isinstance(pending, dict):
+                    pending = {}
+            except Exception:
+                pending = {}
+        pending[fid] = ocr_text
+        tmp = OCR_BACKFILL_PENDING_PATH.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(pending, f, ensure_ascii=False)
+        tmp.replace(OCR_BACKFILL_PENDING_PATH)
+    except Exception as e:
+        _log.warning(f"[bg_ocr] pending書き込み失敗: {e}")
+
+
+def _backfill_thumbs_worker():
+    """既存画像のサムネ＋OCRテキストをバックグラウンドで生成する。
+
+    - 食事画像: weight_uploads/ 配下を走査し、対応する .thumb_cache/food_*.jpg が
+      無いものを生成する（ローカルディスク読み込みのみ・高速）
+    - ナレッジ/スクショ画像: metadata の各 fid について .thumb_cache/ss_*_800.jpg
+      が無いものを Drive から取得して生成。さらに ocr_text が空のものは NDLOCR で
+      抽出して .ocr_backfill_pending.json に保留する（次回 main() で metadata に反映）
+
+    1セッションにつき 1 回だけ走らせる。失敗は握り潰す。
+    バックグラウンドスレッドのため st.session_state には触らない。
+    """
+    try:
+        # --- 食事画像（ローカルディスク・高速） ---
+        try:
+            if WEIGHT_UPLOADS_DIR.exists():
+                for img_path in WEIGHT_UPLOADS_DIR.iterdir():
+                    if not img_path.is_file():
+                        continue
+                    image_id = img_path.stem
+                    cache_path = THUMB_CACHE_DIR / f"food_{image_id}.jpg"
+                    if cache_path.exists():
+                        continue
+                    try:
+                        raw = img_path.read_bytes()
+                        _save_food_thumb(image_id, raw)
+                    except Exception:
+                        continue
+        except Exception as e:
+            _log.warning(f"[thumb_backfill] food失敗: {e}")
+
+        # --- ナレッジ/スクショ画像（Drive 取得＋OCR・低速） ---
+        try:
+            service = _bg_get_drive_service()
+            if service is None:
+                return
+            metadata = _bg_load_metadata_local()
+            ndlocr_ok = _ndlocr_available()
+
+            # 処理対象を列挙（サムネ未生成 or OCR未実施）
+            todo: list[tuple[str, bool, bool]] = []  # (fid, need_thumb, need_ocr)
+            for fid, meta in metadata.items():
+                if not isinstance(meta, dict):
+                    continue
+                thumb_path = THUMB_CACHE_DIR / f"ss_{fid}_800.jpg"
+                need_thumb = not thumb_path.exists()
+                need_ocr = ndlocr_ok and not (meta.get("ocr_text") or "").strip()
+                if need_thumb or need_ocr:
+                    todo.append((fid, need_thumb, need_ocr))
+
+            for i, (fid, need_thumb, need_ocr) in enumerate(todo):
+                try:
+                    raw = download_image(service, fid)
+                    if not raw:
+                        continue
+                    if need_thumb:
+                        try:
+                            _save_ss_thumb(fid, raw)
+                        except Exception:
+                            pass
+                    if need_ocr:
+                        try:
+                            ocr_text = _extract_ocr_text_ndlocr(raw)
+                            if ocr_text:
+                                _bg_append_ocr_pending(fid, ocr_text)
+                        except Exception:
+                            pass
+                except Exception:
+                    continue
+                # 100件ごとに少し休む（Drive API 制限対策）
+                if i > 0 and i % 100 == 0:
+                    time.sleep(1.0)
+        except Exception as e:
+            _log.warning(f"[thumb_backfill] ss失敗: {e}")
+    except Exception:
+        pass
+
+
+def _apply_pending_ocr_backfill() -> None:
+    """バックグラウンドが抽出した OCR テキストを metadata に取り込む（メインスレッド専用）。
+
+    main() 開始時に呼ぶ。保留ファイルがあれば内容を metadata にマージし
+    save_metadata（Sheets同期含む）した後、保留ファイルを削除する。
+    """
+    if not OCR_BACKFILL_PENDING_PATH.exists():
+        return
+    try:
+        with open(OCR_BACKFILL_PENDING_PATH, "r", encoding="utf-8") as f:
+            pending = json.load(f)
+        if not isinstance(pending, dict) or not pending:
+            try:
+                OCR_BACKFILL_PENDING_PATH.unlink()
+            except Exception:
+                pass
+            return
+
+        metadata = load_metadata()
+        changed = 0
+        for fid, ocr_text in pending.items():
+            if not isinstance(ocr_text, str) or not ocr_text.strip():
+                continue
+            entry = metadata.get(fid)
+            if not isinstance(entry, dict):
+                continue
+            if (entry.get("ocr_text") or "").strip():
+                continue  # 既に OCR 済み
+            entry["ocr_text"] = ocr_text
+            metadata[fid] = entry
+            changed += 1
+
+        if changed > 0:
+            save_metadata(metadata)
+            _invalidate_all_caches()
+            _log.info(f"[ocr_backfill] {changed} 件の OCR テキストを metadata に反映")
+
+        try:
+            OCR_BACKFILL_PENDING_PATH.unlink()
+        except Exception:
+            pass
+    except Exception as e:
+        _log.warning(f"[ocr_backfill] 取り込み失敗: {e}")
+
+
+def start_thumb_backfill():
+    """既存画像のサムネ事前生成をバックグラウンドで1回だけ起動する。"""
+    global _THUMB_BACKFILL_STARTED
+    if _THUMB_BACKFILL_STARTED:
+        return
+    _THUMB_BACKFILL_STARTED = True
+    try:
+        t = threading.Thread(target=_backfill_thumbs_worker, daemon=True)
+        t.start()
+    except Exception:
+        pass
+
+
+@st.cache_data(ttl=86400, show_spinner=False, max_entries=2000)
 def _load_food_thumbnail_bytes(image_id: str, ext: str,
                                drive_file_id: str = "") -> bytes | None:
-    """食事画像のサムネイル（最大400px JPEG q70）。"""
+    """食事画像のサムネイル（最大400px JPEG q70）。
+
+    永続ディスクキャッシュ (.thumb_cache/{image_id}.jpg) + Streamlit メモリキャッシュ。
+    一度生成すれば次回以降は即時にディスク読み込みで返す。
+    """
+    cache_path = THUMB_CACHE_DIR / f"food_{image_id}.jpg"
+    if cache_path.exists():
+        try:
+            return cache_path.read_bytes()
+        except Exception:
+            pass
+
     raw = None
     img_path = WEIGHT_UPLOADS_DIR / f"{image_id}.{ext}"
     if img_path.exists():
@@ -5228,7 +3225,14 @@ def _load_food_thumbnail_bytes(image_id: str, ext: str,
         img.thumbnail((400, 400))
         buf = io.BytesIO()
         img.convert("RGB").save(buf, format="JPEG", quality=70, optimize=True)
-        return buf.getvalue()
+        thumb_bytes = buf.getvalue()
+        # 永続キャッシュに書き出し
+        try:
+            THUMB_CACHE_DIR.mkdir(exist_ok=True)
+            cache_path.write_bytes(thumb_bytes)
+        except Exception:
+            pass
+        return thumb_bytes
     except Exception:
         return raw
 
@@ -5249,94 +3253,38 @@ def _load_food_full_bytes(image_id: str, ext: str,
     return None
 
 
-def _build_patient_entries(metadata: dict, drive_files: list[dict]) -> list[dict]:
-    """患者データのエントリを modifiedTime 降順で返す。"""
-    entries: list[dict] = []
-    seen_ids: set[str] = set()
-    for f in drive_files:
-        fid = f.get("id")
-        if not fid:
-            continue
-        meta = metadata.get(fid, {})
-        if not is_patient_data(meta):
-            continue
-        ts = f.get("modifiedTime") or f.get("createdTime") or ""
-        title = meta.get("title") or f.get("name", "")
-        entries.append({
-            "fid": fid,
-            "title": title,
-            "ts": ts,
-            "kind": "patient",
-        })
-        seen_ids.add(fid)
-    # ローカルアップロードの患者データもフォールバック
-    for fid, meta in metadata.items():
-        if fid in seen_ids or not is_patient_data(meta):
-            continue
-        ts = ""
-        for ext in ("png", "jpg", "jpeg"):
-            p = UPLOADS_DIR / f"{fid}.{ext}"
-            if p.exists():
-                ts = datetime.fromtimestamp(p.stat().st_mtime).isoformat() + "Z"
-                break
-        entries.append({
-            "fid": fid,
-            "title": meta.get("title") or fid,
-            "ts": ts,
-            "kind": "patient",
-        })
-    entries.sort(key=lambda x: x["ts"] or "", reverse=True)
-    return entries
+def _meta_search_text(meta: dict) -> str:
+    """メタデータから検索対象テキストを連結して返す（小文字化）。
 
+    title / ocr_text / keywords を連結。古い summary 残骸も拾えるよう一応含める。
+    list で入っている古いエントリにも対応。
+    """
+    def _stringify(v) -> str:
+        if v is None:
+            return ""
+        if isinstance(v, str):
+            return v
+        if isinstance(v, (list, tuple)):
+            return " ".join(_stringify(x) for x in v)
+        if isinstance(v, dict):
+            return " ".join(_stringify(x) for x in v.values())
+        return str(v)
 
-def _render_day_food_thumbnails(day_data: dict, date_key: str,
-                                key_prefix: str, per_row: int = 6) -> None:
-    """その日の食事画像を小さなサムネイル行として表示。タップで拡大ダイアログ。"""
-    items = _get_day_items(day_data)
-    seen: set[str] = set()
-    entries: list[dict] = []
-    for it in items:
-        iid = it.get("image_id")
-        if not iid or iid in seen:
-            continue
-        seen.add(iid)
-        entries.append({
-            "fid": iid,
-            "ext": it.get("image_ext", "jpg"),
-            "drive_file_id": it.get("drive_file_id", ""),
-            "ts": date_key,
-            "title": it.get("name", ""),
-            "kind": "food",
-        })
-    if not entries:
-        return
-    for row_start in range(0, len(entries), per_row):
-        row = entries[row_start:row_start + per_row]
-        cols = st.columns(per_row)
-        for ci, e in enumerate(row):
-            with cols[ci]:
-                try:
-                    thumb = _load_food_thumbnail_bytes(
-                        e["fid"], e["ext"], e["drive_file_id"],
-                    )
-                except Exception:
-                    thumb = None
-                if thumb:
-                    st.image(thumb, use_container_width=True)
-                else:
-                    st.markdown(
-                        '<div style="aspect-ratio:1/1;background:#222;'
-                        'border-radius:4px;display:flex;align-items:center;'
-                        'justify-content:center;font-size:20px;">🖼️</div>',
-                        unsafe_allow_html=True,
-                    )
-                if st.button("🔍", key=f"{key_prefix}_{date_key}_{e['fid']}",
-                             use_container_width=True):
-                    _open_photo_dialog(e)
+    parts = [
+        _stringify(meta.get("title")),
+        _stringify(meta.get("ocr_text")),
+        _stringify(meta.get("keywords")),
+        _stringify(meta.get("summary")),  # 後方互換: 既存データから検索
+    ]
+    return " ".join(parts).lower()
 
 
 def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[dict]:
-    """スクショ（clinical-kb 直下、患者データ以外）のエントリを modifiedTime 降順で返す。"""
+    """ナレッジ画像（患者データ含む）のエントリを modifiedTime 降順で返す。
+
+    search_text フィールドに title/summary/ocr_text/keywords を連結して入れ、
+    あいまい検索の対象にする。
+    """
     entries: list[dict] = []
     seen_ids: set[str] = set()
     for f in drive_files:
@@ -5344,8 +3292,6 @@ def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[d
         if not fid:
             continue
         meta = metadata.get(fid, {})
-        if is_patient_data(meta):
-            continue
         ts = f.get("modifiedTime") or f.get("createdTime") or ""
         title = meta.get("title") or f.get("name", "")
         entries.append({
@@ -5353,11 +3299,13 @@ def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[d
             "title": title,
             "ts": ts,
             "kind": "screenshot",
+            "is_patient": is_patient_data(meta),
+            "search_text": _meta_search_text(meta) + " " + (f.get("name", "") or "").lower(),
         })
         seen_ids.add(fid)
     # ローカルアップロードのスクショもフォールバック
     for fid, meta in metadata.items():
-        if fid in seen_ids or is_patient_data(meta):
+        if fid in seen_ids:
             continue
         ts = ""
         for ext in ("png", "jpg", "jpeg"):
@@ -5372,48 +3320,93 @@ def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[d
             "title": meta.get("title") or fid,
             "ts": ts,
             "kind": "screenshot",
+            "is_patient": is_patient_data(meta),
+            "search_text": _meta_search_text(meta),
         })
     entries.sort(key=lambda x: x["ts"] or "", reverse=True)
     return entries
 
 
 def _build_food_entries(weight_data: dict) -> list[dict]:
-    """食事画像のエントリを日付降順で返す。"""
+    """食事画像のエントリを日付降順で返す。
+
+    同じ image_id を持つ複数の item 行は 1 つの画像エントリにまとめ、
+    各 name を items_extracted（品目リスト）として表示する。
+    """
     entries: list[dict] = []
     records = weight_data.get("records", {}) or {}
     for date_key in sorted(records.keys(), reverse=True):
         day = records[date_key] or {}
-        seen: set[str] = set()
+        # image_id ごとに集約（最初に出てきた item の ext/drive_file_id を採用）
+        grouped: dict[str, dict] = {}
+        order: list[str] = []
         for it in day.get("items", []) or []:
             iid = it.get("image_id")
-            if not iid or iid in seen:
+            if not iid:
                 continue
-            seen.add(iid)
+            if iid not in grouped:
+                grouped[iid] = {
+                    "ext": it.get("image_ext", "jpg"),
+                    "drive_file_id": it.get("drive_file_id", ""),
+                    "names": [],
+                    "extras": [],
+                }
+                order.append(iid)
+            g = grouped[iid]
+            raw_name = it.get("name", "")
+            name = raw_name if isinstance(raw_name, str) else str(raw_name or "")
+            if name and name not in g["names"]:
+                g["names"].append(name)
+            ie = it.get("items_extracted")
+            if isinstance(ie, list):
+                for x in ie:
+                    sx = str(x)
+                    if sx and sx not in g["extras"]:
+                        g["extras"].append(sx)
+
+        for iid in order:
+            g = grouped[iid]
+            items_extracted = g["names"] + [x for x in g["extras"] if x not in g["names"]]
+            title = items_extracted[0] if items_extracted else ""
+            search_text = " ".join(s.lower() for s in items_extracted)
             entries.append({
                 "fid": iid,
-                "ext": it.get("image_ext", "jpg"),
-                "drive_file_id": it.get("drive_file_id", ""),
+                "ext": g["ext"],
+                "drive_file_id": g["drive_file_id"],
                 "ts": date_key,
-                "title": it.get("name", ""),
+                "title": title,
+                "items_extracted": items_extracted,
                 "kind": "food",
+                "search_text": search_text,
             })
     return entries
 
 
+def _fuzzy_filter_entries(entries: list[dict], query: str) -> list[dict]:
+    """エントリの search_text にクエリの全トークン（空白区切り）が含まれるものを返す。
+
+    あいまい検索: 大小文字無視、部分一致、複数トークンは AND。
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return entries
+    tokens = [t for t in q.split() if t]
+    if not tokens:
+        return entries
+    out = []
+    for e in entries:
+        st_text = e.get("search_text", "") or ""
+        if all(t in st_text for t in tokens):
+            out.append(e)
+    return out
+
+
 @st.dialog("画像", width="large")
 def _open_photo_dialog(entry: dict):
-    """画像をモーダルで拡大表示する。"""
-    fid = entry.get("fid", "")
-    favs = _ensure_favorites_loaded()
-    is_fav = fid in favs
-
-    fav_label = "★ お気に入り解除" if is_fav else "☆ お気に入りに追加"
-    if st.button(fav_label, key=f"fav_btn_{fid}", use_container_width=True):
-        toggle_favorite(fid)
-        st.rerun()
-
+    """画像をモーダルで拡大表示する。ナレッジ画像はタイトル/要約/キーワードを直接編集できる。"""
     img_bytes: bytes | None = None
-    if entry.get("kind") in ("patient", "screenshot"):
+    is_knowledge = entry.get("kind") in ("patient", "screenshot")
+    if is_knowledge:
         try:
             service = get_drive_service()
             if service:
@@ -5431,6 +3424,56 @@ def _open_photo_dialog(entry: dict):
         st.warning("画像の読み込みに失敗しました。")
     if entry.get("ts"):
         st.caption(entry["ts"][:10])
+
+    if not is_knowledge:
+        return
+
+    fid = entry["fid"]
+    metadata = load_metadata()
+    meta = metadata.get(fid, {})
+
+    cur_title = meta.get("title") or entry.get("title", "")
+    cur_kws = meta.get("keywords") or []
+    if not isinstance(cur_kws, list):
+        cur_kws = []
+    cur_kws_str = ", ".join(str(k) for k in cur_kws)
+
+    st.markdown("---")
+    st.markdown("**📝 タイトル・キーワード**")
+    with st.form(f"edit_form_{fid}", clear_on_submit=False):
+        new_title = st.text_input(
+            "タイトル",
+            value=cur_title,
+            key=f"dlg_title_{fid}",
+            placeholder="例: 心電図 ST上昇 V1-V4",
+        )
+        new_kws_str = st.text_input(
+            "キーワード（カンマ区切り）",
+            value=cur_kws_str,
+            key=f"dlg_kws_{fid}",
+            placeholder="例: 心筋梗塞, 心電図, ST上昇",
+        )
+        submitted = st.form_submit_button("💾 保存", type="primary", use_container_width=True)
+
+    if submitted:
+        new_keywords = [k.strip() for k in new_kws_str.split(",") if k.strip()]
+        existing = metadata.get(fid, {})
+        existing.update({
+            "title": new_title.strip(),
+            "keywords": new_keywords,
+            "status": STATUS_REVIEWED,
+        })
+        metadata[fid] = existing
+        try:
+            ok = save_metadata(metadata)
+        except Exception as e:
+            ok = False
+            _log.exception(f"[photo_dialog] save_metadata失敗 fid={fid}: {e}")
+        if ok:
+            st.toast("✅ 保存しました", icon="✅")
+        else:
+            st.toast("⚠️ ローカルには保存されました（Sheetsは後で再試行）", icon="⚠️")
+        st.rerun()
 
 
 def _render_photo_gallery(entries: list[dict], key_prefix: str,
@@ -5468,7 +3511,6 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                 f'<div class="g-day">{_fmt_day(d)}</div>',
                 unsafe_allow_html=True,
             )
-        favs = _ensure_favorites_loaded()
         cols = st.columns(GALLERY_COLS)
         for ci, e in enumerate(row):
             with cols[ci]:
@@ -5483,21 +3525,34 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                         '<div class="g-placeholder">🖼️</div>',
                         unsafe_allow_html=True,
                     )
-                bcol1, bcol2 = st.columns(2)
-                with bcol1:
-                    if st.button("🔍", key=f"{key_prefix}_btn_{e['fid']}",
-                                 use_container_width=True,
-                                 help="拡大表示"):
-                        _open_photo_dialog(e)
-                with bcol2:
-                    is_fav = e["fid"] in favs
-                    fav_label = "⭐" if is_fav else "☆"
-                    if st.button(fav_label,
-                                 key=f"{key_prefix}_fav_{e['fid']}",
-                                 use_container_width=True,
-                                 help="お気に入り解除" if is_fav else "お気に入りに追加"):
-                        toggle_favorite(e["fid"])
-                        st.rerun()
+                if e.get("kind") == "food":
+                    items_ext = e.get("items_extracted") or []
+                    if items_ext:
+                        chips = "".join(
+                            f'<span class="g-chip">{html.escape(str(x))}</span>'
+                            for x in items_ext
+                        )
+                        st.markdown(
+                            f'<div class="g-caption">{chips}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    elif e.get("title"):
+                        st.markdown(
+                            f'<div class="g-caption">{html.escape(e["title"])}</div>',
+                            unsafe_allow_html=True,
+                        )
+                else:
+                    title = e.get("title", "")
+                    if title:
+                        prefix = "🏥 " if e.get("is_patient") else ""
+                        st.markdown(
+                            f'<div class="g-caption">{prefix}{html.escape(title)}</div>',
+                            unsafe_allow_html=True,
+                        )
+                if st.button("🔍", key=f"{key_prefix}_btn_{e['fid']}",
+                             use_container_width=True,
+                             help="拡大表示"):
+                    _open_photo_dialog(e)
 
     if loaded < len(entries):
         if st.button(f"もっと見る ({loaded} / {len(entries)})",
@@ -5508,60 +3563,42 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
             st.rerun()
 
 
-def page_patient_gallery():
-    """患者データの Google Photos 風ギャラリー。"""
-    _inject_gallery_css()
-    st.markdown("## 🏥 患者データ")
-
-    metadata = load_metadata()
-    service = get_drive_service()
-    if not service:
-        st.error("Google Driveに接続できませんでした。設定を確認してください。")
-        return
-
-    folder_id = get_folder_id()
-    patient_folder_id = get_patient_folder_id()
-    drive_files = list_all_images(service, folder_id, metadata, patient_folder_id)
-    entries = _build_patient_entries(metadata, drive_files)
-
-    favs = _ensure_favorites_loaded()
-    fav_only = st.toggle("⭐ お気に入りのみ", key="pat_gal_fav_only",
-                         help=f"お気に入り {len(favs)} 件")
-    if fav_only:
-        entries = [e for e in entries if e["fid"] in favs]
-
-    st.caption(f"全 {len(entries)} 件")
-
-    def _fetch(e):
-        try:
-            return download_thumbnail(service, e["fid"], max_px=800, quality=88)
-        except Exception:
-            return None
-
-    _render_photo_gallery(entries, "pat_gal", _fetch)
-
-
 def page_food_gallery():
-    """食事画像の Google Photos 風ギャラリー。"""
+    """食事画像の Google Photos 風ギャラリー（品目あいまい検索付き）。"""
     _inject_gallery_css()
-    st.markdown("## 🍽️ 食事画像")
+    st.markdown("## 🍽️ 食事")
 
     weight_data = load_weight_data()
     entries = _build_food_entries(weight_data)
-    st.caption(f"全 {len(entries)} 件")
+
+    query = st.text_input(
+        "🔍 品目で検索",
+        key="food_gal_search",
+        placeholder="例: ご飯 / 鮭 / サラダ",
+        label_visibility="collapsed",
+    )
+    filtered = _fuzzy_filter_entries(entries, query)
+
+    if query:
+        st.caption(f"🔍 「{query}」: {len(filtered)} / {len(entries)} 件")
+    else:
+        st.caption(f"全 {len(entries)} 件")
 
     def _fetch(e):
         return _load_food_thumbnail_bytes(
             e["fid"], e.get("ext", "jpg"), e.get("drive_file_id", "")
         )
 
-    _render_photo_gallery(entries, "food_gal", _fetch)
+    _render_photo_gallery(filtered, "food_gal", _fetch)
 
 
 def page_screenshot_gallery():
-    """スクショ（clinical-kb 直下、患者データ以外）の Google Photos 風ギャラリー。"""
+    """ナレッジ画像（clinical-kb + 患者データ）の Google Photos 風ギャラリー。
+
+    タイトル/要約/OCR/キーワードを横断したあいまい検索付き。
+    """
     _inject_gallery_css()
-    st.markdown("## 📱 スクショ")
+    st.markdown("## 📖 ナレッジ")
 
     metadata = load_metadata()
     service = get_drive_service()
@@ -5570,16 +3607,39 @@ def page_screenshot_gallery():
         return
 
     folder_id = get_folder_id()
-    drive_files = list_images(service, folder_id)
+    patient_fid = get_patient_folder_id()
+    drive_files = list_all_images(service, folder_id, metadata, patient_fid)
     entries = _build_screenshot_entries(metadata, drive_files)
 
-    favs = _ensure_favorites_loaded()
-    fav_only = st.toggle("⭐ お気に入りのみ", key="ss_gal_fav_only",
-                         help=f"お気に入り {len(favs)} 件")
-    if fav_only:
-        entries = [e for e in entries if e["fid"] in favs]
+    sc_left, sc_right = st.columns([5, 1])
+    with sc_left:
+        query = st.text_input(
+            "🔍 タイトル・OCR・キーワードで検索",
+            key="ss_gal_search",
+            placeholder="例: 心電図 / ARDS / 第二肋間 など",
+            label_visibility="collapsed",
+        )
+    with sc_right:
+        if st.button("🔄 再取得", key="ss_gal_refresh", help="Drive 一覧キャッシュをクリアして再取得"):
+            try:
+                list_images.clear()
+                list_patient_images.clear()
+            except Exception:
+                pass
+            st.rerun()
+    filtered = _fuzzy_filter_entries(entries, query)
 
-    st.caption(f"全 {len(entries)} 件")
+    n_patient = sum(1 for e in entries if e.get("is_patient"))
+    n_main = len(entries) - n_patient
+    base_caption = f"全 {len(entries)} 件"
+    if n_patient:
+        base_caption += f"（うち 🏥 患者データ {n_patient} 件）"
+    if query:
+        st.caption(f"🔍 「{query}」: {len(filtered)} / {len(entries)} 件")
+    else:
+        st.caption(base_caption)
+    if n_main == 0 and n_patient > 0:
+        st.info("📚 ナレッジ画像（clinical-kb）が0件です。Drive 一覧取得が失敗した可能性があるので「🔄 再取得」をお試しください。")
 
     def _fetch(e):
         try:
@@ -5587,347 +3647,156 @@ def page_screenshot_gallery():
         except Exception:
             return None
 
-    _render_photo_gallery(entries, "ss_gal", _fetch)
+    _render_photo_gallery(filtered, "ss_gal", _fetch)
 
 
 # ===========================================================================
-# 統合ページ: ⚙️ 設定（フォルダ管理 + ゴミ箱 + システム 統合）
+# 統合ページ: 設定（最小構成）
 # ===========================================================================
 def page_settings_all():
-    """設定ページ — フォルダ管理・ゴミ箱・同期管理・システム設定を4つのサブタブに統合。"""
-    sub_tab1, sub_tab2, sub_tab_sync, sub_tab3 = st.tabs([
-        "📂 フォルダ管理", "🗑️ ゴミ箱", "📡 同期管理", "🔧 システム"
-    ])
+    """設定ページ — 最小構成。基本動作は自動取り込み + バックグラウンド同期。"""
+    st.markdown("## ⚙️ 設定")
 
-    # =======================================================================
-    # サブタブ1: フォルダ管理
-    # =======================================================================
-    with sub_tab1:
-        page_folder_settings()
+    _auto_val = st.toggle(
+        "自動取り込み（バックグラウンドで新着画像を取得）",
+        value=st.session_state.get("auto_scan_enabled", True),
+        key="auto_scan_toggle_settings",
+    )
+    st.session_state["auto_scan_enabled"] = _auto_val
 
-    # =======================================================================
-    # サブタブ2: ゴミ箱
-    # =======================================================================
-    with sub_tab2:
-        page_trash()
+    health = st.session_state.get("_sync_health", {})
+    _is_sheets_connected = st.session_state.get("_sheets_connected", None)
+    if _is_sheets_connected is False:
+        st.caption("☁️ Sheets 未接続（ローカル保存のみ）")
+    elif health:
+        total_diff = sum(abs(h.get("diff", 0)) for h in health.values())
+        if total_diff == 0:
+            st.caption("☁️ Google Sheets と同期済み")
+        else:
+            st.caption(f"☁️ 同期差異 {total_diff} 件（バックグラウンドで自動解決中）")
 
-    # =======================================================================
-    # サブタブ: 同期管理
-    # =======================================================================
-    with sub_tab_sync:
-        st.subheader("📡 同期管理")
-        st.caption("ローカル ↔ Google Sheets のデータ同期状態を管理します。")
+    auth_user = st.session_state.get("auth_user")
+    if auth_user:
+        st.caption(f"👤 {auth_user}")
 
-        # --- 同期ヘルスチェック結果表示 ---
-        health = st.session_state.get("_sync_health", {})
-        sync_status = st.session_state.get("_sync_status", {})
+    st.markdown("---")
 
-        _DATA_LABELS = {"metadata": "📋 メタデータ", "weight_data": "🍽️ 食事記録データ", "food_processed": "🍽️ 食事処理済み"}
+    with st.expander("🔧 詳細操作"):
+        st.caption("通常は触る必要はありません。")
 
-        _is_sheets_connected = st.session_state.get("_sheets_connected", None)
-        if _is_sheets_connected is False:
-            st.warning("📡 Google Sheets に接続されていません。secrets に `spreadsheet_id` と `gcp_service_account` を設定してください。データはローカルに保存されています。")
-        if health:
-            st.markdown("#### 📊 同期ステータス")
-            for dtype, label in _DATA_LABELS.items():
-                h = health.get(dtype, {})
-                s = sync_status.get(dtype, {})
-                local_n = h.get("local", 0)
-                sheets_n = h.get("sheets", 0)
-                diff = h.get("diff", 0)
+        if st.button("🔄 今すぐ取り込み（手動）", key="manual_scan_settings",
+                     width="stretch"):
+            st.session_state["manual_scan_running"] = True
+            list_images.clear()
+            st.rerun()
 
-                sc1, sc2, sc3, sc4 = st.columns(4)
-                with sc1:
-                    st.metric(f"{label}", f"ローカル: {local_n}")
-                with sc2:
-                    st.metric("Sheets", f"{sheets_n}")
-                with sc3:
-                    if diff == 0:
-                        st.metric("差異", "✅ 0件")
-                    elif diff > 0:
-                        st.metric("差異", f"⚠️ +{diff}件", delta=f"ローカルが{diff}件多い", delta_color="inverse")
-                    else:
-                        st.metric("差異", f"⚠️ {diff}件", delta=f"Sheetsが{abs(diff)}件多い", delta_color="inverse")
-                with sc4:
-                    if s:
-                        attempted = s.get("attempted", True)
-                        if not attempted:
-                            icon = "⏸️"  # 未試行
-                        elif s.get("success"):
-                            icon = "✅"
-                        else:
-                            icon = "❌"
-                        ts = s.get("timestamp", "")
-                        if ts:
-                            try:
-                                ts_short = datetime.fromisoformat(ts).strftime("%H:%M")
-                            except Exception:
-                                ts_short = ts
-                        else:
-                            ts_short = "---"
-                        st.metric("最終同期", f"{icon} {ts_short}")
-                    else:
-                        st.metric("最終同期", "--- 未実行")
-        elif _is_sheets_connected is None:
-            st.info("同期ヘルスチェックはまだ実行されていません。ページ再読み込みで自動実行されます。")
+        if st.button("📤 Local → Sheets 強制同期", key="force_sync_l2s",
+                     width="stretch"):
+            with st.spinner("Sheets へ同期中..."):
+                _force_sync_local_to_sheets()
+            st.session_state["_sync_health_ts"] = 0
+            st.toast("☁️ Sheets へ同期しました")
+            st.rerun()
 
-        st.markdown("---")
+        if st.button("📥 Sheets → Local 復元", key="force_sync_s2l",
+                     width="stretch"):
+            with st.spinner("ローカルに復元中..."):
+                _force_sync_sheets_to_local()
+            st.session_state["_sync_health_ts"] = 0
+            st.toast("📥 ローカルに復元しました")
+            st.rerun()
 
-        # --- 強制同期ボタン ---
-        st.markdown("#### 🔄 強制同期")
-        sync_c1, sync_c2 = st.columns(2)
-        with sync_c1:
-            if st.button("🔄 Local → Sheets に強制同期", key="force_sync_l2s", type="primary", width="stretch"):
-                with st.spinner("Sheets へ同期中..."):
-                    results = _force_sync_local_to_sheets()
-                if "error" in results:
-                    st.error(f"❌ {results['error']}")
-                else:
-                    all_ok = all(r.get("success", False) for r in results.values())
-                    if all_ok:
-                        st.success("✅ 全データをSheetsに同期しました！")
-                    else:
-                        for dtype, r in results.items():
-                            lbl = _DATA_LABELS.get(dtype, dtype)
-                            if r.get("success"):
-                                st.success(f"✅ {lbl}: {r.get('count', 0)}件")
-                            else:
-                                st.error(f"❌ {lbl}: {r.get('error', '失敗')}")
-                # ヘルスチェックを即再実行
-                st.session_state["_sync_health_ts"] = 0
-                st.rerun()
-        with sync_c2:
-            if st.button("📥 Sheets → Local に復元", key="force_sync_s2l", width="stretch"):
-                with st.spinner("ローカルに復元中..."):
-                    results = _force_sync_sheets_to_local()
-                if "error" in results:
-                    st.error(f"❌ {results['error']}")
-                else:
-                    all_ok = all(r.get("success", False) for r in results.values())
-                    if all_ok:
-                        st.success("✅ SheetsからローカルJSONに復元しました！")
-                    else:
-                        for dtype, r in results.items():
-                            lbl = _DATA_LABELS.get(dtype, dtype)
-                            if r.get("success"):
-                                st.success(f"✅ {lbl}: {r.get('count', 0)}件")
-                            else:
-                                st.error(f"❌ {lbl}: {r.get('error', r.get('note', '失敗'))}")
-                st.session_state["_sync_health_ts"] = 0
-                st.rerun()
-
-        # --- 手動ヘルスチェック ---
-        if st.button("🔍 今すぐヘルスチェック", key="manual_health_check"):
+        if st.button("🔍 ヘルスチェック再実行", key="manual_health_check",
+                     width="stretch"):
             st.session_state["_sync_health_ts"] = 0
             _check_sync_health()
             st.rerun()
 
-    # =======================================================================
-    # サブタブ4: システム
-    # =======================================================================
-    with sub_tab3:
-        st.subheader("🔧 システム")
-
-        # --- 解析データの一括削除 ---
-        st.markdown("#### 🗑️ 解析データの一括削除")
-        metadata = load_metadata()
-        service = get_drive_service()
-        folder_id = get_folder_id()
-        images = list_all_images(service, folder_id, metadata, get_patient_folder_id())
-        analyzed_images = [img for img in images if img["id"] in metadata]
-
-        if not analyzed_images:
-            st.info("解析済みの画像データはありません。")
-        else:
-            st.warning(
-                f"**{len(analyzed_images)} 件**の解析済みデータがあります。"
-            )
-            sys_del_method = st.radio(
-                "削除方法",
-                ["🗑️ ゴミ箱に移動（再取り込み不可）", "🔄 メタデータのみ削除（再取り込み可能）"],
-                key="sys_del_method", horizontal=True,
-            )
-            if sys_del_method == "🔄 メタデータのみ削除（再取り込み可能）":
-                st.info("💡 画像ファイルはDriveに残ります。メタデータのみ削除します。")
-
-            sdel_c1, sdel_c2, sdel_c3 = st.columns([1, 1, 3])
-            with sdel_c1:
-                if st.button(f"✅ 全選択（全{len(analyzed_images)}件）", key="sys_del_sel_all"):
-                    for img in analyzed_images:
-                        st.session_state[f"sys_del_{img['id']}"] = True
-                    st.rerun()
-            with sdel_c2:
-                if st.button("🔄 全解除", key="sys_del_sel_none"):
-                    for img in analyzed_images:
-                        st.session_state[f"sys_del_{img['id']}"] = False
-                    st.rerun()
-
-            del_page_items, del_cur, del_total_pages = _paginate(analyzed_images, "sys_delete_page")
-            _render_pagination_controls("sys_delete_page", del_cur, del_total_pages, len(analyzed_images))
-
-            delete_ids = []
-            cols_per_row = 4
-            for row_start in range(0, len(del_page_items), cols_per_row):
-                cols = st.columns(cols_per_row)
-                for col_idx in range(cols_per_row):
-                    img_idx = row_start + col_idx
-                    if img_idx >= len(del_page_items):
-                        break
-                    img = del_page_items[img_idx]
-                    fid = img["id"]
-                    meta = metadata[fid]
-                    title = meta.get("title", img["name"])
-                    status_icon = get_status_icon(meta)
-                    with cols[col_idx]:
-                        try:
-                            thumb_bytes = download_thumbnail(service, fid)
-                            st.image(thumb_bytes, use_container_width=True)
-                        except Exception:
-                            st.markdown(
-                                '<div style="background:#333;border-radius:8px;'
-                                'height:80px;display:flex;align-items:center;'
-                                'justify-content:center;color:#b0b0b0;font-size:24px;">🖼️</div>',
-                                unsafe_allow_html=True,
-                            )
-                        st.caption(f"{status_icon} {title}")
-                        if st.checkbox("削除する", value=st.session_state.get(f"sys_del_{fid}", False), key=f"sys_del_{fid}"):
-                            delete_ids.append(fid)
-
-            st.markdown("---")
-            delete_count = len(delete_ids)
-            if sys_del_method == "🗑️ ゴミ箱に移動（再取り込み不可）":
-                if delete_count > 0:
-                    st.warning(f"🗑️ **{delete_count} 件**をゴミ箱に移動します。")
-                if st.button(
-                    f"🗑️ 選択した {delete_count} 件をゴミ箱へ",
-                    type="primary", key="sys_del_trash_run",
-                    disabled=(delete_count == 0),
-                ):
-                    moved = move_to_trash(delete_ids, metadata)
-                    for fid in delete_ids:
-                        st.session_state.pop(f"sys_del_{fid}", None)
-                    st.success(f"✅ {moved} 件をゴミ箱に移動しました。")
-                    st.rerun()
-            else:
-                if delete_count > 0:
-                    st.info(f"🔄 **{delete_count} 件**のメタデータを削除します。")
-                if st.button(
-                    f"🔄 選択した {delete_count} 件のメタデータを削除",
-                    type="primary", key="sys_del_meta_run",
-                    disabled=(delete_count == 0),
-                ):
-                    removed = 0
-                    for fid in delete_ids:
-                        if fid in metadata:
-                            del metadata[fid]
-                            removed += 1
-                        st.session_state.pop(f"sys_del_{fid}", None)
-                    remove_from_ignore_list(delete_ids)
-                    save_metadata(metadata)
-                    _invalidate_all_caches()
-                    st.success(f"✅ {removed} 件のメタデータを削除しました。")
-                    st.rerun()
-
-        st.markdown("---")
-
-        # --- Sheets接続状態 + 移行ツール ---
-        st.markdown("#### ☁️ データ管理")
-        sh_status = get_sheets_client()
-        if sh_status is not None:
-            st.success("☁️ Google Sheets: 接続済み")
-            # 体重データの同期ステータス
-            try:
-                wd = _read_json_from_sheet(sh_status, "weight_data")
-                if wd and "records" in wd:
-                    rec_count = len(wd["records"])
-                    item_count = sum(len(_get_day_items(wd["records"][d])) for d in wd["records"])
-                    st.caption(f"📡 体重データ: {rec_count}日分 / {item_count}品目 (Sheets上)")
-                else:
-                    st.caption("📡 体重データ: Sheets上にデータなし")
-            except Exception:
-                st.caption("📡 体重データ: 読み取り確認スキップ")
-        else:
-            st.warning("☁️ Google Sheets: 未接続（ローカルJSONにフォールバック中）")
-
-        col_sys1, col_sys2 = st.columns(2)
-        with col_sys1:
-            if st.button("📤 ローカル → Sheets 移行", key="sys_migrate", width="stretch"):
-                _migrate_local_to_sheets()
-        with col_sys2:
-            if st.button("🔄 データ再読み込み", key="sys_reload", width="stretch"):
-                _invalidate_all_caches()
-                st.toast("☁️ Google Sheets から最新データを再読み込みしました")
-                st.rerun()
-
-        # --- ログイン情報 & ログアウト ---
-        st.markdown("---")
-        st.markdown("#### 👤 ログイン情報")
-        auth_user = st.session_state.get("auth_user")
-        if auth_user:
-            st.write(f"ログイン中: **{auth_user}**")
-            if st.button("🚪 ログアウト", key="sys_logout", width="stretch"):
-                # localStorage のトークンをクリア
-                _clear_auth_storage()
-                # 認証ファイルを削除
-                _clear_auth_file()
-                st.session_state["authenticated"] = False
-                st.session_state.pop("auth_user", None)
-                # URLからトークンも削除
-                if "token" in st.query_params:
-                    del st.query_params["token"]
-                st.rerun()
-        else:
-            st.caption("認証が設定されていないか、フリーアクセスモードです。")
+        if auth_user and st.button("🚪 ログアウト", key="sys_logout",
+                                    width="stretch"):
+            _clear_auth_storage()
+            _clear_auth_file()
+            st.session_state["authenticated"] = False
+            st.session_state.pop("auth_user", None)
+            if "token" in st.query_params:
+                del st.query_params["token"]
+            st.rerun()
 
 
 # ===========================================================================
 # 体重管理ページ
 # ===========================================================================
 def _inject_wm_css():
-    """MoneyForward風CSSスタイル注入。"""
+    """体重ページ専用 CSS。refined dark card + orange accent。"""
     st.markdown("""
     <style>
-    .mf-weight-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px; padding: 20px; color: white; text-align: center;
-        margin-bottom: 8px;
-    }
-    .mf-weight-card .mf-label { font-size: 13px; opacity: 0.8; }
-    .mf-weight-card .mf-value { font-size: 32px; font-weight: bold; margin: 4px 0; }
-    .mf-weight-card .mf-sub { font-size: 12px; opacity: 0.7; }
-    .mf-cal-card {
-        background: #1e1e2e; border: 1px solid #3a3a4a; border-radius: 16px;
-        padding: 20px; text-align: center; margin-bottom: 8px; color: #e0e0e0;
-    }
-    .mf-cal-card .mf-label { font-size: 13px; color: #aaa; }
-    .mf-cal-card .mf-value { font-size: 36px; font-weight: bold; margin: 4px 0; }
-    .mf-cal-card .mf-target { font-size: 14px; color: #bbb; }
-    .mf-cal-card .mf-remaining { font-size: 13px; color: #aaa; margin-top: 8px; }
-    .mf-progress-bg {
-        background: #3a3a4a; border-radius: 10px; height: 12px; margin: 10px 0;
+    .wm-card {
+        background: linear-gradient(160deg, #1d2030 0%, #14161f 100%);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        padding: 22px 20px 18px;
+        color: #e6e6ec;
+        margin: 8px 0 14px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+        position: relative;
         overflow: hidden;
     }
-    .mf-progress-bar {
-        height: 12px; border-radius: 10px; transition: width 0.3s;
+    .wm-card::before {
+        content: "";
+        position: absolute; top: -40px; right: -40px;
+        width: 120px; height: 120px;
+        background: radial-gradient(closest-side, rgba(255,122,60,0.18), transparent 70%);
+        pointer-events: none;
     }
-    .mf-meal-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 10px 14px; background: #2a2a3a; border-radius: 8px;
-        margin: 12px 0 4px 0; font-weight: bold; font-size: 15px; color: #e0e0e0;
+    .wm-card .wm-label {
+        font-size: 12px; letter-spacing: 0.08em;
+        text-transform: uppercase; color: rgba(255,255,255,0.55);
     }
-    .mf-item-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 6px 14px 6px 24px; border-bottom: 1px solid #3a3a4a;
-        font-size: 14px; color: #d0d0d0;
+    .wm-card .wm-value {
+        font-size: 48px; font-weight: 700; line-height: 1.1;
+        margin: 6px 0 2px;
+        background: linear-gradient(135deg, #FFB47A, #FF7A3C);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    .mf-item-row:last-child { border-bottom: none; }
-    .mf-date-display {
-        text-align: center; font-size: 18px; font-weight: bold;
-        padding: 8px 0; line-height: 2.2;
+    .wm-card .wm-value .wm-unit {
+        font-size: 16px; color: rgba(255,255,255,0.45);
+        -webkit-text-fill-color: rgba(255,255,255,0.45);
+        margin-left: 4px;
     }
-    .mf-grand-total {
-        text-align: right; font-size: 16px; font-weight: bold;
-        padding: 12px 14px; border-top: 2px solid #888; margin-top: 8px; color: #e0e0e0;
+    .wm-card .wm-value .wm-trend { font-size: 22px; margin-left: 6px; }
+    .wm-card .wm-sub { font-size: 13px; color: rgba(255,255,255,0.6); }
+    .wm-card .wm-goalbar-wrap {
+        margin-top: 14px; height: 6px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 4px; overflow: hidden;
+    }
+    .wm-card .wm-goalbar {
+        height: 100%; border-radius: 4px;
+        background: linear-gradient(90deg, #FF7A3C, #FFB47A);
+        transition: width 320ms ease;
+    }
+    .wm-trend-down { color: #5fd28b; }
+    .wm-trend-up { color: #ff7a7a; }
+    .wm-trend-flat { color: rgba(255,255,255,0.4); }
+    .wm-input-display {
+        text-align: center; font-size: 44px; font-weight: 700;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #FFB47A, #FF7A3C);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .wm-input-display.wm-pending {
+        background: linear-gradient(135deg, #ffd28a, #ffb84a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .wm-input-display .wm-unit {
+        font-size: 16px;
+        -webkit-text-fill-color: rgba(255,255,255,0.5);
+        margin-left: 4px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -5990,716 +3859,83 @@ def _render_date_navigation():
                 _set_date(date.today())
 
 
-def _render_dashboard_card(day_data: dict, goals: dict, records: dict):
-    """MoneyForward風のダッシュボードカード: 体重 + カロリー。"""
-    total_cal = day_data.get("total_calories", 0)
-    weight = day_data.get("weight")
-    target_cal = goals.get("daily_calorie_target", 0)
+def _render_dashboard_card(d: dict, goals: dict, records: dict):
+    """体重ダッシュボードカード — refined dark + orange accent。"""
+    weight = d.get("weight")
     target_wt = goals.get("target_weight_kg")
-    remaining = max(0, target_cal - total_cal) if target_cal else 0
 
-    # カロリー色分け
-    if target_cal > 0:
-        ratio = total_cal / target_cal
-        if ratio <= 0.8:
-            cal_color = "#4CAF50"
-        elif ratio <= 1.0:
-            cal_color = "#FF9800"
-        else:
-            cal_color = "#F44336"
-        progress_pct = min(100, int(ratio * 100))
-    else:
-        cal_color = "#888"
-        progress_pct = 0
-
-    # 体重トレンド
     trend = _get_weight_trend(records)
-    trend_arrow = {"down": "↓", "up": "↑", "flat": "→"}.get(trend, "")
+    trend_html = ""
+    if weight:
+        trend_arrow = {"down": "↓", "up": "↑", "flat": "→"}.get(trend, "")
+        trend_class = {"down": "wm-trend-down", "up": "wm-trend-up",
+                       "flat": "wm-trend-flat"}.get(trend, "wm-trend-flat")
+        if trend_arrow:
+            trend_html = f'<span class="wm-trend {trend_class}">{trend_arrow}</span>'
 
-    col_wt, col_cal = st.columns([1, 1.5])
+    w_display = f"{weight}" if weight else "--"
 
-    with col_wt:
-        w_display = f"{weight}" if weight else "--"
-        wt_sub = ""
-        if weight and target_wt:
-            diff = round(weight - target_wt, 1)
-            wt_sub = f"目標まで {abs(diff)} kg" if diff > 0 else "目標達成!"
-        elif target_wt:
-            wt_sub = f"目標: {target_wt} kg"
+    sub_html = ""
+    goalbar_html = ""
+    if weight and target_wt:
+        diff = round(weight - target_wt, 1)
+        if diff > 0:
+            sub_html = f"🎯 目標まで残り <b>{abs(diff)}</b> kg"
+        elif diff == 0:
+            sub_html = "🎉 目標達成中"
+        else:
+            sub_html = f"🎯 目標を <b>{abs(diff)}</b> kg 下回り中"
 
-        st.markdown(f"""
-        <div class="mf-weight-card">
-            <div class="mf-label">⚖️ 体重</div>
-            <div class="mf-value">{w_display} <span style="font-size:16px;">kg</span> {trend_arrow}</div>
-            <div class="mf-sub">{wt_sub}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_cal:
-        target_str = f"/ {target_cal:,}" if target_cal else ""
-        remaining_str = f"残り <b>{remaining:,}</b> kcal" if target_cal else "目標未設定"
-        pct_str = f"{progress_pct}%" if target_cal else ""
-
-        st.markdown(f"""
-        <div class="mf-cal-card">
-            <div class="mf-label">🔥 カロリー</div>
-            <div class="mf-value" style="color: {cal_color};">{total_cal:,}</div>
-            <div class="mf-target">{target_str} kcal {pct_str}</div>
-            <div class="mf-progress-bg">
-                <div class="mf-progress-bar" style="background: {cal_color}; width: {progress_pct}%;"></div>
-            </div>
-            <div class="mf-remaining">{remaining_str}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-# ---------------------------------------------------------------------------
-# 栄養バランス ダッシュボード
-# ---------------------------------------------------------------------------
-
-def _nutrient_bar_color(ratio: float) -> str:
-    """達成率に応じた色を返す。"""
-    if ratio <= 0:
-        return "#BDBDBD"
-    elif ratio < 0.6:
-        return "#F44336"   # 赤（大幅不足）
-    elif ratio < 0.8:
-        return "#FF9800"   # 黄（やや不足）
-    elif ratio <= 1.2:
-        return "#4CAF50"   # 緑（適正）
+        baseline_wts = []
+        for dk in sorted(records.keys()):
+            w = records[dk].get("weight")
+            if w:
+                baseline_wts.append(w)
+        baseline = baseline_wts[0] if baseline_wts else weight
+        if baseline != target_wt:
+            total = baseline - target_wt
+            achieved = baseline - weight
+            pct = max(0.0, min(100.0, (achieved / total) * 100)) if total else 0.0
+            goalbar_html = (
+                f'<div class="wm-goalbar-wrap">'
+                f'<div class="wm-goalbar" style="width:{pct:.1f}%;"></div>'
+                f'</div>'
+            )
+    elif target_wt:
+        sub_html = f"🎯 目標 {target_wt} kg"
+    elif weight:
+        sub_html = "目標を設定すると進捗が表示されます"
     else:
-        return "#F44336"   # 赤（過剰）
+        sub_html = "本日の体重を記録してください"
 
-
-def _bulk_estimate_nutrients(items_without_nuts: list[dict],
-                             day_data: dict, weight_data: dict):
-    """栄養素未推定の品目をまとめて Gemini で推定する（バッチ分割対応）。"""
-    api_key = get_gemini_api_key()
-    if not api_key:
-        st.warning("APIキー未設定")
-        return
-
-    BATCH_SIZE = 5  # Gemini が安定して返せるサイズ
-    total = len(items_without_nuts)
-    success_count = 0
-
-    progress = st.progress(0, text=f"栄養素を推定中... (0/{total})")
-
-    for batch_start in range(0, total, BATCH_SIZE):
-        batch_items = items_without_nuts[batch_start:batch_start + BATCH_SIZE]
-        items_for_recalc = [
-            {"name": it.get("name", ""), "quantity": it.get("quantity", "ふつう")}
-            for it in batch_items
-        ]
-        try:
-            results = _recalc_calories(items_for_recalc, api_key)
-            if results:
-                # 返却数が一致しなくても、一致する分だけ適用
-                for i, rc in enumerate(results):
-                    if i < len(batch_items):
-                        batch_items[i]["nutrients"] = rc.get("nutrients", {})
-                        if rc.get("calories", 0) > 0:
-                            batch_items[i]["calories"] = rc["calories"]
-                        success_count += 1
-        except Exception:
-            pass  # このバッチは失敗 → 次のバッチへ
-
-        done = min(batch_start + BATCH_SIZE, total)
-        progress.progress(done / total, text=f"栄養素を推定中... ({done}/{total})")
-        if batch_start + BATCH_SIZE < total:
-            time.sleep(1)  # API rate limit 回避
-
-    progress.empty()
-
-    if success_count > 0:
-        day_data["total_calories"] = sum(
-            x.get("calories", 0) for x in _get_day_items(day_data)
-        )
-        save_weight_data(weight_data)
-        if success_count == total:
-            st.toast(f"✅ {success_count} 品目の栄養素を推定しました")
-        else:
-            st.toast(f"✅ {success_count}/{total} 品目の栄養素を推定しました（一部失敗）")
-        st.rerun()
-    else:
-        st.error("一括推定に失敗しました。しばらく待ってから再試行してください。")
-
-
-def _render_nutrient_dashboard(day_data: dict, goals: dict,
-                               weight_data: dict | None = None,
-                               date_key: str = ""):
-    """栄養素の摂取状況をプログレスバーで表示する。"""
-    day_items = _get_day_items(day_data)
-    totals = _aggregate_day_nutrients(day_data)
-
-    # 栄養素未推定品目の一括推定ボタン
-    items_without_nuts = [it for it in day_items if not it.get("nutrients")]
-
-    if not totals:
-        # 品目はあるが栄養素データがない場合のみヒントを表示
-        if day_items and items_without_nuts:
-            st.markdown("### 🥗 栄養バランス")
-            st.caption(f"栄養素データ未推定: {len(items_without_nuts)}品目")
-            if weight_data is not None and st.button(
-                f"🔄 この日の {len(items_without_nuts)} 品目を一括推定",
-                key=f"wm_bulk_retro_{date_key}",
-            ):
-                _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
-        return
-
-    targets = _get_nutrient_targets(goals)
-
-    st.markdown("### 🥗 栄養バランス")
-    # --- 未推定品目がある場合は一括推定ボタン ---
-    if items_without_nuts and weight_data is not None:
-        st.caption(f"⚠️ 栄養素未推定: {len(items_without_nuts)}品目")
-        if st.button(
-            f"🔄 未推定 {len(items_without_nuts)} 品目を一括推定",
-            key=f"wm_bulk_retro2_{date_key}",
-        ):
-            _bulk_estimate_nutrients(items_without_nuts, day_data, weight_data)
-
-    # --- PFC（三大栄養素）プログレスバー ---
-    st.markdown("#### 三大栄養素 (PFC)")
-    pfc_html_parts = []
-    for key in _PFC_KEYS:
-        info = targets[key]
-        actual = round(totals.get(key, 0), 1)
-        target_val = info["target"] or 0
-        if target_val > 0:
-            ratio = actual / target_val
-            pct = min(100, int(ratio * 100))
-        else:
-            ratio = 0
-            pct = 0
-        color = _nutrient_bar_color(ratio)
-        label = info["label"]
-        unit = info["unit"]
-        target_str = f"/ {target_val}{unit}" if target_val else ""
-        # 判定テキスト
-        if ratio <= 0:
-            judge = '<span style="color:#9E9E9E;">ー</span>'
-        elif ratio < 0.6:
-            judge = '<span style="color:#F44336;font-weight:bold;">✖ 大幅不足</span>'
-        elif ratio < 0.8:
-            judge = '<span style="color:#FF9800;font-weight:bold;">△ やや不足</span>'
-        elif ratio <= 1.2:
-            judge = '<span style="color:#4CAF50;font-weight:bold;">◎ 良好</span>'
-        else:
-            judge = '<span style="color:#F44336;font-weight:bold;">✖ 摂りすぎ</span>'
-        pfc_html_parts.append(f"""
-        <div style="margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:2px;">
-                <span><b>{label}</b> {judge}</span>
-                <span>{actual}{unit} {target_str} ({pct}%)</span>
-            </div>
-            <div style="background:#3a3a4a;border-radius:4px;height:12px;overflow:hidden;">
-                <div style="background:{color};width:{pct}%;height:100%;border-radius:4px;transition:width 0.3s;"></div>
-            </div>
-        </div>""")
-    st.markdown("".join(pfc_html_parts), unsafe_allow_html=True)
-
-    # --- PFCカロリー比率 ---
-    p_cal = totals.get("protein", 0) * 4
-    f_cal = totals.get("fat", 0) * 9
-    c_cal = totals.get("carbs", 0) * 4
-    total_pfc_cal = p_cal + f_cal + c_cal
-    if total_pfc_cal > 0:
-        p_pct = int(p_cal / total_pfc_cal * 100)
-        f_pct = int(f_cal / total_pfc_cal * 100)
-        c_pct = 100 - p_pct - f_pct
-
-        # 各PFCが理想範囲内かどうか判定
-        _PFC_IDEAL = {"P": (13, 20), "F": (20, 30), "C": (50, 65)}
-        p_ok = _PFC_IDEAL["P"][0] <= p_pct <= _PFC_IDEAL["P"][1]
-        f_ok = _PFC_IDEAL["F"][0] <= f_pct <= _PFC_IDEAL["F"][1]
-        c_ok = _PFC_IDEAL["C"][0] <= c_pct <= _PFC_IDEAL["C"][1]
-
-        p_bg = "#42A5F5" if p_ok else "#EF5350"
-        f_bg = "#FFA726" if f_ok else "#EF5350"
-        c_bg = "#66BB6A" if c_ok else "#EF5350"
-
-        p_icon = "✅" if p_ok else "⚠️"
-        f_icon = "✅" if f_ok else "⚠️"
-        c_icon = "✅" if c_ok else "⚠️"
-
-        all_ok = p_ok and f_ok and c_ok
-        overall_icon = "✅ バランス良好！" if all_ok else "⚠️ バランスに偏りあり"
-        overall_color = "#4CAF50" if all_ok else "#FF9800"
-
-        st.markdown(f"""
-        <div style="display:flex;height:24px;border-radius:4px;overflow:hidden;margin:4px 0 8px;">
-            <div style="background:{p_bg};width:{p_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{p_pct}%P</div>
-            <div style="background:{f_bg};width:{f_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{f_pct}%F</div>
-            <div style="background:{c_bg};width:{c_pct}%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:bold;">{c_pct}%C</div>
-        </div>
-        <div style="font-size:12px;margin-bottom:4px;">
-            {p_icon} P {p_pct}%（理想 13-20%）
-            {f_icon} F {f_pct}%（理想 20-30%）
-            {c_icon} C {c_pct}%（理想 50-65%）
-        </div>
-        <div style="text-align:center;padding:4px 8px;background:#2a2a3a;border-radius:6px;margin:4px 0 12px;font-size:13px;font-weight:bold;color:{overall_color};">
-            {overall_icon}
-        </div>
-        """, unsafe_allow_html=True)
-
-    # --- 食塩摂取量（上限のみ） ---
-    salt_actual = round(totals.get("salt", 0), 1)
-    salt_upper = targets["salt"]["upper"] or 7.5
-    salt_ok = salt_actual <= salt_upper
-    salt_icon = "✅" if salt_ok else "⚠️"
-    salt_color = "#4CAF50" if salt_ok else "#F44336"
     st.markdown(f"""
-    <div style="padding:6px 12px;background:#2a2a3a;border-radius:6px;margin:8px 0;font-size:13px;">
-        🧂 <b>食塩</b>: <span style="color:{salt_color};">{salt_actual}g</span> / {salt_upper}g以下 {salt_icon}
+    <div class="wm-card">
+        <div class="wm-label">本日の体重</div>
+        <div class="wm-value">{w_display}<span class="wm-unit">kg</span>{trend_html}</div>
+        <div class="wm-sub">{sub_html}</div>
+        {goalbar_html}
     </div>
     """, unsafe_allow_html=True)
 
-    # --- 微量栄養素（達成率バー） ---
-    has_micro = any(totals.get(k, 0) > 0 for k in _MICRO_KEYS)
-    if has_micro:
-        st.markdown("#### ビタミン・ミネラル")
-        micro_html_parts = []
-        for key in _MICRO_KEYS:
-            info = targets[key]
-            actual = round(totals.get(key, 0), 1)
-            target_val = info["target"]
-            if target_val and target_val > 0:
-                ratio = actual / target_val
-                pct = min(150, int(ratio * 100))
-                display_pct = min(100, pct)
-            else:
-                ratio = 0
-                pct = 0
-                display_pct = 0
-            color = _nutrient_bar_color(ratio)
-            label = info["label"]
-            unit = info["unit"]
-            target_str = f"/ {target_val}{unit}" if target_val else ""
-            micro_html_parts.append(f"""
-            <div style="margin-bottom:6px;">
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:1px;">
-                    <span>{label}</span>
-                    <span>{actual}{unit} {target_str} ({pct}%)</span>
-                </div>
-                <div style="background:#3a3a4a;border-radius:3px;height:8px;overflow:hidden;">
-                    <div style="background:{color};width:{display_pct}%;height:100%;border-radius:3px;"></div>
-                </div>
-            </div>""")
-        st.markdown("".join(micro_html_parts), unsafe_allow_html=True)
 
-
-
-
-
-
-def _count_first_block(items: list[dict], fid: str) -> int:
-    """指定 drive_file_id の最初の連続ブロックの品目数を返す。"""
-    count = 0
-    found = False
-    for it in items:
-        if it.get("drive_file_id") == fid:
-            found = True
-            count += 1
-        elif found:
-            break  # 連続ブロック終了
-    return count
-
-
-def _dedup_day_items(day_data: dict) -> int:
-    """同じ drive_file_id を持つ品目ブロックの重複を除去する。
-    1枚の画像から複数品目が出るケースに対応: 最初のブロック（連続する品目群）だけ残す。
-    Returns: 除去した品目数。"""
-    items = day_data.get("items", [])
-    if not items:
-        return 0
-    # 各 fid の最初の連続ブロックサイズを計算
-    first_block: dict[str, int] = {}
-    for it in items:
-        fid = it.get("drive_file_id")
-        if fid and fid not in first_block:
-            first_block[fid] = _count_first_block(items, fid)
-    # 最初のブロック分だけ残す
-    seen_count: dict[str, int] = {}
-    keep: list[dict] = []
-    removed = 0
-    for it in items:
-        fid = it.get("drive_file_id")
-        if not fid:
-            keep.append(it)
-            continue
-        seen_count[fid] = seen_count.get(fid, 0) + 1
-        if seen_count[fid] <= first_block.get(fid, 1):
-            keep.append(it)
-        else:
-            removed += 1
-    if removed > 0:
-        day_data["items"] = keep
-        day_data["total_calories"] = sum(x.get("calories", 0) for x in _get_day_items(day_data))
-    return removed
-
-
-def _render_meal_groups(day_data: dict, weight_data: dict):
-    """食事タイプ別にグループ化して表示（MoneyForwardカテゴリ風）。"""
-    current_items = _get_day_items(day_data)
-
-    if not current_items:
-        st.caption("📋 この日の食事記録はまだありません。")
-        return
-
-    # 重複チェック: 同じ画像から2回以上取り込まれたブロックを検出
-    fid_counts: dict[str, int] = {}
-    for it in current_items:
-        fid = it.get("drive_file_id")
-        if fid:
-            fid_counts[fid] = fid_counts.get(fid, 0) + 1
-    dup_count = 0
-    for fid, total in fid_counts.items():
-        block_size = _count_first_block(current_items, fid)
-        if total > block_size:
-            dup_count += total - block_size
-    if dup_count > 0:
-        st.warning(f"⚠️ 重複品目が {dup_count} 件検出されました")
-        if st.button("🔄 重複品目を自動削除", key="wm_dedup_btn", type="primary"):
-            # Undo 用に削除前のスナップショットを保存
-            st.session_state["_dedup_backup"] = copy.deepcopy(list(day_data.get("items", [])))
-            removed = _dedup_day_items(day_data)
-            if removed > 0:
-                save_weight_data(weight_data)
-                st.session_state["_dedup_removed_count"] = removed
-                st.rerun()
-
-    # Undo ボタン（直前の重複削除を元に戻す）
-    _backup = st.session_state.get("_dedup_backup")
-    _removed_n = st.session_state.get("_dedup_removed_count", 0)
-    if _backup and _removed_n > 0:
-        st.success(f"✅ {_removed_n} 件の重複品目を削除しました")
-        if st.button("↩️ 元に戻す", key="wm_dedup_undo"):
-            day_data["items"] = _backup
-            day_data["total_calories"] = sum(x.get("calories", 0) for x in _get_day_items(day_data))
-            save_weight_data(weight_data)
-            st.session_state.pop("_dedup_backup", None)
-            st.session_state.pop("_dedup_removed_count", None)
-            st.success("↩️ 復元しました")
-            st.rerun()
-
-    groups = _group_items_by_meal(current_items)
-
-    for meal_key, meal_items in groups.items():
-        label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
-        color = MEAL_TYPE_COLORS.get(meal_key, "#757575")
-        subtotal = sum(it.get("calories", 0) for it in meal_items)
-
-        # カテゴリヘッダー
-        st.markdown(
-            f'<div class="mf-meal-header" style="border-left: 4px solid {color};">'
-            f'<span>{label}</span><span>{subtotal:,} kcal</span></div>',
-            unsafe_allow_html=True,
-        )
-
-        if not meal_items:
-            st.caption("　（記録なし）")
-        else:
-            for it in meal_items:
-                _render_food_item_row(it, day_data, weight_data)
-
-    # 合計
-    total = sum(it.get("calories", 0) for it in current_items)
-    st.markdown(
-        f'<div class="mf-grand-total">合計: {total:,} kcal</div>',
-        unsafe_allow_html=True,
-    )
-
-    # --- 半量ボタン（チェック品目がある場合のみ表示） ---
-    selected_ids = [
-        it.get("id") for it in current_items
-        if it.get("id") and st.session_state.get(f"wm_half_{it['id']}", False)
-    ]
-    if selected_ids:
-        if st.button(
-            f"½ 選択した {len(selected_ids)} 品目を半量にする",
-            key="wm_half_apply",
-            type="primary",
-        ):
-            for x in day_data.get("items", []):
-                if x.get("id") in selected_ids:
-                    if x.get("quantity") == "半量":
-                        continue  # 既に半量 → スキップ
-                    x["calories"] = max(1, round(x.get("calories", 0) / 2))
-                    nuts = x.get("nutrients", {})
-                    for nk in list(nuts.keys()):
-                        if isinstance(nuts[nk], (int, float)):
-                            nuts[nk] = round(nuts[nk] / 2, 1)
-                    # quantity を「半量」に変更
-                    x["quantity"] = "半量"
-            # total_calories 再計算
-            day_data["total_calories"] = sum(
-                x.get("calories", 0) for x in _get_day_items(day_data)
-            )
-            save_weight_data(weight_data)
-            # チェックボックスをリセット
-            for sid in selected_ids:
-                st.session_state.pop(f"wm_half_{sid}", None)
-            st.toast(f"½ {len(selected_ids)} 品目を半量にしました")
-            st.rerun()
-
-    # --- 画像再スキャンで復元 ---
-    with st.expander("🔄 画像を再スキャンして復元"):
-        st.caption("品目を誤って削除した場合、元の画像からAI解析をやり直して復元できます。")
-        fids_in_day = {it.get("drive_file_id") for it in current_items if it.get("drive_file_id")}
-        if fids_in_day:
-            if st.button("🔄 この日の食事画像を再スキャン", key="wm_rescan_day"):
-                processed = load_food_processed()
-                reset_count = 0
-                for fid in fids_in_day:
-                    if fid in processed:
-                        del processed[fid]
-                        reset_count += 1
-                if reset_count > 0:
-                    save_food_processed(processed)
-                # 既存品目を全削除して再取り込み
-                day_data["items"] = []
-                day_data["total_calories"] = 0
-                save_weight_data(weight_data)
-                try:
-                    service = get_drive_service()
-                    food_fid = get_food_folder_id()
-                    api_key = get_gemini_api_key()
-                    if service and food_fid and api_key:
-                        n = scan_food_images(service, food_fid, api_key, manual=True)
-                        st.success(f"✅ {n} 枚の画像を再スキャンしました")
-                    else:
-                        st.warning("⚠️ Drive/API設定を確認してください")
-                except Exception as e:
-                    st.error(f"⚠️ 再スキャンに失敗しました: {e}")
-                st.rerun()
-        else:
-            st.caption("この日にはDrive画像がリンクされた品目がありません。")
-
-
-def _render_food_item_row(item: dict, day_data: dict, weight_data: dict):
-    """MoneyForward風の1品目行（タップで編集展開）。"""
-    item_id = item.get("id", "")
-    name = item.get("name", "")
-    qty = item.get("quantity", "ふつう")
-    cal = item.get("calories", 0)
-    meal_type = item.get("meal_type", "")
-
-    edit_key = f"wm_edit_{item_id}"
-    is_editing = st.session_state.get(edit_key, False)
-
-    cb, c1, c2, c3, c4 = st.columns([0.35, 4.15, 1.8, 0.5, 0.5])
-
-    with cb:
-        if item_id and qty != "半量":
-            st.checkbox("", value=False, key=f"wm_half_{item_id}",
-                         label_visibility="collapsed")
-    with c1:
-        half_badge = ' <span style="background:#FFE0B2;color:#E65100;padding:1px 5px;border-radius:3px;font-size:11px;">½済</span>' if qty == "半量" else ""
-        st.markdown(
-            f'**{name}**{half_badge} <span style="color:#999; font-size:13px;">({qty})</span>',
-            unsafe_allow_html=True,
-        )
-    with c2:
-        st.markdown(f"**{cal:,} kcal**")
-    with c3:
-        if item_id and st.button("✏️", key=f"wm_edt_{item_id}", help="編集"):
-            st.session_state[edit_key] = not is_editing
-            st.rerun()
-    with c4:
-        if item_id and st.button("🗑️", key=f"wm_del_{item_id}", help="削除"):
-            if "items" in day_data:
-                day_data["items"] = [x for x in day_data["items"] if x.get("id") != item_id]
-                day_data["total_calories"] = sum(x.get("calories", 0) for x in day_data["items"])
-            save_weight_data(weight_data)
-            st.rerun()
-
-    # --- インライン編集フォーム ---
-    if is_editing and item_id:
-        with st.form(key=f"wm_edit_form_{item_id}"):
-            ec1, ec2 = st.columns(2)
-            with ec1:
-                new_name = st.text_input("品目名", value=name)
-            with ec2:
-                qty_idx = QUANTITY_OPTIONS.index(qty) if qty in QUANTITY_OPTIONS else 2
-                new_qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_edit_qty_{item_id}")
-            ec3, ec4 = st.columns(2)
-            with ec3:
-                meal_options = list(MEAL_TYPE_LABELS.keys())
-                meal_labels = [MEAL_TYPE_LABELS[k] for k in meal_options]
-                current_idx = meal_options.index(meal_type) if meal_type in meal_options else 0
-                new_meal_label = st.selectbox("食事タイプ", meal_labels, index=current_idx)
-                new_meal_type = meal_options[meal_labels.index(new_meal_label)]
-            with ec4:
-                new_cal = st.number_input(
-                    "カロリー (kcal)", min_value=0, max_value=9999,
-                    value=int(cal), step=1, key=f"wm_edit_cal_{item_id}",
-                )
-                st.caption("💡 カロリー直接変更可。品目名変更時はAI再計算（手動変更時はスキップ）")
-            edit_submitted = st.form_submit_button("💾 保存", width="stretch")
-        if edit_submitted:
-            final_name = new_name.strip() or name
-            final_qty = new_qty
-            cal_manually_changed = (new_cal != cal)
-            name_changed = final_name != name
-            qty_changed = final_qty != qty
-            final_cal = new_cal if cal_manually_changed else cal
-            _recalc_nuts = {}
-
-            if cal_manually_changed:
-                # カロリー手動変更 → その値を使用、AI再計算しない
-                if cal > 0:
-                    ratio = new_cal / cal
-                    existing_nuts = item.get("nutrients", {})
-                    _recalc_nuts = {
-                        nk: round(nv * ratio, 1)
-                        for nk, nv in existing_nuts.items()
-                        if isinstance(nv, (int, float))
-                    }
-                elif new_cal == 0:
-                    # 0 kcal → 栄養素も全て0に
-                    _recalc_nuts = {
-                        nk: 0.0
-                        for nk, nv in item.get("nutrients", {}).items()
-                        if isinstance(nv, (int, float))
-                    }
-            elif name_changed or qty_changed:
-                # 量の倍率マップ（API不要のローカル計算用）
-                _QTY_SCALE = {"半量": 0.5, "少なめ": 0.6, "ふつう": 1.0, "多め": 1.5}
-                old_scale = _QTY_SCALE.get(qty)
-                new_scale = _QTY_SCALE.get(final_qty)
-
-                if not name_changed and old_scale and new_scale and old_scale != new_scale:
-                    # 品目名そのままで量だけ変更 → ローカルで倍率計算（API不要）
-                    ratio = new_scale / old_scale
-                    final_cal = max(1, round(cal * ratio))
-                    existing_nuts = item.get("nutrients", {})
-                    _recalc_nuts = {
-                        nk: round(nv * ratio, 1)
-                        for nk, nv in existing_nuts.items()
-                        if isinstance(nv, (int, float))
-                    }
-                else:
-                    # 品目名が変わった or 量が既知の選択肢外 → API で再計算
-                    api_key = get_gemini_api_key()
-                    if api_key:
-                        with st.spinner("🤖 カロリーを再計算中..."):
-                            recalc = _recalc_calories(
-                                [{"name": final_name, "quantity": final_qty}],
-                                api_key,
-                            )
-                        if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
-                            final_cal = recalc[0]["calories"]
-                            _recalc_nuts = recalc[0].get("nutrients", {})
-
-            for x in day_data.get("items", []):
-                if x.get("id") == item_id:
-                    x["name"] = final_name
-                    x["quantity"] = final_qty
-                    x["calories"] = final_cal
-                    x["meal_type"] = new_meal_type
-                    if _recalc_nuts:
-                        x["nutrients"] = _recalc_nuts
-                    break
-            day_data["total_calories"] = sum(
-                x.get("calories", 0) for x in _get_day_items(day_data)
-            )
-            save_weight_data(weight_data)
-            st.session_state[edit_key] = False
-            st.rerun()
-
-        # --- 栄養素リトロフィットボタン ---
-        has_nutrients = bool(item.get("nutrients"))
-        if not has_nutrients:
-            if st.button("🔄 栄養素を推定", key=f"wm_retro_{item_id}", help="AIで栄養素を推定します"):
-                _ak = get_gemini_api_key()
-                if _ak:
-                    with st.spinner("栄養素を推定中..."):
-                        _retro = _recalc_calories(
-                            [{"name": name, "quantity": qty}], _ak
-                        )
-                    if _retro and len(_retro) > 0:
-                        _retro_nuts = _retro[0].get("nutrients", {})
-                        _retro_cal = _retro[0].get("calories", 0)
-                        for x in day_data.get("items", []):
-                            if x.get("id") == item_id:
-                                x["nutrients"] = _retro_nuts
-                                if _retro_cal > 0:
-                                    x["calories"] = _retro_cal
-                                break
-                        day_data["total_calories"] = sum(
-                            x.get("calories", 0) for x in _get_day_items(day_data)
-                        )
-                        save_weight_data(weight_data)
-                        st.toast(f"✅ {name} の栄養素を推定しました")
-                        st.rerun()
-                    else:
-                        st.error("推定失敗")
-                else:
-                    st.warning("APIキー未設定")
-        else:
-            # 栄養素サマリーを小さく表示
-            nuts = item.get("nutrients", {})
-            p = round(nuts.get("protein", 0), 1)
-            f = round(nuts.get("fat", 0), 1)
-            c = round(nuts.get("carbs", 0), 1)
-            if p or f or c:
-                st.caption(f"P:{p}g  F:{f}g  C:{c}g")
 
 
 def _render_weight_history(records: dict, goals: dict):
-    """体重管理の履歴一覧（MoneyForward風）。"""
+    """体重履歴一覧。"""
     try:
         _render_weight_history_inner(records, goals)
     except Exception as e:
-        _log.exception("食事記録履歴の描画でエラー")
+        _log.exception("体重履歴の描画でエラー")
         st.error(f"履歴表示でエラーが発生しました: {type(e).__name__}: {e}")
         st.caption("ページ再読み込みまたは期間を変更してお試しください。")
 
 
 def _render_weight_history_inner(records: dict, goals: dict):
-    """履歴一覧 内部実装。"""
+    """履歴一覧 内部実装（体重のみ）。"""
     if not records:
-        st.info("まだ記録がありません。「📝 記録」タブからデータを入力してください。")
+        st.info("まだ記録がありません。「📝 記録」タブから体重を入力してください。")
         return
 
-    # --- 0kcal日の再取り込みボタン ---
-    _food_fid = get_food_folder_id()
-    if _food_fid:
-        if st.button(
-            "🔁 0kcalの日を再取り込み",
-            key="wm_hist_zero_rescan",
-            help="記録開始日以降でカロリーが0の日に紐づく Drive 画像をまとめて再解析します。",
-        ):
-            try:
-                _svc = get_drive_service()
-                _ak = get_gemini_api_key()
-                if not _ak:
-                    st.warning("APIキー未設定")
-                else:
-                    r = rescan_zero_calorie_days(_svc, _food_fid, _ak)
-                    if r["days"] == 0:
-                        st.info("全ての日でカロリーが記録されています 🎉")
-                    elif r["files"] == 0:
-                        st.info(
-                            f"0kcalの日は {r['days']} 日ありますが、対応する画像が見つかりませんでした。"
-                        )
-                    else:
-                        if r["imported"] > 0:
-                            st.toast(
-                                f"✅ {r['imported']} 枚を再取り込みしました（{r['days']} 日分を処理）",
-                                icon="📷",
-                            )
-                            st.rerun()
-                        else:
-                            st.warning(
-                                f"{r['files']} 枚を再解析しましたが、食事の品目を検出できませんでした。"
-                            )
-            except Exception as e:
-                _log.error(f"ゼロデイ再取り込みエラー: {e}")
-                st.error("処理中にエラーが発生しました。")
-
-    # --- 期間フィルター ---
     period = st.selectbox("表示期間", ["直近7日", "直近30日", "全期間"], key="wm_hist_period")
     today = date.today()
     if period == "直近7日":
@@ -6709,7 +3945,6 @@ def _render_weight_history_inner(records: dict, goals: dict):
     else:
         cutoff = None
 
-    # 日付降順でフィルタ
     sorted_dates = sorted(records.keys(), reverse=True)
     if cutoff:
         sorted_dates = [d for d in sorted_dates if d >= cutoff.strftime("%Y-%m-%d")]
@@ -6718,89 +3953,16 @@ def _render_weight_history_inner(records: dict, goals: dict):
         st.caption("この期間のデータはありません。")
         return
 
-    # --- 体重推移チャート ---
-    # 体重が入力されている日を抽出
     _weight_entries = []
     for dk in sorted(sorted_dates):
         w = records[dk].get("weight")
         if w:
             _weight_entries.append((dk, w))
 
-    if _weight_entries:
-        st.markdown("### 📈 体重推移")
-        import pandas as pd
-        import altair as alt
-
-        # 体重入力がある日のみでチャートを作成（NaN問題を回避）
-        _wt_dates = [dk for dk, _ in _weight_entries]
-        _wt_vals = [w for _, w in _weight_entries]
-
-        target_wt = goals.get("target_weight_kg")
-
-        # Y軸の範囲をデータに合わせて設定（見やすくするため）
-        _all_vals = list(_wt_vals)
-        if target_wt:
-            _all_vals.append(target_wt)
-        y_min = max(0, min(_all_vals) - 3)
-        y_max = max(_all_vals) + 3
-
-        # 体重データ
-        chart_df = pd.DataFrame({
-            "日付": pd.to_datetime(_wt_dates),
-            "体重(kg)": _wt_vals,
-        })
-
-        # 体重ライン
-        weight_line = alt.Chart(chart_df).mark_line(
-            point=alt.OverlayMarkDef(size=60),
-            strokeWidth=2.5,
-            color="#42A5F5",
-        ).encode(
-            x=alt.X("日付:T", title="日付"),
-            y=alt.Y("体重(kg):Q", scale=alt.Scale(domain=[y_min, y_max]), title="体重 (kg)"),
-            tooltip=["日付:T", "体重(kg):Q"],
-        )
-
-        chart = weight_line
-
-        # 目標体重ライン
-        if target_wt and len(_wt_vals) >= 1:
-            target_rule = alt.Chart(pd.DataFrame({"y": [target_wt]})).mark_rule(
-                strokeDash=[6, 4], color="#FF7043", strokeWidth=2,
-            ).encode(y="y:Q")
-            target_label = alt.Chart(pd.DataFrame({
-                "日付": [pd.to_datetime(_wt_dates[-1])],
-                "y": [target_wt],
-                "label": [f"目標 {target_wt}kg"],
-            })).mark_text(
-                align="left", dx=5, dy=-8, fontSize=11, color="#FF7043",
-            ).encode(x="日付:T", y="y:Q", text="label:N")
-            chart = chart + target_rule + target_label
-
-        st.altair_chart(chart.properties(height=300), use_container_width=True)
-
-        if target_wt:
-            latest_wt = _wt_vals[-1]
-            diff = round(latest_wt - target_wt, 1)
-            if diff > 0:
-                st.caption(f"🎯 目標体重: {target_wt} kg（あと **-{diff}kg**）")
-            elif diff < 0:
-                st.caption(f"🎯 目標体重: {target_wt} kg（**{abs(diff)}kg** 下回っています）")
-            else:
-                st.caption(f"🎯 目標体重: {target_wt} kg（✅ 達成！）")
-
-    # --- 期間サマリー ---
-    total_days = len(sorted_dates)
-    total_cal_all = sum(records[dk].get("total_calories", 0) for dk in sorted_dates)
-    days_with_items = sum(1 for dk in sorted_dates if _get_day_items(records[dk]))
-    avg_cal = int(total_cal_all / days_with_items) if days_with_items else 0
-
-    sc1, sc2, sc3 = st.columns(3)
+    sc1, sc2 = st.columns(2)
     with sc1:
-        st.metric("記録日数", f"{total_days} 日")
+        st.metric("記録日数", f"{len(_weight_entries)} 日")
     with sc2:
-        st.metric("平均カロリー", f"{avg_cal} kcal")
-    with sc3:
         if len(_weight_entries) >= 2:
             wt_change = round(_weight_entries[-1][1] - _weight_entries[0][1], 1)
             sign = "+" if wt_change > 0 else ""
@@ -6808,187 +3970,46 @@ def _render_weight_history_inner(records: dict, goals: dict):
         else:
             st.metric("体重変化", "---")
 
-    # --- カテゴリ別カロリー内訳 ---
-    meal_cal_totals = {mt: 0 for mt in MEAL_TYPE_ORDER}
-    for dk in sorted_dates:
-        day_items = _get_day_items(records[dk])
-        for it in day_items:
-            mt = it.get("meal_type")
-            if mt in meal_cal_totals:
-                meal_cal_totals[mt] += it.get("calories", 0)
-
-    if any(v > 0 for v in meal_cal_totals.values()):
-        st.markdown("### 🥧 食事カテゴリ別カロリー")
-        import pandas as pd
-        import altair as alt
-        labels = [MEAL_TYPE_LABELS.get(mt, mt) for mt in MEAL_TYPE_ORDER]
-        vals = [meal_cal_totals[mt] for mt in MEAL_TYPE_ORDER]
-        pie_df = pd.DataFrame({"カテゴリ": labels, "カロリー(kcal)": vals})
-        _cal_chart = alt.Chart(pie_df).mark_bar().encode(
-            x=alt.X("カテゴリ:N", sort=labels, title="カテゴリ"),
-            y=alt.Y("カロリー(kcal):Q", title="カロリー (kcal)"),
-            tooltip=["カテゴリ:N", "カロリー(kcal):Q"],
-        ).properties(height=300)
-        st.altair_chart(_cal_chart, use_container_width=True)
-
-    # --- 栄養素トレンド ---
-    # 各日の栄養素を集計
-    _nut_dates = []
-    _nut_p = []
-    _nut_f = []
-    _nut_c = []
-    for dk in sorted(sorted_dates):  # チャートは昇順
-        day_nuts = _aggregate_day_nutrients(records[dk])
-        if day_nuts:
-            _nut_dates.append(dk)
-            _nut_p.append(round(day_nuts.get("protein", 0), 1))
-            _nut_f.append(round(day_nuts.get("fat", 0), 1))
-            _nut_c.append(round(day_nuts.get("carbs", 0), 1))
-
-    if _nut_dates:
-        st.markdown("### 🥗 栄養素推移 (PFC)")
-        import pandas as pd
-        import altair as alt
-        _nut_df = pd.DataFrame({
-            "日付": pd.to_datetime(_nut_dates),
-            "たんぱく質(g)": _nut_p,
-            "脂質(g)": _nut_f,
-            "炭水化物(g)": _nut_c,
-        })
-        _nut_long = _nut_df.melt(
-            id_vars="日付", var_name="栄養素", value_name="量(g)"
-        )
-        _nut_chart = alt.Chart(_nut_long).mark_line(point=True).encode(
-            x=alt.X("日付:T", title="日付"),
-            y=alt.Y("量(g):Q", title="量 (g)"),
-            color=alt.Color("栄養素:N", title="栄養素"),
-            tooltip=["日付:T", "栄養素:N", "量(g):Q"],
-        ).properties(height=300)
-        st.altair_chart(_nut_chart, use_container_width=True)
-
-        # 期間平均
-        _avg_p = round(sum(_nut_p) / len(_nut_p), 1) if _nut_p else 0
-        _avg_f = round(sum(_nut_f) / len(_nut_f), 1) if _nut_f else 0
-        _avg_c = round(sum(_nut_c) / len(_nut_c), 1) if _nut_c else 0
-        _salt_data = []
-        for dk in _nut_dates:
-            _dn = _aggregate_day_nutrients(records[dk])
-            if _dn:
-                _salt_data.append(round(_dn.get("salt", 0), 1))
-        _avg_salt_vals = _salt_data
-        _avg_salt = round(sum(_avg_salt_vals) / len(_avg_salt_vals), 1) if _avg_salt_vals else 0
-
-        nc1, nc2, nc3, nc4 = st.columns(4)
-        with nc1:
-            st.metric("平均P", f"{_avg_p}g")
-        with nc2:
-            st.metric("平均F", f"{_avg_f}g")
-        with nc3:
-            st.metric("平均C", f"{_avg_c}g")
-        with nc4:
-            st.metric("平均食塩", f"{_avg_salt}g")
-
-    # --- 日別サマリー（MoneyForward風） ---
     st.markdown("### 📋 日別記録")
-
-    # 表示範囲: 記録開始日（または期間フィルタ）〜 今日 の全日付を降順で構築
-    # （records に存在しない 0kcal 日も表示対象にする）
-    _record_date_list = []
-    for _k in records.keys():
+    for dk in sorted_dates:
         try:
-            _record_date_list.append(date.fromisoformat(_k))
-        except (ValueError, TypeError):
+            dt = datetime.strptime(dk, "%Y-%m-%d")
+        except ValueError:
             continue
-    if _record_date_list:
-        _range_start = min(_record_date_list)
-    else:
-        _range_start = today
-    if cutoff and cutoff > _range_start:
-        _range_start = cutoff
-    _range_end = today
-
-    _all_dates_desc: list[str] = []
-    _cur_d = _range_end
-    while _cur_d >= _range_start:
-        _all_dates_desc.append(_cur_d.strftime("%Y-%m-%d"))
-        _cur_d -= timedelta(days=1)
-
-    for dk in _all_dates_desc:
-        try:
-            try:
-                dt = datetime.strptime(dk, "%Y-%m-%d")
-            except ValueError:
-                continue
-
-            day = records.get(dk) or {}
-            if not isinstance(day, dict):
-                day = {}
-            w = day.get("weight")
-            cal = day.get("total_calories", 0)
-            day_items = _get_day_items(day)
-            item_count = len(day_items)
-
-            weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
-            w_str = f"⚖️ {w} kg" if w else "⚖️ --"
-            _empty_mark = "  ⚠️ 記録なし" if (not day_items and not w) else ""
-            header = (
-                f"📅 {dt.month}/{dt.day}（{weekday}）　{w_str}　"
-                f"🔥 {cal} kcal　🍽️ {item_count}品{_empty_mark}"
-            )
-
-            with st.expander(header, expanded=False):
-                if not day_items:
-                    st.caption("食事記録なし")
-                else:
-                    _render_day_food_thumbnails(day, dk, "wm_hist_thumb", per_row=6)
-                    groups = _group_items_by_meal(day_items)
-                    for meal_key, items in groups.items():
-                        if not items:
-                            continue
-                        label = MEAL_TYPE_LABELS.get(meal_key, "📋 未分類")
-                        sub = sum(it.get("calories", 0) for it in items)
-                        st.markdown(f"**{label}** — {sub} kcal")
-                        for it in items:
-                            st.markdown(
-                                f"　{it.get('name', '')}（{it.get('quantity', 'ふつう')}）"
-                                f"　**{it.get('calories', 0)} kcal**"
-                            )
-                if st.button(f"📝 この日を開く", key=f"wm_goto_{dk}"):
-                    st.session_state["wm_selected_date"] = dt.date() if hasattr(dt, 'date') else date(dt.year, dt.month, dt.day)
-                    st.session_state["_wm_next_tab"] = "📝 記録"
-                    st.rerun()
-        except Exception as e:
-            _log.exception(f"日別記録描画エラー dk={dk}")
-            st.caption(f"⚠️ {dk} の表示でエラー: {type(e).__name__}")
+        day = records.get(dk) or {}
+        if not isinstance(day, dict):
+            continue
+        w = day.get("weight")
+        if not w:
+            continue
+        weekday = ["月", "火", "水", "木", "金", "土", "日"][dt.weekday()]
+        st.markdown(
+            f"📅 {dt.month}/{dt.day}（{weekday}）　⚖️ **{w} kg**"
+        )
 
 
 def page_weight_management():
-    """体重管理ページ — MoneyForward風UI。"""
+    """体重管理ページ。"""
     try:
         _page_weight_management_inner()
     except Exception as e:
-        _log.exception("食事記録ページでエラー")
-        st.error("食事記録ページでエラーが発生しました。ページを再読み込みしてください。")
+        _log.exception("体重ページでエラー")
+        st.error("体重ページでエラーが発生しました。ページを再読み込みしてください。")
 
 
 def _page_weight_management_inner():
-    """体重管理ページ内部実装。"""
+    """体重管理ページ内部実装（体重のみ）。"""
     _inject_wm_css()
-    st.markdown("## ⚖️ 体重・カロリー")
+    st.markdown("## ⚖️ 体重")
 
     weight_data = load_weight_data()
-    api_key = get_gemini_api_key()
     records = weight_data.setdefault("records", {})
     goals = weight_data.get("goals", {})
-
-    # 全日分の total_calories を現在の items から再計算（古い集計値のズレを自動補正）
-    _recompute_all_day_totals(records)
 
     # 前のrunでセットされた「次回表示タブ」を反映（widget描画前に書き込む必要あり）
     if "_wm_next_tab" in st.session_state:
         st.session_state["wm_active_tab"] = st.session_state.pop("_wm_next_tab")
 
-    # タブ切り替え（st.tabsはプログラム制御できないのでradioで代替）
     _TAB_OPTIONS = ["📝 記録", "📊 履歴"]
     if st.session_state.get("wm_active_tab") not in _TAB_OPTIONS:
         st.session_state["wm_active_tab"] = "📝 記録"
@@ -7005,546 +4026,137 @@ def _page_weight_management_inner():
         return
 
     # ===== 以下 "📝 記録" タブ =====
-    if True:
+    _render_date_navigation()
+    selected_date = st.session_state.get("wm_selected_date", date.today())
+    date_key = selected_date.strftime("%Y-%m-%d")
+    day_data = records.setdefault(date_key, {})
 
-        # ====== 日付ナビゲーション ======
-        _render_date_navigation()
-        selected_date = st.session_state.get("wm_selected_date", date.today())
-        date_key = selected_date.strftime("%Y-%m-%d")
-        day_data = records.setdefault(date_key, {"items": [], "total_calories": 0})
-        weight = day_data.get("weight")
+    _render_dashboard_card(day_data, goals, records)
 
-        # ====== ダッシュボードカード ======
-        _render_dashboard_card(day_data, goals, records)
+    st.markdown("### ⚖️ 体重を入力")
 
-        # ====== 体重入力（±ボタン式） ======
-        st.markdown("### ⚖️ 体重を入力")
+    # ベースライン: 当日の体重 → 直近記録 → 60.0
+    _wt_temp_key = f"wm_weight_temp_{date_key}"
+    if _wt_temp_key not in st.session_state:
+        _base_wt = day_data.get("weight")
+        if not _base_wt:
+            for _dk in sorted(records.keys(), reverse=True):
+                _w = records[_dk].get("weight")
+                if _w:
+                    _base_wt = _w
+                    break
+        st.session_state[_wt_temp_key] = _base_wt or 60.0
 
-        # ベースライン: 当日の体重 → 直近記録 → 60.0
-        _wt_temp_key = f"wm_weight_temp_{date_key}"
-        if _wt_temp_key not in st.session_state:
-            _base_wt = day_data.get("weight")
-            if not _base_wt:
-                for _dk in sorted(records.keys(), reverse=True):
-                    _w = records[_dk].get("weight")
-                    if _w:
-                        _base_wt = _w
-                        break
-            st.session_state[_wt_temp_key] = _base_wt or 60.0
+    _cur_wt = st.session_state[_wt_temp_key]
 
-        _cur_wt = st.session_state[_wt_temp_key]
-
-        # ±ボタン行
-        _wc1, _wc2, _wc3, _wc4, _wc5 = st.columns([1, 1, 2, 1, 1])
-        with _wc1:
-            if st.button("▼0.5", key=f"wm_wt_m5_{date_key}", use_container_width=True):
-                st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.5), 1)
-                st.rerun()
-        with _wc2:
-            if st.button("▼0.1", key=f"wm_wt_m1_{date_key}", use_container_width=True):
-                st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.1), 1)
-                st.rerun()
-        with _wc3:
-            _wt_color = "#4CAF50" if day_data.get("weight") else "#FF9800"
-            st.markdown(
-                f"<div style='text-align:center;font-size:44px;font-weight:bold;"
-                f"color:{_wt_color};line-height:1.2;'>"
-                f"{_cur_wt:.1f}"
-                f"<span style='font-size:18px;color:#b0b0b0;'> kg</span></div>",
-                unsafe_allow_html=True,
-            )
-        with _wc4:
-            if st.button("▲0.1", key=f"wm_wt_p1_{date_key}", use_container_width=True):
-                st.session_state[_wt_temp_key] = round(_cur_wt + 0.1, 1)
-                st.rerun()
-        with _wc5:
-            if st.button("▲0.5", key=f"wm_wt_p5_{date_key}", use_container_width=True):
-                st.session_state[_wt_temp_key] = round(_cur_wt + 0.5, 1)
-                st.rerun()
-
-        # 記録ボタン
-        if st.button("💾 記録する", key=f"wm_wt_save_{date_key}",
-                      type="primary", use_container_width=True):
-            day_data["weight"] = round(_cur_wt, 1)
-            day_data["weight_recorded_at"] = datetime.now().isoformat()
-            save_weight_data(weight_data)
-            st.toast(f"✅ 体重 {_cur_wt} kg を記録しました")
+    # ±ボタン行
+    _wc1, _wc2, _wc3, _wc4, _wc5 = st.columns([1, 1, 2, 1, 1])
+    with _wc1:
+        if st.button("▼0.5", key=f"wm_wt_m5_{date_key}", use_container_width=True):
+            st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.5), 1)
+            st.rerun()
+    with _wc2:
+        if st.button("▼0.1", key=f"wm_wt_m1_{date_key}", use_container_width=True):
+            st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.1), 1)
+            st.rerun()
+    with _wc3:
+        _is_saved = bool(day_data.get("weight"))
+        _cls = "wm-input-display" if _is_saved else "wm-input-display wm-pending"
+        st.markdown(
+            f"<div class='{_cls}'>{_cur_wt:.1f}"
+            f"<span class='wm-unit'>kg</span></div>",
+            unsafe_allow_html=True,
+        )
+    with _wc4:
+        if st.button("▲0.1", key=f"wm_wt_p1_{date_key}", use_container_width=True):
+            st.session_state[_wt_temp_key] = round(_cur_wt + 0.1, 1)
+            st.rerun()
+    with _wc5:
+        if st.button("▲0.5", key=f"wm_wt_p5_{date_key}", use_container_width=True):
+            st.session_state[_wt_temp_key] = round(_cur_wt + 0.5, 1)
             st.rerun()
 
-        # 直接入力（折りたたみ）
-        with st.expander("⌨️ 数値を直接入力"):
-            with st.form(key=f"wm_weight_form_{date_key}"):
-                input_weight = st.number_input(
-                    "体重 (kg)", min_value=0.0, max_value=300.0,
-                    value=float(_cur_wt), step=0.1, format="%.1f",
-                )
-                weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
-            if weight_submitted:
-                if input_weight > 0:
-                    day_data["weight"] = round(input_weight, 1)
-                    day_data["weight_recorded_at"] = datetime.now().isoformat()
-                    save_weight_data(weight_data)
-                    st.session_state[_wt_temp_key] = round(input_weight, 1)
-                    st.toast(f"✅ 体重 {input_weight} kg を記録しました")
-                    st.rerun()
-                else:
-                    st.warning("0 より大きい値を入力してください。")
+    if st.button("💾 記録する", key=f"wm_wt_save_{date_key}",
+                  type="primary", use_container_width=True):
+        day_data["weight"] = round(_cur_wt, 1)
+        day_data["weight_recorded_at"] = datetime.now().isoformat()
+        save_weight_data(weight_data)
+        st.toast(f"✅ 体重 {_cur_wt} kg を記録しました")
+        st.rerun()
 
-        # ====== AIコメント ======
-        comment = _generate_weight_comment(day_data, goals)
-        st.info(comment)
-
-        # ====== ワンポイントアドバイス ======
-        advice_cache_key = f"wm_advice_{date_key}"
-        with st.expander("💡 ワンポイントアドバイス", expanded=False):
-            adv_c1, adv_c2 = st.columns([5, 1])
-            with adv_c2:
-                if st.button("🔄", key="wm_advice_refresh", help="アドバイスを更新"):
-                    st.session_state.pop(advice_cache_key, None)
-                    st.rerun()
-            if advice_cache_key not in st.session_state:
-                with st.spinner("アドバイスを生成中..."):
-                    advice = _generate_onepoint_advice(
-                        records, goals, selected_date, api_key,
-                    )
-                st.session_state[advice_cache_key] = advice
-            st.markdown(st.session_state[advice_cache_key])
-
-        # ====== 栄養バランス ======
-        _render_nutrient_dashboard(day_data, goals, weight_data, date_key)
-
-        # ====== 食事の写真 ======
-        if _get_day_items(day_data):
-            st.markdown("### 📸 食事の写真")
-            _render_day_food_thumbnails(day_data, date_key, "wm_day_thumb", per_row=4)
-
-        # ====== カテゴリ別食事リスト ======
-        _render_meal_groups(day_data, weight_data)
-
-        # ====== 食事を追加 ======
-        with st.expander("➕ 食事を追加", expanded=bool(st.session_state.get("wm_uploaded_foods"))):
-            # 食事タイプ選択（MoneyForward風）
-            meal_type = st.radio(
-                "食事タイプ",
-                options=MEAL_TYPE_ORDER,
-                format_func=lambda x: MEAL_TYPE_LABELS[x],
-                index=MEAL_TYPE_ORDER.index(_guess_meal_type()),
-                key="wm_meal_type_select",
-                horizontal=True,
+    with st.expander("⌨️ 数値を直接入力"):
+        with st.form(key=f"wm_weight_form_{date_key}"):
+            input_weight = st.number_input(
+                "体重 (kg)", min_value=0.0, max_value=300.0,
+                value=float(_cur_wt), step=0.1, format="%.1f",
             )
-
-            # Google Drive取り込み
-            food_fid = get_food_folder_id()
-            if food_fid:
-                gd_col1, gd_col2 = st.columns([3, 1])
-                with gd_col1:
-                    st.caption("📂 Google Driveから自動取り込み")
-                with gd_col2:
-                    if st.button("🔄 取り込み", key="wm_food_drive_scan"):
-                        try:
-                            service = get_drive_service()
-                            _ak = get_gemini_api_key()
-                            if _ak:
-                                n = scan_food_images(service, food_fid, _ak, manual=True)
-                                if n > 0:
-                                    st.toast(f"🔔 {n} 枚取り込みました", icon="📷")
-                                    st.rerun()
-                                else:
-                                    st.toast("新しい画像なし", icon="ℹ️")
-                            else:
-                                st.warning("APIキー未設定")
-                        except Exception as e:
-                            _log.error(f"AI再計算エラー: {e}")
-                            st.error("処理中にエラーが発生しました。")
-
-                # 0kcal日の再取り込みボタン
-                if st.button(
-                    "🔁 0kcalの日を再取り込み",
-                    key="wm_food_zero_rescan",
-                    help="記録開始日以降でカロリーが0の日に紐づく画像をまとめて再解析します。",
-                ):
-                    try:
-                        service = get_drive_service()
-                        _ak = get_gemini_api_key()
-                        if not _ak:
-                            st.warning("APIキー未設定")
-                        else:
-                            r = rescan_zero_calorie_days(service, food_fid, _ak)
-                            if r["days"] == 0:
-                                st.info("全ての日でカロリーが記録されています 🎉")
-                            elif r["files"] == 0:
-                                st.info(
-                                    f"0kcalの日は {r['days']} 日ありますが、対応する画像が見つかりませんでした。"
-                                )
-                            else:
-                                if r["imported"] > 0:
-                                    st.toast(
-                                        f"✅ {r['imported']} 枚を再取り込みしました（{r['days']} 日分を処理）",
-                                        icon="📷",
-                                    )
-                                    st.rerun()
-                                else:
-                                    st.warning(
-                                        f"{r['files']} 枚を再解析しましたが、食事の品目を検出できませんでした。"
-                                    )
-                    except Exception as e:
-                        _log.error(f"ゼロデイ再取り込みエラー: {e}")
-                        st.error("処理中にエラーが発生しました。")
-
-            # 画像アップロード
-            with st.form("wm_food_form", clear_on_submit=True):
-                food_files = st.file_uploader(
-                    "食事画像（複数選択可）",
-                    type=["png", "jpg", "jpeg"],
-                    accept_multiple_files=True,
-                    key="wm_food_upload",
-                )
-                submitted = st.form_submit_button("📤 アップロード", type="primary")
-
-            if submitted and food_files:
-                uploaded_foods = []
-                for f in food_files:
-                    uploaded_foods.append({"bytes": f.getvalue(), "name": f.name})
-                st.session_state["wm_uploaded_foods"] = uploaded_foods
-                st.rerun()
-            elif submitted and not food_files:
-                st.warning("画像を選択してください。")
-
-            # アップロード済み画像の処理
-            all_food_bytes = st.session_state.get("wm_uploaded_foods", [])
-
-            if all_food_bytes:
-                st.success(f"📷 {len(all_food_bytes)} 枚アップロード済み")
-                thumb_cols = st.columns(min(len(all_food_bytes), 4))
-                for i, fb_info in enumerate(all_food_bytes):
-                    with thumb_cols[i % len(thumb_cols)]:
-                        st.image(fb_info["bytes"], width=150, caption=fb_info["name"])
-
-                if st.button("🤖 AIでカロリー解析", key="wm_food_ai"):
-                    if api_key:
-                        st.markdown(
-                            f'<div class="loading-banner">🤖 AI解析中… {len(all_food_bytes)}枚の画像を処理しています</div>',
-                            unsafe_allow_html=True,
-                        )
-                        with st.spinner(f"解析中...（{len(all_food_bytes)}枚）"):
-                            images_list = [fb["bytes"] for fb in all_food_bytes]
-                            result = analyze_food_images(images_list, api_key)
-                        if result and "items" in result:
-                            st.session_state["wm_food_items"] = result["items"]
-                            st.session_state["wm_food_total"] = result.get("total_calories", 0)
-                            st.session_state.pop("wm_recalced_items", None)
-                            st.rerun()
-                        else:
-                            st.error("解析失敗")
-                    else:
-                        st.warning("APIキー未設定")
-
-                # AI解析結果の編集
-                items = st.session_state.get("wm_food_items", [])
-                if items:
-                    st.markdown("**🤖 AI解析結果（編集可）:**")
-                    edited_items = []
-                    for i, item in enumerate(items):
-                        c1, c2, c3, c4 = st.columns([3, 1.5, 1.5, 1])
-                        with c1:
-                            name = st.text_input("品目", value=item.get("name", ""), key=f"wm_item_name_{date_key}_{i}")
-                        with c2:
-                            qty_val = item.get("quantity", "ふつう")
-                            qty_idx = QUANTITY_OPTIONS.index(qty_val) if qty_val in QUANTITY_OPTIONS else 2
-                            qty = st.selectbox("量", QUANTITY_OPTIONS, index=qty_idx, key=f"wm_item_qty_{date_key}_{i}")
-                        with c3:
-                            cal = st.number_input("kcal", value=int(item.get("calories", 0)), min_value=0, step=10, key=f"wm_item_cal_{date_key}_{i}")
-                        with c4:
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            remove = st.checkbox("削除", key=f"wm_item_del_{date_key}_{i}")
-                        if not remove and name.strip():
-                            edited_items.append({"name": name.strip(), "quantity": qty, "calories": cal, "nutrients": item.get("nutrients", {})})
-
-                    st.markdown("---")
-                    ac1, ac2, ac3 = st.columns([3, 1.5, 1.5])
-                    with ac1:
-                        add_name = st.text_input("品目を追加", key=f"wm_add_name_{date_key}", placeholder="品目名")
-                    with ac2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2, key=f"wm_add_qty_{date_key}")
-                    with ac3:
-                        add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_add_cal_{date_key}")
-                    if add_name.strip():
-                        edited_items.append({"name": add_name.strip(), "quantity": add_qty, "calories": add_cal})
-
-                    new_total = sum(it["calories"] for it in edited_items)
-                    st.markdown(f"**合計: {new_total} kcal**")
-
-                    # カロリー再計算
-                    if st.button("🔄 カロリー再計算", key="wm_recalc_cal"):
-                        if api_key:
-                            items_for_recalc = [{"name": it["name"], "quantity": it["quantity"]} for it in edited_items]
-                            if items_for_recalc:
-                                with st.spinner("再計算中..."):
-                                    new_cals = _recalc_calories(items_for_recalc, api_key)
-                                if new_cals and len(new_cals) == len(edited_items):
-                                    recalced = [
-                                        {
-                                            "name": it["name"],
-                                            "quantity": it["quantity"],
-                                            "calories": nc["calories"],
-                                            "nutrients": nc.get("nutrients", {}),
-                                        }
-                                        for it, nc in zip(edited_items, new_cals)
-                                    ]
-                                    st.session_state["wm_food_items"] = recalced
-                                    st.session_state["wm_food_total"] = sum(rc["calories"] for rc in recalced)
-                                    st.session_state["wm_recalced_items"] = list(recalced)
-                                    for idx in range(len(recalced)):
-                                        st.session_state.pop(f"wm_item_name_{date_key}_{idx}", None)
-                                        st.session_state.pop(f"wm_item_qty_{date_key}_{idx}", None)
-                                        st.session_state.pop(f"wm_item_cal_{date_key}_{idx}", None)
-                                        st.session_state.pop(f"wm_item_del_{date_key}_{idx}", None)
-                                    st.rerun()
-                                else:
-                                    st.error("再計算失敗")
-                else:
-                    edited_items = []
-                    st.caption("「🤖 AIでカロリー解析」を押すか、手動入力してください。")
-                    mc1, mc2, mc3 = st.columns([3, 1.5, 1.5])
-                    with mc1:
-                        add_name = st.text_input("品目名", key=f"wm_manual_name_{date_key}", placeholder="例: カレーライス")
-                    with mc2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2, key=f"wm_manual_qty_{date_key}")
-                    with mc3:
-                        add_cal = st.number_input("kcal", value=0, min_value=0, step=10, key=f"wm_manual_cal_{date_key}")
-                    if add_name.strip():
-                        edited_items.append({"name": add_name.strip(), "quantity": add_qty, "calories": add_cal})
-
-                # 追加・取消ボタン
-                btn_col1, btn_col2 = st.columns([3, 1])
-                with btn_col1:
-                    if st.button("➕ 追加する", key="wm_meal_save", type="primary", disabled=(len(edited_items) == 0)):
-                        recalced_data = st.session_state.get("wm_recalced_items")
-                        if recalced_data:
-                            final_items = []
-                            for i, rc_item in enumerate(recalced_data):
-                                w_name = st.session_state.get(f"wm_item_name_{date_key}_{i}", rc_item.get("name", ""))
-                                w_qty = st.session_state.get(f"wm_item_qty_{date_key}_{i}", rc_item.get("quantity", "ふつう"))
-                                w_cal = st.session_state.get(f"wm_item_cal_{date_key}_{i}", rc_item.get("calories", 0))
-                                w_del = st.session_state.get(f"wm_item_del_{date_key}_{i}", False)
-                                if not w_del and str(w_name).strip():
-                                    final_items.append({"name": str(w_name).strip(), "quantity": w_qty, "calories": int(w_cal), "nutrients": rc_item.get("nutrients", {})})
-                        else:
-                            final_items = list(edited_items)
-
-                        add_n = st.session_state.get(f"wm_add_name_{date_key}", "")
-                        if str(add_n).strip():
-                            final_items.append({
-                                "name": str(add_n).strip(),
-                                "quantity": st.session_state.get(f"wm_add_qty_{date_key}", "ふつう"),
-                                "calories": int(st.session_state.get(f"wm_add_cal_{date_key}", 0)),
-                            })
-
-                        # 画像保存
-                        saved_image_ids = []
-                        if all_food_bytes:
-                            WEIGHT_UPLOADS_DIR.mkdir(exist_ok=True)
-                            for fb_info in all_food_bytes:
-                                img_id = f"wm_{uuid.uuid4().hex[:12]}"
-                                ext = fb_info["name"].rsplit(".", 1)[-1].lower() if "." in fb_info["name"] else "png"
-                                (WEIGHT_UPLOADS_DIR / f"{img_id}.{ext}").write_bytes(fb_info["bytes"])
-                                saved_image_ids.append({"id": img_id, "ext": ext})
-
-                        # 品目リストに追加（meal_type付き）
-                        new_items = []
-                        for it in final_items:
-                            item_entry = {
-                                "id": f"item_{uuid.uuid4().hex[:12]}",
-                                "name": it["name"],
-                                "quantity": it.get("quantity", "ふつう"),
-                                "calories": it["calories"],
-                                "nutrients": it.get("nutrients", {}),
-                                "meal_type": meal_type,
-                            }
-                            if saved_image_ids:
-                                item_entry["image_id"] = saved_image_ids[0]["id"]
-                                item_entry["image_ext"] = saved_image_ids[0]["ext"]
-                            new_items.append(item_entry)
-
-                        day_data.setdefault("items", []).extend(new_items)
-                        all_items = _get_day_items(day_data)
-                        day_data["total_calories"] = sum(it.get("calories", 0) for it in all_items)
-                        save_weight_data(weight_data)
-                        st.session_state.pop("wm_food_items", None)
-                        st.session_state.pop("wm_food_total", None)
-                        st.session_state.pop("wm_uploaded_foods", None)
-                        st.session_state.pop("wm_recalced_items", None)
-                        final_total = sum(it["calories"] for it in final_items)
-                        st.toast(f"✅ {len(new_items)} 品目（{final_total} kcal）を追加しました")
-                        st.rerun()
-                with btn_col2:
-                    if st.button("🗑️ 取消", key="wm_meal_cancel"):
-                        st.session_state.pop("wm_food_items", None)
-                        st.session_state.pop("wm_food_total", None)
-                        st.session_state.pop("wm_uploaded_foods", None)
-                        st.session_state.pop("wm_recalced_items", None)
-                        st.rerun()
-            else:
-                # 画像未アップロード時の手動入力（formで囲んでスマホ対応）
-                with st.form(key=f"wm_manual_form_{date_key}", clear_on_submit=True):
-                    mc1, mc2, mc3 = st.columns([3, 1.5, 1.5])
-                    with mc1:
-                        add_name = st.text_input("品目名", placeholder="例: カレーライス")
-                    with mc2:
-                        add_qty = st.selectbox("量", QUANTITY_OPTIONS, index=2)
-                    with mc3:
-                        add_cal = st.number_input("kcal", value=0, min_value=0, step=10)
-                    manual_submitted = st.form_submit_button("➕ 追加する", type="primary")
-                if manual_submitted and add_name.strip():
-                    item_entry = {
-                        "id": f"item_{uuid.uuid4().hex[:12]}",
-                        "name": add_name.strip(),
-                        "quantity": add_qty,
-                        "calories": add_cal,
-                        "meal_type": meal_type,
-                    }
-                    # カロリー0の場合はAIで推定
-                    if add_cal == 0:
-                        _ak = get_gemini_api_key()
-                        if _ak:
-                            recalc = _recalc_calories(
-                                [{"name": add_name.strip(), "quantity": add_qty}], _ak
-                            )
-                            if recalc and len(recalc) > 0 and recalc[0].get("calories", 0) > 0:
-                                item_entry["calories"] = recalc[0]["calories"]
-                                item_entry["nutrients"] = recalc[0].get("nutrients", {})
-                    day_data.setdefault("items", []).append(item_entry)
-                    all_items = _get_day_items(day_data)
-                    day_data["total_calories"] = sum(it.get("calories", 0) for it in all_items)
-                    save_weight_data(weight_data)
-                    st.toast(f"✅ {add_name.strip()}（{item_entry['calories']} kcal）を追加しました")
-                    st.rerun()
-                elif manual_submitted and not add_name.strip():
-                    st.warning("品目名を入力してください。")
-
-        # ====== 目標設定 ======
-        with st.expander("🎯 目標設定"):
-            cur_target_wt = goals.get("target_weight_kg", 0.0)
-            cur_target_date = goals.get("target_date", "")
-            cur_target_cal = goals.get("daily_calorie_target", 0)
-
-            # 現在体重を取得（目標計算用）
-            current_weight = weight
-            if not current_weight:
-                for dk in sorted(records.keys(), reverse=True):
-                    w = records[dk].get("weight")
-                    if w:
-                        current_weight = w
-                        break
-
-            default_target_date = date.today()
-            if cur_target_date:
-                try:
-                    parsed_td = datetime.strptime(cur_target_date, "%Y-%m-%d").date()
-                    default_target_date = max(parsed_td, date.today())
-                except (ValueError, TypeError):
-                    pass
-            # session_state に過去日付が残っている場合はクリア
-            if "wm_goal_date" in st.session_state:
-                try:
-                    _cached_gd = st.session_state["wm_goal_date"]
-                    if hasattr(_cached_gd, "date"):
-                        _cached_gd = _cached_gd.date()
-                    if not isinstance(_cached_gd, date) or _cached_gd < date.today():
-                        del st.session_state["wm_goal_date"]
-                except Exception:
-                    st.session_state.pop("wm_goal_date", None)
-
-            cal_default = cur_target_cal if cur_target_cal > 0 else 2000
-
-            with st.form(key="wm_goal_form"):
-                new_target_wt = st.number_input(
-                    "目標体重 (kg)", min_value=0.0, max_value=300.0,
-                    value=float(cur_target_wt), step=0.1, format="%.1f",
-                )
-                new_target_date = st.date_input(
-                    "いつまでに達成？", value=default_target_date,
-                )
-                new_target_cal = st.number_input(
-                    "1日の目標カロリー (kcal)", min_value=0, max_value=10000,
-                    value=int(cal_default), step=100,
-                )
-                goal_submitted = st.form_submit_button("💾 目標を保存", type="primary")
-
-            if goal_submitted:
-                if new_target_date < date.today():
-                    new_target_date = date.today()
-                new_goals = {
-                    "target_weight_kg": round(new_target_wt, 1),
-                    "target_date": new_target_date.strftime("%Y-%m-%d"),
-                    "daily_calorie_target": new_target_cal,
-                }
-                # 既存の栄養素目標を保持
-                if "nutrient_targets" in goals:
-                    new_goals["nutrient_targets"] = goals["nutrient_targets"]
-                if current_weight:
-                    new_goals["current_weight_kg"] = current_weight
-                weight_data["goals"] = new_goals
+            weight_submitted = st.form_submit_button("💾 体重を記録", type="primary")
+        if weight_submitted:
+            if input_weight > 0:
+                day_data["weight"] = round(input_weight, 1)
+                day_data["weight_recorded_at"] = datetime.now().isoformat()
                 save_weight_data(weight_data)
-                st.toast("✅ 目標を保存しました")
+                st.session_state[_wt_temp_key] = round(input_weight, 1)
+                st.toast(f"✅ 体重 {input_weight} kg を記録しました")
                 st.rerun()
+            else:
+                st.warning("0 より大きい値を入力してください。")
 
-            # --- 栄養素目標設定 ---
-            with st.expander("🥗 栄養素目標（詳細）"):
-                st.caption("日本人の食事摂取基準(2020年版)に基づくデフォルト値を使用しています。変更する場合のみ編集してください。")
-                cur_nut_targets = goals.get("nutrient_targets", {})
-                with st.form(key="wm_nutrient_goal_form"):
-                    st.markdown("**三大栄養素 (PFC)**")
-                    _ng_cols = st.columns(3)
-                    _nut_inputs = {}
-                    for i, key in enumerate(_PFC_KEYS):
-                        info = DEFAULT_NUTRIENT_TARGETS[key]
-                        cur_val = cur_nut_targets.get(key, {}).get("target", info["target"]) or 0
-                        with _ng_cols[i]:
-                            _nut_inputs[key] = st.number_input(
-                                f"{info['label']} ({info['unit']})",
-                                min_value=0.0, max_value=1000.0,
-                                value=float(cur_val), step=5.0,
-                                key=f"wm_ng_{key}",
-                            )
-                    st.markdown("**ビタミン・ミネラル**")
-                    _mg_cols = st.columns(3)
-                    _micro_display = _MICRO_KEYS + ["salt"]
-                    for i, key in enumerate(_micro_display):
-                        info = DEFAULT_NUTRIENT_TARGETS[key]
-                        default_val = info["target"] if info["target"] else info.get("upper", 0)
-                        cur_val = cur_nut_targets.get(key, {}).get("target", default_val) or 0
-                        with _mg_cols[i % 3]:
-                            _nut_inputs[key] = st.number_input(
-                                f"{info['label']} ({info['unit']})",
-                                min_value=0.0, max_value=10000.0,
-                                value=float(cur_val), step=1.0,
-                                key=f"wm_ng_{key}",
-                            )
-                    nut_goal_submitted = st.form_submit_button("💾 栄養素目標を保存")
-                if nut_goal_submitted:
-                    new_nut_targets = {}
-                    for key, val in _nut_inputs.items():
-                        if val > 0:
-                            new_nut_targets[key] = {"target": round(val, 1)}
-                    goals["nutrient_targets"] = new_nut_targets
-                    weight_data["goals"] = goals
-                    save_weight_data(weight_data)
-                    st.toast("✅ 栄養素目標を保存しました")
-                    st.rerun()
+    comment = _generate_weight_comment(day_data, goals)
+    st.info(comment)
 
-            # 推奨カロリー表示（form外に配置）
-            if current_weight and cur_target_wt > 0 and cur_target_wt < current_weight:
-                remaining_days = (default_target_date - date.today()).days
-                if remaining_days > 0:
-                    need_loss_kg = current_weight - cur_target_wt
-                    daily_deficit = (need_loss_kg * 7200) / remaining_days
-                    auto_cal = max(1200, int(2000 - daily_deficit))
-                    st.info(
-                        f"📐 現在 **{current_weight} kg** → 目標 **{cur_target_wt} kg**"
-                        f"（**-{round(need_loss_kg, 1)} kg**）\n\n"
-                        f"残り **{remaining_days}日** — 推奨: **{auto_cal} kcal/日**"
-                    )
+    with st.expander("🎯 目標体重を設定"):
+        cur_target_wt = goals.get("target_weight_kg", 0.0)
+        cur_target_date = goals.get("target_date", "")
+
+        current_weight = day_data.get("weight")
+        if not current_weight:
+            for dk in sorted(records.keys(), reverse=True):
+                w = records[dk].get("weight")
+                if w:
+                    current_weight = w
+                    break
+
+        default_target_date = date.today()
+        if cur_target_date:
+            try:
+                parsed_td = datetime.strptime(cur_target_date, "%Y-%m-%d").date()
+                default_target_date = max(parsed_td, date.today())
+            except (ValueError, TypeError):
+                pass
+        if "wm_goal_date" in st.session_state:
+            try:
+                _cached_gd = st.session_state["wm_goal_date"]
+                if hasattr(_cached_gd, "date"):
+                    _cached_gd = _cached_gd.date()
+                if not isinstance(_cached_gd, date) or _cached_gd < date.today():
+                    del st.session_state["wm_goal_date"]
+            except Exception:
+                st.session_state.pop("wm_goal_date", None)
+
+        with st.form(key="wm_goal_form"):
+            new_target_wt = st.number_input(
+                "目標体重 (kg)", min_value=0.0, max_value=300.0,
+                value=float(cur_target_wt), step=0.1, format="%.1f",
+            )
+            new_target_date = st.date_input(
+                "いつまでに達成？", value=default_target_date,
+            )
+            goal_submitted = st.form_submit_button("💾 目標を保存", type="primary")
+
+        if goal_submitted:
+            if new_target_date < date.today():
+                new_target_date = date.today()
+            new_goals = {
+                "target_weight_kg": round(new_target_wt, 1),
+                "target_date": new_target_date.strftime("%Y-%m-%d"),
+            }
+            if current_weight:
+                new_goals["current_weight_kg"] = current_weight
+            weight_data["goals"] = new_goals
+            save_weight_data(weight_data)
+            st.toast("✅ 目標を保存しました")
+            st.rerun()
 
 
 
@@ -7558,6 +4170,7 @@ def main():
         page_title="Pomken",
         page_icon="🐻",
         layout="wide",
+        initial_sidebar_state="collapsed",
     )
 
     # ★ 認証チェック（未認証ならログイン画面のみ表示）
@@ -7566,6 +4179,15 @@ def main():
 
     # Git自動push開始（バックグラウンド、60秒間隔）
     start_auto_push()
+
+    # バックグラウンドが抽出した OCR テキストを metadata に反映（あれば）
+    try:
+        _apply_pending_ocr_backfill()
+    except Exception:
+        pass
+
+    # 既存画像のサムネ+OCR事前生成（バックグラウンド・1回限り）
+    start_thumb_backfill()
 
     st.markdown(
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
@@ -7583,25 +4205,31 @@ def main():
     @keyframes loading-pulse { 0%,100%{opacity:1;} 50%{opacity:0.65;} }
     </style>""", unsafe_allow_html=True)
 
-    # アクティブタブの管理（6タブ構成）
-    TAB_NAMES = ["🏥 患者データ", "🍽️ 食事画像", "📱 スクショ", "⚖️ 体重・カロリー", "⚡ 取り込み・解析", "⚙️ 設定"]
+    # アクティブタブの管理（4タブ構成）
+    TAB_NAMES = ["📖 ナレッジ", "🍽️ 食事", "⚖️ 体重", "⚙️ 設定"]
     if "active_tab" not in st.session_state:
         st.session_state["active_tab"] = TAB_NAMES[0]
     # 旧タブ名からのマイグレーション
     old_tab_map = {
-        "💬 チャット": TAB_NAMES[2],
-        "💬 チャット検索": TAB_NAMES[2],
-        "📸 画像ライブラリ": TAB_NAMES[2],
-        "📸 画像管理": TAB_NAMES[2],
-        "📂 手動整理": TAB_NAMES[2],
-        "🤖 AI整理": TAB_NAMES[2],
+        "🏥 患者データ": TAB_NAMES[0],
+        "📱 スクショ": TAB_NAMES[0],
+        "📚 ライブラリ": TAB_NAMES[0],
+        "💬 チャット": TAB_NAMES[0],
+        "💬 チャット検索": TAB_NAMES[0],
+        "📸 画像ライブラリ": TAB_NAMES[0],
+        "📸 画像管理": TAB_NAMES[0],
+        "📂 手動整理": TAB_NAMES[0],
+        "🤖 AI整理": TAB_NAMES[0],
         "🧠 クイズ": TAB_NAMES[0],
-        "🍽️ 食事記録": TAB_NAMES[3],
-        "⚖️ 体重管理": TAB_NAMES[3],
-        "⚡ 一括解析": TAB_NAMES[4],
-        "🗂️ フォルダ設定": TAB_NAMES[5],
-        "🗑️ ゴミ箱": TAB_NAMES[5],
-        "⚙️ 設定": TAB_NAMES[5],
+        "🍽️ 食事画像": TAB_NAMES[1],
+        "🍽️ 食事記録": TAB_NAMES[1],
+        "⚖️ 体重・カロリー": TAB_NAMES[2],
+        "⚖️ 体重管理": TAB_NAMES[2],
+        "⚡ 取り込み・解析": TAB_NAMES[3],
+        "⚡ 一括解析": TAB_NAMES[3],
+        "🗂️ フォルダ設定": TAB_NAMES[3],
+        "🗑️ ゴミ箱": TAB_NAMES[3],
+        "⚙️ 設定": TAB_NAMES[3],
     }
     if st.session_state["active_tab"] in old_tab_map:
         st.session_state["active_tab"] = old_tab_map[st.session_state["active_tab"]]
@@ -7635,11 +4263,31 @@ def main():
         st.session_state.pop("ss_gal_loaded", None)
         st.rerun()
 
-    # ─── サイドバー: ページ切り替え（4ボタンのみ）───
-    st.sidebar.markdown("### ページ切り替え")
-    for tab_name in TAB_NAMES:
+    # ─── ページ切り替えボタン（refined pill nav）───
+    # NOTE: Streamlit は各要素を独自 stElementContainer でラップするため
+    # anchor とカラムが直接の兄弟にならず `+ div` では届かない。
+    # `:has()` で anchor を含むコンテナ → その直後のコンテナをトラバースする。
+    _TABNAV_SCOPE = (
+        '[data-testid="stElementContainer"]:has(.pomken-tabnav-anchor) '
+        '+ [data-testid="stElementContainer"]'
+    )
+    # NOTE: markdown は行頭インデントを code-block 扱いするので flush-left で書く必要がある
+    _css_tpl = """<style>
+__SCOPE__ [data-testid="stHorizontalBlock"] { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 4px !important; gap: 2px !important; margin: 6px 0 22px !important; backdrop-filter: blur(6px); }
+__SCOPE__ [data-testid="stColumn"] { padding: 0 !important; }
+__SCOPE__ [data-testid="stButton"] { margin: 0 !important; }
+__SCOPE__ button { border: none !important; background: transparent !important; border-radius: 10px !important; padding: 10px 4px !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0.01em !important; transition: background 160ms ease, color 160ms ease, transform 120ms ease !important; color: rgba(255,255,255,0.55) !important; box-shadow: none !important; min-height: 0 !important; width: 100% !important; }
+__SCOPE__ button:hover { background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.95) !important; transform: none !important; }
+__SCOPE__ button:active { transform: scale(0.97) !important; }
+__SCOPE__ button[kind="primary"], __SCOPE__ button[kind="primaryFormSubmit"] { background: linear-gradient(135deg, #FF7A3C 0%, #F7931E 100%) !important; color: #fff !important; box-shadow: 0 2px 10px rgba(255,107,53,0.28) !important; font-weight: 600 !important; }
+__SCOPE__ button[kind="primary"]:hover { background: linear-gradient(135deg, #FF8A4C 0%, #FFA32E 100%) !important; color: #fff !important; }
+</style>
+<div class="pomken-tabnav-anchor"></div>"""
+    st.markdown(_css_tpl.replace("__SCOPE__", _TABNAV_SCOPE), unsafe_allow_html=True)
+    tab_cols = st.columns(4)
+    for i, tab_name in enumerate(TAB_NAMES):
         is_active = st.session_state["active_tab"] == tab_name
-        if st.sidebar.button(
+        if tab_cols[i].button(
             tab_name,
             key=f"tab_btn_{tab_name}",
             width="stretch",
@@ -7648,17 +4296,17 @@ def main():
             st.session_state["active_tab"] = tab_name
             st.rerun()
 
-    st.sidebar.markdown("---")
-
-    # ─── サイドバー: 統計サマリー（1行表示）───
-    metadata_for_sidebar = load_metadata()
-    _ensure_patient_data_folder(metadata_for_sidebar)
-    total_count = len(metadata_for_sidebar)
-    reviewed_sidebar = sum(
-        1 for m in metadata_for_sidebar.values()
-        if get_status(m) == STATUS_REVIEWED
-    )
-    st.sidebar.caption(f"📊 確認済み {reviewed_sidebar} / 全 {total_count} 件")
+    # ─── コールドスタート時は重い同期/スキャンをスキップ ───
+    # 初回レンダリングで Sheets×3・Drive×2・Gemini×5 が同期発火し
+    # 起動が 30-60秒遅れる問題への対処。各機能の cooldown タイムスタンプを
+    # "現在時刻" に揃えることで、cooldown 内として自然に短絡させる。
+    if "_cold_start_done" not in st.session_state:
+        st.session_state["_cold_start_done"] = True
+        _cs_now = time.time()
+        st.session_state["_sync_health_ts"] = _cs_now
+        st.session_state["_auto_sync_ts"] = _cs_now
+        st.session_state["auto_scan_last"] = _cs_now
+        st.session_state["food_scan_last"] = _cs_now
 
     # ─── 前回失敗した Sheets 書き込みを再試行 ───
     _retry_pending_saves()
@@ -7667,58 +4315,9 @@ def main():
     _check_sync_health()
     _auto_resolve_sync_diff()
 
-    # ─── サイドバー: 同期ステータス ───
-    _sheets_connected = st.session_state.get("_sheets_connected", None)
-    _sync_health = st.session_state.get("_sync_health", {})
-    _sync_status = st.session_state.get("_sync_status", {})
-    if _sheets_connected is False:
-        # Sheets 未接続（設定不備 or 接続失敗）— エラー詳細も表示
-        _sh_err = st.session_state.get("_sheets_error", "")
-        st.sidebar.caption(f"📡 Sheets未接続（ローカル保存中）")
-        if _sh_err:
-            st.sidebar.caption(f"⚠️ {_sh_err}")
-    elif _sync_health or _sync_status:
-        # attempted=True かつ success=False のもののみ「同期失敗」
-        failed_types = [
-            dt for dt, s in _sync_status.items()
-            if s.get("attempted", True) and not s.get("success", True)
-        ]
-        total_diff = sum(abs(v.get("diff", 0)) for v in _sync_health.values())
-        if failed_types:
-            st.sidebar.caption(f"❌ 同期失敗: {', '.join(failed_types)}")
-        elif total_diff > 0:
-            st.sidebar.caption(f"⚠️ 同期差異: {total_diff}件")
-        else:
-            st.sidebar.caption("📡 同期: OK")
-
-    # ─── サイドバー: 自動取り込み ON/OFF ───
+    # ─── 自動取り込みのデフォルト値 ───
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
-
-    auto_scan_val = st.sidebar.toggle(
-        "🔄 自動取り込み",
-        value=st.session_state["auto_scan_enabled"],
-        key="auto_scan_toggle_main",
-    )
-    st.session_state["auto_scan_enabled"] = auto_scan_val
-
-    # 外部スキャナ (scan_food_images.py) の最終実行時刻を表示
-    _ext_log = Path(__file__).parent / "scan_food_images.log"
-    if _ext_log.exists():
-        try:
-            _mt = datetime.fromtimestamp(_ext_log.stat().st_mtime)
-            st.sidebar.caption(
-                f"🛰️ 外部スキャナ最終実行: {format_relative_time(_mt.isoformat())}"
-            )
-        except OSError:
-            pass
-
-    _scan_busy = st.session_state.get("_food_scan_running", False)
-    _scan_label = "⏳ スキャン中..." if _scan_busy else "🔄 今すぐスキャン"
-    if st.sidebar.button(_scan_label, key="manual_scan", width="stretch", disabled=_scan_busy):
-        st.session_state["manual_scan_running"] = True
-        list_images.clear()
-        st.rerun()
 
     # --- 手動スキャン（リアルタイム進捗表示） ---
     if st.session_state.pop("manual_scan_running", False):
@@ -7732,12 +4331,12 @@ def main():
             _scan_api_key = get_gemini_api_key()
             if _scan_api_key:
                 _run_manual_scan(_scan_service, _scan_folder_id, _scan_api_key)
-                # 食事画像も同時にスキャン
-                _food_fid = get_food_folder_id()
-                if _food_fid:
-                    _fc = scan_food_images(_scan_service, _food_fid, _scan_api_key, manual=True)
-                    if _fc > 0:
-                        st.sidebar.success(f"🍽️ 食事画像 {_fc} 枚を取り込みました")
+            _food_fid = get_food_folder_id()
+            if _food_fid:
+                _fc = scan_food_images(_scan_service, _food_fid,
+                                       api_key=_scan_api_key, manual=True)
+                if _fc > 0:
+                    st.toast(f"🍽️ 食事 {_fc} 枚を取り込みました", icon="🍽️")
         except Exception:
             st.warning("⚠️ スキャン中にエラーが発生しました。")
         st.session_state["auto_scan_last"] = time.time()
@@ -7759,27 +4358,23 @@ def main():
         if _food_fid:
             _food_service = get_drive_service()
             _food_api_key = get_gemini_api_key()
-            if _food_api_key:
-                _food_count = scan_food_images(_food_service, _food_fid, _food_api_key)
-                if _food_count > 0:
-                    st.toast(f"🔔 {_food_count} 枚の食事画像を自動取り込みしました", icon="📷")
-                    st.rerun()
+            _food_count = scan_food_images(_food_service, _food_fid,
+                                           api_key=_food_api_key)
+            if _food_count > 0:
+                st.toast(f"🔔 食事 {_food_count} 枚を自動取り込みしました", icon="📷")
+                st.rerun()
     except Exception as e:
         _log.error(f"[食事画像自動取り込み] エラー: {type(e).__name__}: {e}")
 
     # ─── ページ表示 ───
     active = st.session_state["active_tab"]
     if active == TAB_NAMES[0]:
-        page_patient_gallery()
+        page_screenshot_gallery()
     elif active == TAB_NAMES[1]:
         page_food_gallery()
     elif active == TAB_NAMES[2]:
-        page_screenshot_gallery()
-    elif active == TAB_NAMES[3]:
         page_weight_management()
-    elif active == TAB_NAMES[4]:
-        page_import_analyze()
-    elif active == TAB_NAMES[5]:
+    elif active == TAB_NAMES[3]:
         page_settings_all()
 
 

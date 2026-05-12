@@ -11,3 +11,7 @@ quiz_data.json
 review_data.json
 .claude/
 nul
+.thumb_cache/
+app_debug.log
+.auth_state
+.ocr_backfill_pending.json
