@@ -34782,9 +34782,168 @@
           "image_id": "wm_813995afb5c8",
           "image_ext": "jpg",
           "drive_file_id": "1YwMOhaP-8vIx2cZ1XlngCGzbwfbFbabO"
+        },
+        {
+          "id": "item_90eba32ed3d0",
+          "name": "そら豆の塩茹で",
+          "quantity": "ふつう",
+          "calories": 108,
+          "nutrients": {
+            "protein": 10.7,
+            "fat": 0.2,
+            "carbs": 17.6,
+            "fiber": 7.2,
+            "salt": 0.8,
+            "calcium": 25.0,
+            "iron": 1.7,
+            "vitamin_a": 18.0,
+            "vitamin_c": 17.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec74ae7cadc",
+          "image_ext": "jpg",
+          "drive_file_id": "1u_zba6nB5_JSXJkXSsBczIUTBKh-fCGc"
+        },
+        {
+          "id": "item_32ef7b82a4ea",
+          "name": "雑穀米ご飯",
+          "quantity": "多め",
+          "calories": 504,
+          "nutrients": {
+            "protein": 7.5,
+            "fat": 0.9,
+            "carbs": 110.4,
+            "fiber": 2.4,
+            "salt": 0.0,
+            "calcium": 9.0,
+            "iron": 0.3,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_5551d0d453da",
+          "image_ext": "jpg",
+          "drive_file_id": "1HFEl0TJnR-g66L6ZUK8a5oOYV3ExliD4"
+        },
+        {
+          "id": "item_45d3fba1f44f",
+          "name": "カレー（じゃがいも、にんじん、いんげん、えのきなど）",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 10.0,
+            "fat": 20.0,
+            "carbs": 30.0,
+            "fiber": 5.0,
+            "salt": 3.0,
+            "calcium": 30.0,
+            "iron": 1.5,
+            "vitamin_a": 150.0,
+            "vitamin_c": 15.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_5551d0d453da",
+          "image_ext": "jpg",
+          "drive_file_id": "1HFEl0TJnR-g66L6ZUK8a5oOYV3ExliD4"
+        },
+        {
+          "id": "item_9ba72f3297e8",
+          "name": "グラノーラ（フルーツ・ナッツ入り）",
+          "quantity": "ふつう",
+          "calories": 172,
+          "nutrients": {
+            "protein": 4.0,
+            "fat": 5.6,
+            "carbs": 28.8,
+            "fiber": 2.8,
+            "salt": 0.1,
+            "calcium": 40.0,
+            "iron": 1.2,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_b3282c313a1c",
+          "image_ext": "jpg",
+          "drive_file_id": "1-5LzXu8fmQfItrmWBGoZX9PtUB1ZCDCc"
+        },
+        {
+          "id": "item_00809f536514",
+          "name": "牛乳（普通牛乳）",
+          "quantity": "ふつう",
+          "calories": 124,
+          "nutrients": {
+            "protein": 6.6,
+            "fat": 7.6,
+            "carbs": 9.6,
+            "fiber": 0.0,
+            "salt": 0.2,
+            "calcium": 220.0,
+            "iron": 0.0,
+            "vitamin_a": 74.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.8
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_b3282c313a1c",
+          "image_ext": "jpg",
+          "drive_file_id": "1-5LzXu8fmQfItrmWBGoZX9PtUB1ZCDCc"
         }
       ],
-      "total_calories": 598
+      "total_calories": 1856
+    },
+    "2026-05-12": {
+      "items": [
+        {
+          "id": "item_645a48d5c60b",
+          "name": "マウントレーニア カフェラッテ",
+          "quantity": "ふつう",
+          "calories": 156,
+          "nutrients": {
+            "protein": 6.6,
+            "fat": 7.9,
+            "carbs": 14.7,
+            "fiber": 0.0,
+            "salt": 0.26,
+            "calcium": 208.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_b0012f91ef6a",
+          "image_ext": "jpg",
+          "drive_file_id": "1I-eYTUXz79sgxCo67B_vOptrw2I5t2s_"
+        },
+        {
+          "id": "item_9588e46d5f89",
+          "name": "カロリーメイト ブロック チョコレート味",
+          "quantity": "ふつう",
+          "calories": 400,
+          "nutrients": {
+            "protein": 8.2,
+            "fat": 22.4,
+            "carbs": 42.7,
+            "fiber": 2.0,
+            "salt": 0.81,
+            "calcium": 200.0,
+            "iron": 2.0,
+            "vitamin_a": 385.0,
+            "vitamin_c": 50.0,
+            "vitamin_d": 2.8
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_b0012f91ef6a",
+          "image_ext": "jpg",
+          "drive_file_id": "1I-eYTUXz79sgxCo67B_vOptrw2I5t2s_"
+        }
+      ],
+      "total_calories": 556
     }
   }
 }
