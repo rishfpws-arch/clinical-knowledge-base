@@ -37304,7 +37304,9 @@
           "drive_file_id": "1qhlcsPbhZCax2PYnc5RP-RAG2hHknOCG"
         }
       ],
-      "total_calories": 1967
+      "total_calories": 1967,
+      "weight": 75.0,
+      "weight_recorded_at": "2026-05-17T10:09:11.878004"
     }
   }
 }
