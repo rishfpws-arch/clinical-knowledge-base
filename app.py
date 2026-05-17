@@ -4147,16 +4147,23 @@ def _page_weight_management_inner():
 
     _cur_wt = st.session_state[_wt_temp_key]
 
-    # ±ボタン行
+    def _adjust_and_save(delta: float):
+        new_wt = round(max(0.1, _cur_wt + delta), 1)
+        st.session_state[_wt_temp_key] = new_wt
+        day_data["weight"] = new_wt
+        day_data["weight_recorded_at"] = datetime.now().isoformat()
+        save_weight_data(weight_data)
+        st.toast(f"✅ {new_wt} kg を記録")
+        st.rerun()
+
+    # ±ボタン行（押下時に即保存）
     _wc1, _wc2, _wc3, _wc4, _wc5 = st.columns([1, 1, 2, 1, 1])
     with _wc1:
         if st.button("▼0.5", key=f"wm_wt_m5_{date_key}", use_container_width=True):
-            st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.5), 1)
-            st.rerun()
+            _adjust_and_save(-0.5)
     with _wc2:
         if st.button("▼0.1", key=f"wm_wt_m1_{date_key}", use_container_width=True):
-            st.session_state[_wt_temp_key] = round(max(0.1, _cur_wt - 0.1), 1)
-            st.rerun()
+            _adjust_and_save(-0.1)
     with _wc3:
         _is_saved = bool(day_data.get("weight"))
         _cls = "wm-input-display" if _is_saved else "wm-input-display wm-pending"
@@ -4167,20 +4174,10 @@ def _page_weight_management_inner():
         )
     with _wc4:
         if st.button("▲0.1", key=f"wm_wt_p1_{date_key}", use_container_width=True):
-            st.session_state[_wt_temp_key] = round(_cur_wt + 0.1, 1)
-            st.rerun()
+            _adjust_and_save(0.1)
     with _wc5:
         if st.button("▲0.5", key=f"wm_wt_p5_{date_key}", use_container_width=True):
-            st.session_state[_wt_temp_key] = round(_cur_wt + 0.5, 1)
-            st.rerun()
-
-    if st.button("💾 記録する", key=f"wm_wt_save_{date_key}",
-                  type="primary", use_container_width=True):
-        day_data["weight"] = round(_cur_wt, 1)
-        day_data["weight_recorded_at"] = datetime.now().isoformat()
-        save_weight_data(weight_data)
-        st.toast(f"✅ 体重 {_cur_wt} kg を記録しました")
-        st.rerun()
+            _adjust_and_save(0.5)
 
     with st.expander("⌨️ 数値を直接入力"):
         with st.form(key=f"wm_weight_form_{date_key}"):
