@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-05-13T05:39:55.223496",
+    "processed_at": "2026-05-17T16:57:15.195120",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -3348,6 +3348,126 @@
     "date": "2026-05-12",
     "file_name": "a56f7dd5-ea1a-499d-b7c9-77a1df135657~1.jpg",
     "processed_at": "2026-05-12T10:29:50.873265",
+    "status": "ok"
+  },
+  "1ZmaU76QspgZxTtSBAynBVSVcBpCVh8QH": {
+    "date": "2026-05-13",
+    "file_name": "461a08c2-420c-4968-8dbf-7cf5c7c2f4f4~1.jpg",
+    "processed_at": "2026-05-14T09:56:24.233418",
+    "status": "ok"
+  },
+  "15D1v3YfqIHv8VCqfvGKx05hVEC5UWO5u": {
+    "date": "2026-05-13",
+    "file_name": "74d9505d-ef50-4ed7-a9cb-af22fe0f13e1~1.jpg",
+    "processed_at": "2026-05-14T09:56:41.312412",
+    "status": "ok"
+  },
+  "1kLCSMOi4EaQkky-L68EpgqD4XApjZaVj": {
+    "date": "2026-05-13",
+    "file_name": "a85be4fd-be62-4ad1-85ff-ef0584574d4c~1.jpg",
+    "processed_at": "2026-05-14T09:57:22.645660",
+    "status": "ok"
+  },
+  "1IN_THxBY0kJpvk-qdYbgt_M-8v61pcqi": {
+    "date": "2026-05-13",
+    "file_name": "9d6ed9da-227a-4308-84aa-ce3eaf874e5b~1.jpg",
+    "processed_at": "2026-05-14T09:57:43.578510",
+    "status": "ok"
+  },
+  "1lOOwt8DJW9GjnglSNwku_RLCFohI7O28": {
+    "date": "2026-05-14",
+    "file_name": "c0b69aac-cf22-4249-b8b0-39eaa45aff44~1.jpg",
+    "processed_at": "2026-05-14T10:02:28.567329",
+    "status": "ok"
+  },
+  "1zTKaRmHBV8naKFLtl5wWEBXZOyNn_YJy": {
+    "date": "2026-05-14",
+    "file_name": "7a052578-47b8-415f-8642-ff8b45c77d89~1.jpg",
+    "processed_at": "2026-05-14T11:57:26.749624",
+    "status": "ok"
+  },
+  "1QC1bzTtJymmMJXENnEfI3QPa7BjsrYQ1": {
+    "date": "2026-05-14",
+    "file_name": "e3a4794f-d01a-4ade-b204-4378181a15ff~1.jpg",
+    "processed_at": "2026-05-15T02:57:39.117739",
+    "status": "ok"
+  },
+  "1P-5zSGOrlyzR54cW6c8Az8YEJ4MUaoj9": {
+    "date": "2026-05-14",
+    "file_name": "dab33c33-9218-49e2-aa3a-cd6917bfe519~1.jpg",
+    "processed_at": "2026-05-15T02:57:57.968446",
+    "status": "ok"
+  },
+  "14PUH1MiG0tB69XndvrXoN--mac7WDsgo": {
+    "date": "2026-05-14",
+    "file_name": "f780c515-f397-4bc0-b39f-9f9d86f4b02e~1.jpg",
+    "processed_at": "2026-05-15T02:58:50.981437",
+    "status": "ok"
+  },
+  "1ZoKhTnPUz2FJlEF0OuDpg4Njn-KgYDCG": {
+    "date": "2026-05-16",
+    "file_name": "12da60ea-7635-43b6-9760-6db4116fc7da~1.jpg",
+    "processed_at": "2026-05-16T18:45:13.453075",
+    "status": "ok"
+  },
+  "1_miEHggpTXx0k_CsAScIu0q2-k5SP8Kf": {
+    "date": "2026-05-16",
+    "file_name": "2178ff67-ba87-4fbf-a4a9-2ef7b26cd4a0~1.jpg",
+    "processed_at": "2026-05-16T18:45:45.580417",
+    "status": "ok"
+  },
+  "1E5MbT7S-nh_gGbWDdAV_CVoQrlinQYdl": {
+    "date": "2026-05-15",
+    "file_name": "4eb2b9a3-9234-4cc6-b667-430642117761~1.jpg",
+    "processed_at": "2026-05-16T18:46:17.714975",
+    "status": "ok"
+  },
+  "1Jb8ex3xjjQy-ngFvEVL3tqUsi_XBM4ji": {
+    "date": "2026-05-15",
+    "file_name": "19b83eab-f6d1-45e5-83fd-89b552db8233~1.jpg",
+    "processed_at": "2026-05-16T18:46:30.390919",
+    "status": "ok"
+  },
+  "1LB4etFawZgUToKKeqhhMcSowoPY1INrr": {
+    "date": "2026-05-15",
+    "file_name": "7a72373b-a968-4737-b2f4-03b0d71cbacd~1.jpg",
+    "processed_at": "2026-05-17T14:44:00.663089",
+    "status": "ok"
+  },
+  "1kuY5e_oZ_k_KfkK1Y-NNjk-jE3J5iDtn": {
+    "date": "2026-05-15",
+    "file_name": "49447efa-c2ab-4673-8754-5f173923d5f3~1.jpg",
+    "processed_at": "2026-05-17T14:45:19.192925",
+    "status": "ok"
+  },
+  "1pbNCMSgplTQ9d5cqLKId9F0qLkdPuUHH": {
+    "date": "2026-05-15",
+    "file_name": "ce3de9b4-4695-481c-a51c-5e3679711515~1.jpg",
+    "processed_at": "2026-05-17T14:45:37.350735",
+    "status": "ok"
+  },
+  "1SOVjLTB3h6aUht_CAK7Gv22IUN8ZEJEK": {
+    "date": "2026-05-16",
+    "file_name": "4520db31-d224-4210-9f3f-29dd707230bc~1.jpg",
+    "processed_at": "2026-05-16T18:44:16.819843",
+    "status": "ok"
+  },
+  "1MyHXxR_3tvqsMiXC2mx5OVDfwAqCPVJi": {
+    "date": "2026-05-16",
+    "file_name": "ef2cdb9e-c497-4558-b1cc-f18668ca4129~1.jpg",
+    "processed_at": "2026-05-16T18:44:42.667523",
+    "status": "ok"
+  },
+  "1mj43KkP2PKpvcRknjocPRBnbfq2FOvz-": {
+    "date": "2026-05-17",
+    "file_name": "85e86759-3ce3-4182-a8dc-da4c797f12bb~1.jpg",
+    "processed_at": "2026-05-17T16:50:08.451206",
+    "status": "ok"
+  },
+  "1DW4kLZbx2nj__3EC0v3Hjdu_qzO6zvX_": {
+    "date": "2026-05-17",
+    "file_name": "4f57a5fc-ea5d-4666-8316-d1ab5003ce67~1.jpg",
+    "processed_at": "2026-05-17T16:50:48.902290",
     "status": "ok"
   }
 }
