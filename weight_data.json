@@ -37686,6 +37686,77 @@
         }
       ],
       "total_calories": 3522
+    },
+    "2026-05-19": {
+      "items": [
+        {
+          "id": "item_6ea2b993c943",
+          "name": "グラノーラ",
+          "quantity": "多め",
+          "calories": 338,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 12.0,
+            "carbs": 48.75,
+            "fiber": 3.0,
+            "salt": 0.375,
+            "calcium": 15.0,
+            "iron": 1.5,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_49d5cb68deea",
+          "image_ext": "jpg",
+          "drive_file_id": "1ku2QnSeZ-9VEzu9eN1QXjwlEL1mO9Crj"
+        },
+        {
+          "id": "item_36633d5219f0",
+          "name": "牛乳",
+          "quantity": "多め",
+          "calories": 183,
+          "nutrients": {
+            "protein": 9.9,
+            "fat": 11.4,
+            "carbs": 14.4,
+            "fiber": 0.0,
+            "salt": 0.3,
+            "calcium": 330.0,
+            "iron": 0.0,
+            "vitamin_a": 114.0,
+            "vitamin_c": 3.0,
+            "vitamin_d": 0.9
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_49d5cb68deea",
+          "image_ext": "jpg",
+          "drive_file_id": "1ku2QnSeZ-9VEzu9eN1QXjwlEL1mO9Crj"
+        },
+        {
+          "id": "item_04d2a8eb83bf",
+          "name": "バナナ",
+          "quantity": "ふつう",
+          "calories": 86,
+          "nutrients": {
+            "protein": 1.1,
+            "fat": 0.2,
+            "carbs": 22.5,
+            "fiber": 1.1,
+            "salt": 0.0,
+            "calcium": 6.0,
+            "iron": 0.3,
+            "vitamin_a": 5.0,
+            "vitamin_c": 16.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_49d5cb68deea",
+          "image_ext": "jpg",
+          "drive_file_id": "1ku2QnSeZ-9VEzu9eN1QXjwlEL1mO9Crj"
+        }
+      ],
+      "total_calories": 607
     }
   }
 }
