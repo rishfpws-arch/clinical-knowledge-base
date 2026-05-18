@@ -37307,6 +37307,55 @@
       "total_calories": 1967,
       "weight": 75.0,
       "weight_recorded_at": "2026-05-17T10:09:11.878004"
+    },
+    "2026-05-18": {
+      "items": [
+        {
+          "id": "item_375dfd1b585a",
+          "name": "カフェラテ",
+          "quantity": "ふつう",
+          "calories": 140,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 5.5,
+            "carbs": 15.0,
+            "fiber": 0.0,
+            "salt": 0.23,
+            "calcium": 200.0,
+            "iron": 0.0,
+            "vitamin_a": 200.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.8
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_85e56bbd69d4",
+          "image_ext": "jpg",
+          "drive_file_id": "1zwFkYsNOnXdLZy0RNlSbgcXzD-sNqB8L"
+        },
+        {
+          "id": "item_1f7b78589c74",
+          "name": "ツナチーズ＆たまごサンド",
+          "quantity": "ふつう",
+          "calories": 415,
+          "nutrients": {
+            "protein": 17.0,
+            "fat": 28.5,
+            "carbs": 23.9,
+            "fiber": 1.8,
+            "salt": 2.0,
+            "calcium": 90.0,
+            "iron": 1.0,
+            "vitamin_a": 100.0,
+            "vitamin_c": 5.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_85e56bbd69d4",
+          "image_ext": "jpg",
+          "drive_file_id": "1zwFkYsNOnXdLZy0RNlSbgcXzD-sNqB8L"
+        }
+      ],
+      "total_calories": 555
     }
   }
 }
