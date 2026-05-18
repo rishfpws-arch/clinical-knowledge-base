@@ -3656,7 +3656,8 @@ def page_food_gallery():
     query = st.text_input(
         "🔍 品目で検索（関連語も自動でヒット: パスタ → ナポリタン等）",
         key="food_gal_search",
-        placeholder="例: パスタ / 肉 / 野菜",
+        placeholder="例: 肉 野菜  ← スペース区切りで複数キーワード絞り込み",
+        help="スペースで区切ると複数キーワードの AND 検索になります（例: 「肉 野菜」で両方を含む画像）。各語は関連語にも自動展開されます。",
         label_visibility="collapsed",
     )
 
@@ -3714,7 +3715,8 @@ def page_screenshot_gallery():
         query = st.text_input(
             "🔍 タイトル・OCR・キーワードで検索",
             key="ss_gal_search",
-            placeholder="例: 心電図 / ARDS / 第二肋間 など",
+            placeholder="例: 心電図 ST上昇  ← スペース区切りで複数キーワード絞り込み",
+            help="スペースで区切ると複数キーワードの AND 検索になります（例: 「心電図 ST上昇」で両方を含む画像）。タイトル・キーワード・OCR テキストすべてを横断検索します。",
             label_visibility="collapsed",
         )
     with sc_right:
