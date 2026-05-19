@@ -37908,9 +37908,53 @@
           "image_id": "wm_aa6e56eaa685",
           "image_ext": "jpg",
           "drive_file_id": "13Y5PRKSNyD2W19HoMXBdG2G9d6_v47IY"
+        },
+        {
+          "id": "item_cfdf6ddfd67b",
+          "name": "緑茶 (伊右衛門)",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_f95a085925ce",
+          "image_ext": "jpg",
+          "drive_file_id": "16883iu6H8D7NLrGDmPEO4iCW8flRWwhd"
+        },
+        {
+          "id": "item_edc7fa6ea780",
+          "name": "焼き菓子 (チョコリング型フィナンシェ)",
+          "quantity": "ふつう",
+          "calories": 220,
+          "nutrients": {
+            "protein": 3.5,
+            "fat": 14.0,
+            "carbs": 22.0,
+            "fiber": 0.5,
+            "salt": 0.15,
+            "calcium": 10.0,
+            "iron": 0.3,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_f95a085925ce",
+          "image_ext": "jpg",
+          "drive_file_id": "16883iu6H8D7NLrGDmPEO4iCW8flRWwhd"
         }
       ],
-      "total_calories": 1652
+      "total_calories": 1872
     }
   }
 }
