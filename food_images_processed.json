@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-05-20T02:25:52.983526",
+    "processed_at": "2026-05-21T08:39:37.339302",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -3564,6 +3564,36 @@
     "date": "2026-05-19",
     "file_name": "c767aa48-7570-403e-8455-19f6bc4115b1~1.jpg",
     "processed_at": "2026-05-20T02:25:47.866392",
+    "status": "ok"
+  },
+  "1mPqCBq2RLT9B7kmBFtCAx4pEBPYlR8AE": {
+    "date": "2026-05-21",
+    "file_name": "9f43936d-06a1-4dfa-a9db-3bb0abb4ce23~1.jpg",
+    "processed_at": "2026-05-21T08:37:24.010442",
+    "status": "ok"
+  },
+  "1cqMj8T5nnC8JQ-LGRTo13xoSK9c3x8Kf": {
+    "date": "2026-05-20",
+    "file_name": "b04c4975-98cb-4561-9cd6-7fd9dd36ec87~1.jpg",
+    "processed_at": "2026-05-21T08:37:35.011826",
+    "status": "ok"
+  },
+  "1IcoGtJM6t1hgIpU9-FN3uqMGXU6A1f4q": {
+    "date": "2026-05-20",
+    "file_name": "5d8f5fa4-9391-4cf1-ad87-8871726cbcd5~1.jpg",
+    "processed_at": "2026-05-21T08:38:24.912290",
+    "status": "ok"
+  },
+  "1SatWKc6CYGzKpl-3x_aG1NmvH-2c5t2m": {
+    "date": "2026-05-20",
+    "file_name": "a1944ea2-6ed7-46b0-8b98-ab9fc5f8ec62~1.jpg",
+    "processed_at": "2026-05-21T08:39:04.498048",
+    "status": "ok"
+  },
+  "1l064EMjxqBFLU4L-LbMQqef7RCWk0Amo": {
+    "date": "2026-05-20",
+    "file_name": "2c0c32bf-1b97-4228-8337-9638bf773d42~1.jpg",
+    "processed_at": "2026-05-21T08:39:31.508962",
     "status": "ok"
   }
 }
