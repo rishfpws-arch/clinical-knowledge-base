@@ -38490,8 +38490,8 @@
         }
       ],
       "total_calories": 2147,
-      "weight": 76.0,
-      "weight_recorded_at": "2026-05-21T10:09:52.255136"
+      "weight": 75.2,
+      "weight_recorded_at": "2026-05-21T21:42:24.777737"
     },
     "2026-05-20": {
       "items": [
@@ -38937,6 +38937,55 @@
         }
       ],
       "total_calories": 2434
+    },
+    "2026-05-22": {
+      "items": [
+        {
+          "id": "item_9f7d23f0bcba",
+          "name": "フライドチキン",
+          "quantity": "ふつう",
+          "calories": 280,
+          "nutrients": {
+            "protein": 16.6,
+            "fat": 21.0,
+            "carbs": 8.7,
+            "fiber": 0.0,
+            "salt": 1.0,
+            "calcium": 14.0,
+            "iron": 0.9,
+            "vitamin_a": 20.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.2
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_d3d9d12c1d94",
+          "image_ext": "jpg",
+          "drive_file_id": "1_bdWGqsmTY5t-YcX2yctvIWBrpIOqh3d"
+        },
+        {
+          "id": "item_f43a48f5e21f",
+          "name": "フライドチキン",
+          "quantity": "ふつう",
+          "calories": 280,
+          "nutrients": {
+            "protein": 16.6,
+            "fat": 21.0,
+            "carbs": 8.7,
+            "fiber": 0.0,
+            "salt": 1.0,
+            "calcium": 14.0,
+            "iron": 0.9,
+            "vitamin_a": 20.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.2
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_d3d9d12c1d94",
+          "image_ext": "jpg",
+          "drive_file_id": "1_bdWGqsmTY5t-YcX2yctvIWBrpIOqh3d"
+        }
+      ],
+      "total_calories": 560
     }
   }
 }
