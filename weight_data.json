@@ -38267,9 +38267,185 @@
           "image_id": "wm_f3e83b0900c9",
           "image_ext": "jpg",
           "drive_file_id": "1mPqCBq2RLT9B7kmBFtCAx4pEBPYlR8AE"
+        },
+        {
+          "id": "item_1fa356b325ed",
+          "name": "ご飯",
+          "quantity": "ふつう",
+          "calories": 280,
+          "nutrients": {
+            "protein": 5.0,
+            "fat": 0.6,
+            "carbs": 64.0,
+            "fiber": 0.6,
+            "salt": 0.0,
+            "calcium": 6.0,
+            "iron": 0.2,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_40672c843ff5",
+          "name": "チキンカツ",
+          "quantity": "ふつう",
+          "calories": 400,
+          "nutrients": {
+            "protein": 36.0,
+            "fat": 30.0,
+            "carbs": 18.0,
+            "fiber": 0.0,
+            "salt": 2.0,
+            "calcium": 15.0,
+            "iron": 1.5,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_54c8541a4a01",
+          "name": "たくあん",
+          "quantity": "ふつう",
+          "calories": 8,
+          "nutrients": {
+            "protein": 0.2,
+            "fat": 0.0,
+            "carbs": 1.8,
+            "fiber": 0.6,
+            "salt": 1.0,
+            "calcium": 6.0,
+            "iron": 0.1,
+            "vitamin_a": 0.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_4fdbf24c95e2",
+          "name": "マカロニサラダ",
+          "quantity": "ふつう",
+          "calories": 100,
+          "nutrients": {
+            "protein": 2.5,
+            "fat": 6.5,
+            "carbs": 10.0,
+            "fiber": 0.5,
+            "salt": 0.7,
+            "calcium": 10.0,
+            "iron": 0.1,
+            "vitamin_a": 5.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_af90e5f77d3d",
+          "name": "オクラのおひたし",
+          "quantity": "ふつう",
+          "calories": 20,
+          "nutrients": {
+            "protein": 0.7,
+            "fat": 0.8,
+            "carbs": 2.5,
+            "fiber": 1.5,
+            "salt": 0.4,
+            "calcium": 25.0,
+            "iron": 0.15,
+            "vitamin_a": 15.0,
+            "vitamin_c": 7.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_796e31a2b537",
+          "name": "かぼちゃの煮物",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 1.0,
+            "fat": 0.2,
+            "carbs": 12.0,
+            "fiber": 1.5,
+            "salt": 0.4,
+            "calcium": 8.0,
+            "iron": 0.25,
+            "vitamin_a": 300.0,
+            "vitamin_c": 7.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_5a3ed585ed5d",
+          "name": "きんぴらごぼう",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 0.8,
+            "fat": 2.5,
+            "carbs": 6.5,
+            "fiber": 2.5,
+            "salt": 0.6,
+            "calcium": 15.0,
+            "iron": 0.3,
+            "vitamin_a": 25.0,
+            "vitamin_c": 2.5,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_50f6afe5c602",
+          "name": "ブロッコリーとこんにゃくの胡麻和え",
+          "quantity": "ふつう",
+          "calories": 200,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 12.0,
+            "carbs": 15.0,
+            "fiber": 8.0,
+            "salt": 1.2,
+            "calcium": 65.0,
+            "iron": 1.2,
+            "vitamin_a": 150.0,
+            "vitamin_c": 65.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e7d3bf215c52",
+          "image_ext": "jpg",
+          "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
         }
       ],
-      "total_calories": 500
+      "total_calories": 1608
     },
     "2026-05-20": {
       "items": [
