@@ -38465,9 +38465,33 @@
           "image_id": "wm_0ad7c9b733ac",
           "image_ext": "jpg",
           "drive_file_id": "1x0nIw3-h00A9XowJdkM7o7DVhZvTjeCq"
+        },
+        {
+          "id": "item_5aebe0a86e05",
+          "name": "フライドポテト",
+          "quantity": "ふつう",
+          "calories": 289,
+          "nutrients": {
+            "protein": 3.2,
+            "fat": 14.6,
+            "carbs": 36.8,
+            "fiber": 2.8,
+            "salt": 0.6,
+            "calcium": 12.0,
+            "iron": 0.3,
+            "vitamin_a": 0.0,
+            "vitamin_c": 13.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_78a935ca3475",
+          "image_ext": "jpg",
+          "drive_file_id": "10P1CNT29nFdkendXVFYGQugbonjIXxWA"
         }
       ],
-      "total_calories": 1858
+      "total_calories": 2147,
+      "weight": 76.0,
+      "weight_recorded_at": "2026-05-21T10:09:52.255136"
     },
     "2026-05-20": {
       "items": [
