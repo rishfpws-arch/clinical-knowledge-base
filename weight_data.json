@@ -38443,9 +38443,31 @@
           "image_id": "wm_e7d3bf215c52",
           "image_ext": "jpg",
           "drive_file_id": "1AxPfJaKbjjNu0_uSAxOW2Ky0D7TdfA_d"
+        },
+        {
+          "id": "item_0a83c9e9cd0d",
+          "name": "パウンドケーキ",
+          "quantity": "ふつう",
+          "calories": 250,
+          "nutrients": {
+            "protein": 3.5,
+            "fat": 18.0,
+            "carbs": 27.0,
+            "fiber": 0.5,
+            "salt": 0.15,
+            "calcium": 15.0,
+            "iron": 0.3,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_0ad7c9b733ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1x0nIw3-h00A9XowJdkM7o7DVhZvTjeCq"
         }
       ],
-      "total_calories": 1608
+      "total_calories": 1858
     },
     "2026-05-20": {
       "items": [
