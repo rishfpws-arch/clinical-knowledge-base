@@ -1,0 +1,62 @@
+name: Pomken Cloud Sync
+
+# Pomken の Google Sheets メタデータと Drive 画像を Book Capture の R2/D1 に同期する。
+# Streamlit Cloud で編集された変更を PC を起動しなくても book.book-capture.com に反映するため。
+
+on:
+  schedule:
+    # UTC で 1 時間ごと (JST だと毎時 00 分に走る)
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # 手動実行も可能 (UI から Run workflow ボタン)
+    inputs:
+      dry_run:
+        description: 'Dry run (実際の書き込みを行わない)'
+        required: false
+        default: 'false'
+
+# 同時実行を抑止 (前のジョブが残っていたらキャンセル)
+concurrency:
+  group: pomken-cloud-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet \
+            boto3 \
+            gspread \
+            google-auth \
+            google-api-python-client \
+            Pillow
+
+      - name: Run sync
+        env:
+          GSHEETS_SPREADSHEET_ID: ${{ secrets.GSHEETS_SPREADSHEET_ID }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_D1_DATABASE_ID: ${{ secrets.CF_D1_DATABASE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            python scripts/cloud_sync_from_sheets.py --dry-run -v
+          else
+            python scripts/cloud_sync_from_sheets.py -v
+          fi
