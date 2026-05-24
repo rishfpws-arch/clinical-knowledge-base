@@ -40230,8 +40230,37 @@
         }
       ],
       "total_calories": 3698,
-      "weight": 76.2,
-      "weight_recorded_at": "2026-05-24T09:52:22.724037"
+      "weight": 76.0,
+      "weight_recorded_at": "2026-05-24T21:56:30.212286"
+    },
+    "2026-05-25": {
+      "weight": 76.0,
+      "weight_recorded_at": "2026-05-24T21:56:53.232361",
+      "items": [
+        {
+          "id": "item_a50ae04fafd3",
+          "name": "カロリーメイト ブロック",
+          "quantity": "ふつう",
+          "calories": 400,
+          "nutrients": {
+            "protein": 8.2,
+            "fat": 22.2,
+            "carbs": 43.4,
+            "fiber": 2.0,
+            "salt": 0.79,
+            "calcium": 200.0,
+            "iron": 2.0,
+            "vitamin_a": 385.0,
+            "vitamin_c": 50.0,
+            "vitamin_d": 2.8
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_12f2d2a7f4ef",
+          "image_ext": "jpg",
+          "drive_file_id": "1Imh04asi_tcBlIMN6GtjCcVANwba6BEt"
+        }
+      ],
+      "total_calories": 400
     }
   }
 }
