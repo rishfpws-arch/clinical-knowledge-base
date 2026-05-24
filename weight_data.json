@@ -39609,6 +39609,187 @@
         }
       ],
       "total_calories": 2445
+    },
+    "2026-05-24": {
+      "items": [
+        {
+          "id": "item_a5c1088f7814",
+          "name": "ご飯（ふりかけ付き）",
+          "quantity": "ふつう",
+          "calories": 272,
+          "nutrients": {
+            "protein": 7.2,
+            "fat": 1.35,
+            "carbs": 57.35,
+            "fiber": 1.05,
+            "salt": 0.9,
+            "calcium": 17.0,
+            "iron": 0.45,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_ae87bf0230b6",
+          "name": "豆腐と枝豆の煮物",
+          "quantity": "ふつう",
+          "calories": 100,
+          "nutrients": {
+            "protein": 8.2,
+            "fat": 5.6,
+            "carbs": 3.8,
+            "fiber": 0.9,
+            "salt": 0.6,
+            "calcium": 132.0,
+            "iron": 1.4,
+            "vitamin_a": 3.0,
+            "vitamin_c": 3.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_0c954a29a58f",
+          "name": "味噌汁",
+          "quantity": "ふつう",
+          "calories": 60,
+          "nutrients": {
+            "protein": 3.0,
+            "fat": 1.5,
+            "carbs": 5.0,
+            "fiber": 1.0,
+            "salt": 1.5,
+            "calcium": 20.0,
+            "iron": 0.5,
+            "vitamin_a": 20.0,
+            "vitamin_c": 5.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_67147bd56f5e",
+          "name": "みどり牛乳",
+          "quantity": "ふつう",
+          "calories": 134,
+          "nutrients": {
+            "protein": 6.8,
+            "fat": 7.6,
+            "carbs": 9.6,
+            "fiber": 0.0,
+            "salt": 0.2,
+            "calcium": 220.0,
+            "iron": 0.0,
+            "vitamin_a": 76.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.7
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_53f3091b7b8e",
+          "name": "たくあん",
+          "quantity": "ふつう",
+          "calories": 12,
+          "nutrients": {
+            "protein": 0.3,
+            "fat": 0.1,
+            "carbs": 2.7,
+            "fiber": 1.0,
+            "salt": 1.8,
+            "calcium": 15.0,
+            "iron": 0.1,
+            "vitamin_a": 0.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_2e1e8d227363",
+          "name": "緑茶（湯呑）",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_e5cade0a06f9",
+          "name": "お茶（ペットボトル）",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        },
+        {
+          "id": "item_b2b35927e76e",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4e92e115e2d3",
+          "image_ext": "jpg",
+          "drive_file_id": "11RH8UDVsgirg0wNdkAsGxBhjQQaxi_o5"
+        }
+      ],
+      "total_calories": 578
     }
   }
 }
