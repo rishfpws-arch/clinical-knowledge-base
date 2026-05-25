@@ -40258,9 +40258,53 @@
           "image_id": "wm_12f2d2a7f4ef",
           "image_ext": "jpg",
           "drive_file_id": "1Imh04asi_tcBlIMN6GtjCcVANwba6BEt"
+        },
+        {
+          "id": "item_c8c19b07818f",
+          "name": "マウントレーニア カフェラッテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 153,
+          "nutrients": {
+            "protein": 5.8,
+            "fat": 6.2,
+            "carbs": 18.0,
+            "fiber": 0.4,
+            "salt": 0.17,
+            "calcium": 168.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_fcdad73179a0",
+          "image_ext": "jpg",
+          "drive_file_id": "1UvJT78doh8WJA3unK6CdE7t_nTfD-p_6"
+        },
+        {
+          "id": "item_c95c2c48782c",
+          "name": "カロリーメイト ブロック",
+          "quantity": "ふつう",
+          "calories": 400,
+          "nutrients": {
+            "protein": 8.0,
+            "fat": 22.2,
+            "carbs": 43.4,
+            "fiber": 2.0,
+            "salt": 0.79,
+            "calcium": 200.0,
+            "iron": 2.5,
+            "vitamin_a": 385.0,
+            "vitamin_c": 50.0,
+            "vitamin_d": 2.8
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_fcdad73179a0",
+          "image_ext": "jpg",
+          "drive_file_id": "1UvJT78doh8WJA3unK6CdE7t_nTfD-p_6"
         }
       ],
-      "total_calories": 400
+      "total_calories": 953
     }
   }
 }
