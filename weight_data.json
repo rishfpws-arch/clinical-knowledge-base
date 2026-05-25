@@ -40525,6 +40525,33 @@
         }
       ],
       "total_calories": 3636
+    },
+    "2026-05-26": {
+      "items": [
+        {
+          "id": "item_e8b774138803",
+          "name": "ビーンズロール",
+          "quantity": "ふつう",
+          "calories": 400,
+          "nutrients": {
+            "protein": 8.0,
+            "fat": 18.0,
+            "carbs": 50.0,
+            "fiber": 2.0,
+            "salt": 0.8,
+            "calcium": 30.0,
+            "iron": 0.5,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_99d270025cce",
+          "image_ext": "jpg",
+          "drive_file_id": "1Veyfo_IGZ7O03dOmN0vBdYRnAvGdFGfJ"
+        }
+      ],
+      "total_calories": 400
     }
   }
 }
