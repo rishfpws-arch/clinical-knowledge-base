@@ -43444,9 +43444,53 @@
           "image_id": "wm_698d19f57726",
           "image_ext": "jpg",
           "drive_file_id": "1KnMCm2zNP1D6fWwyBOxEB9Lff2LiaF6c"
+        },
+        {
+          "id": "item_17096842d763",
+          "name": "ツナチーズ＆たまごサンド",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 15.0,
+            "fat": 20.0,
+            "carbs": 30.0,
+            "fiber": 0.5,
+            "salt": 2.0,
+            "calcium": 100.0,
+            "iron": 1.0,
+            "vitamin_a": 50.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_a059e2ca01ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1jqGHeECMtrN5-CImqO_3bLvfIFYFFeSE"
+        },
+        {
+          "id": "item_2e6add3a4fac",
+          "name": "マウントレーニア カフェラッテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 140,
+          "nutrients": {
+            "protein": 4.8,
+            "fat": 5.8,
+            "carbs": 17.6,
+            "fiber": 0.0,
+            "salt": 0.28,
+            "calcium": 168.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_a059e2ca01ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1jqGHeECMtrN5-CImqO_3bLvfIFYFFeSE"
         }
       ],
-      "total_calories": 329
+      "total_calories": 819
     }
   }
 }
