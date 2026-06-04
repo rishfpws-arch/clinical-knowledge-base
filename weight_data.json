@@ -43911,9 +43911,75 @@
           "image_id": "wm_981dd05b4f77",
           "image_ext": "jpg",
           "drive_file_id": "1UkIyA1z3_L2H_otfulfEjWKbTTabQO9-"
+        },
+        {
+          "id": "item_25fa61e3302f",
+          "name": "照焼チキン＆ハムトマトサンド",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 22.0,
+            "fat": 22.0,
+            "carbs": 35.0,
+            "fiber": 2.0,
+            "salt": 1.8,
+            "calcium": 0.0,
+            "iron": 1.0,
+            "vitamin_a": 20.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_21372878b135",
+          "image_ext": "jpg",
+          "drive_file_id": "1iXvfE3sZQ-dlQign2_v_mcvABdiG8XbC"
+        },
+        {
+          "id": "item_365e4e352e2b",
+          "name": "マウントレーニア カフェラッテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 163,
+          "nutrients": {
+            "protein": 5.5,
+            "fat": 8.8,
+            "carbs": 14.8,
+            "fiber": 0.3,
+            "salt": 0.2,
+            "calcium": 177.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_21372878b135",
+          "image_ext": "jpg",
+          "drive_file_id": "1iXvfE3sZQ-dlQign2_v_mcvABdiG8XbC"
+        },
+        {
+          "id": "item_74464d7a41b1",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_21372878b135",
+          "image_ext": "jpg",
+          "drive_file_id": "1iXvfE3sZQ-dlQign2_v_mcvABdiG8XbC"
         }
       ],
-      "total_calories": 616
+      "total_calories": 1129
     },
     "2026-06-03": {
       "items": [
