@@ -43977,9 +43977,53 @@
           "image_id": "wm_21372878b135",
           "image_ext": "jpg",
           "drive_file_id": "1iXvfE3sZQ-dlQign2_v_mcvABdiG8XbC"
+        },
+        {
+          "id": "item_6e5b377a1ab5",
+          "name": "KAGOME 野菜生活100 Smoothie バナナ&アーモンドMix",
+          "quantity": "ふつう",
+          "calories": 154,
+          "nutrients": {
+            "protein": 2.3,
+            "fat": 2.6,
+            "carbs": 30.6,
+            "fiber": 2.1,
+            "salt": 0.1,
+            "calcium": 140.0,
+            "iron": 0.35,
+            "vitamin_a": 345.0,
+            "vitamin_c": 130.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_dad5a464d566",
+          "image_ext": "jpg",
+          "drive_file_id": "1C7tphGiTV8787JictEWNmNzyOKTLihPL"
+        },
+        {
+          "id": "item_38c577d48feb",
+          "name": "饅頭",
+          "quantity": "ふつう",
+          "calories": 101,
+          "nutrients": {
+            "protein": 1.9,
+            "fat": 0.5,
+            "carbs": 22.2,
+            "fiber": 1.0,
+            "salt": 0.1,
+            "calcium": 10.0,
+            "iron": 0.3,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_dad5a464d566",
+          "image_ext": "jpg",
+          "drive_file_id": "1C7tphGiTV8787JictEWNmNzyOKTLihPL"
         }
       ],
-      "total_calories": 1129
+      "total_calories": 1384
     },
     "2026-06-03": {
       "items": [
