@@ -43843,6 +43843,346 @@
         }
       ],
       "total_calories": 3003
+    },
+    "2026-06-04": {
+      "items": [
+        {
+          "id": "item_c69776505535",
+          "name": "照焼チキン＆ハムトマトサンド",
+          "quantity": "ふつう",
+          "calories": 380,
+          "nutrients": {
+            "protein": 18.0,
+            "fat": 17.0,
+            "carbs": 38.0,
+            "fiber": 2.5,
+            "salt": 1.8,
+            "calcium": 60.0,
+            "iron": 0.8,
+            "vitamin_a": 30.0,
+            "vitamin_c": 8.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_981dd05b4f77",
+          "image_ext": "jpg",
+          "drive_file_id": "1UkIyA1z3_L2H_otfulfEjWKbTTabQO9-"
+        },
+        {
+          "id": "item_79d96370c46e",
+          "name": "ごまどれ鶏ささみ",
+          "quantity": "ふつう",
+          "calories": 180,
+          "nutrients": {
+            "protein": 24.7,
+            "fat": 7.0,
+            "carbs": 4.9,
+            "fiber": 0.5,
+            "salt": 0.77,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_981dd05b4f77",
+          "image_ext": "jpg",
+          "drive_file_id": "1UkIyA1z3_L2H_otfulfEjWKbTTabQO9-"
+        },
+        {
+          "id": "item_7e8e376493c2",
+          "name": "ご褒美カットフルーツ（りんご）",
+          "quantity": "ふつう",
+          "calories": 56,
+          "nutrients": {
+            "protein": 0.2,
+            "fat": 0.2,
+            "carbs": 15.0,
+            "fiber": 1.4,
+            "salt": 0.0,
+            "calcium": 3.0,
+            "iron": 0.1,
+            "vitamin_a": 3.0,
+            "vitamin_c": 6.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_981dd05b4f77",
+          "image_ext": "jpg",
+          "drive_file_id": "1UkIyA1z3_L2H_otfulfEjWKbTTabQO9-"
+        }
+      ],
+      "total_calories": 616
+    },
+    "2026-06-03": {
+      "items": [
+        {
+          "id": "item_bcbd0600ba3b",
+          "name": "ごはん",
+          "quantity": "多め",
+          "calories": 336,
+          "nutrients": {
+            "protein": 5.07,
+            "fat": 0.67,
+            "carbs": 76.27,
+            "fiber": 0.67,
+            "salt": 0.0,
+            "calcium": 2.67,
+            "iron": 0.13,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_edb06809bfac",
+          "name": "卵焼き",
+          "quantity": "ふつう",
+          "calories": 180,
+          "nutrients": {
+            "protein": 10.0,
+            "fat": 11.67,
+            "carbs": 1.67,
+            "fiber": 0.0,
+            "salt": 1.0,
+            "calcium": 41.67,
+            "iron": 1.08,
+            "vitamin_a": 133.33,
+            "vitamin_c": 0.0,
+            "vitamin_d": 2.92
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_05294a90ba37",
+          "name": "青菜の和え物",
+          "quantity": "少なめ",
+          "calories": 30,
+          "nutrients": {
+            "protein": 1.6,
+            "fat": 0.4,
+            "carbs": 2.4,
+            "fiber": 1.6,
+            "salt": 0.64,
+            "calcium": 24.0,
+            "iron": 0.8,
+            "vitamin_a": 160.0,
+            "vitamin_c": 12.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_040b53436c4e",
+          "name": "マカロニのトマトソース煮込み",
+          "quantity": "ふつう",
+          "calories": 200,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 10.0,
+            "carbs": 20.0,
+            "fiber": 1.5,
+            "salt": 1.0,
+            "calcium": 20.0,
+            "iron": 0.8,
+            "vitamin_a": 30.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_272c72caca1f",
+          "name": "沢庵",
+          "quantity": "少なめ",
+          "calories": 5,
+          "nutrients": {
+            "protein": 0.12,
+            "fat": 0.02,
+            "carbs": 0.68,
+            "fiber": 0.3,
+            "salt": 0.45,
+            "calcium": 2.1,
+            "iron": 0.06,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.15,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_355dbdbc20e7",
+          "name": "みかん缶詰",
+          "quantity": "半量",
+          "calories": 40,
+          "nutrients": {
+            "protein": 0.15,
+            "fat": 0.0,
+            "carbs": 7.4,
+            "fiber": 0.35,
+            "salt": 0.0,
+            "calcium": 5.0,
+            "iron": 0.05,
+            "vitamin_a": 10.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_a0e29e7922d6",
+          "name": "すまし汁",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 3.0,
+            "fat": 6.0,
+            "carbs": 2.0,
+            "fiber": 0.8,
+            "salt": 1.2,
+            "calcium": 30.0,
+            "iron": 0.4,
+            "vitamin_a": 0.0,
+            "vitamin_c": 3.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_02cd232d8965",
+          "name": "お茶",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_49664ab801bc",
+          "image_ext": "jpg",
+          "drive_file_id": "1zlEdBKQd9cEkYWguROEG_7pgCSfXzXjk"
+        },
+        {
+          "id": "item_a6ce02e6630b",
+          "name": "カレーコロッケ＆焼きそばパン",
+          "quantity": "ふつう",
+          "calories": 570,
+          "nutrients": {
+            "protein": 16.5,
+            "fat": 28.0,
+            "carbs": 66.0,
+            "fiber": 4.5,
+            "salt": 2.2,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_0ace028605c7",
+          "image_ext": "jpg",
+          "drive_file_id": "16MVgEbathNwFdRP-wmekFeivkSvuIqit"
+        },
+        {
+          "id": "item_354ccf084d28",
+          "name": "豚ひき肉入り汁うどん",
+          "quantity": "ふつう",
+          "calories": 550,
+          "nutrients": {
+            "protein": 20.0,
+            "fat": 15.0,
+            "carbs": 80.0,
+            "fiber": 3.0,
+            "salt": 4.0,
+            "calcium": 30.0,
+            "iron": 1.5,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_0aee707ccd5c",
+          "image_ext": "jpg",
+          "drive_file_id": "1GMS-GqTtBPodZM7wa0CmMDbHCjFELpxY"
+        },
+        {
+          "id": "item_4272eeed46b9",
+          "name": "ツナたまごコーンのサラダ",
+          "quantity": "ふつう",
+          "calories": 160,
+          "nutrients": {
+            "protein": 16.0,
+            "fat": 9.0,
+            "carbs": 10.0,
+            "fiber": 2.0,
+            "salt": 0.6,
+            "calcium": 40.0,
+            "iron": 1.0,
+            "vitamin_a": 50.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_0aee707ccd5c",
+          "image_ext": "jpg",
+          "drive_file_id": "1GMS-GqTtBPodZM7wa0CmMDbHCjFELpxY"
+        },
+        {
+          "id": "item_f9166ac66690",
+          "name": "ミニトマトとチーズのバジルサラダ",
+          "quantity": "ふつう",
+          "calories": 123,
+          "nutrients": {
+            "protein": 8.6,
+            "fat": 9.7,
+            "carbs": 6.1,
+            "fiber": 2.0,
+            "salt": 0.24,
+            "calcium": 50.0,
+            "iron": 0.3,
+            "vitamin_a": 20.0,
+            "vitamin_c": 15.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_0aee707ccd5c",
+          "image_ext": "jpg",
+          "drive_file_id": "1GMS-GqTtBPodZM7wa0CmMDbHCjFELpxY"
+        }
+      ],
+      "total_calories": 2244
     }
   }
 }
