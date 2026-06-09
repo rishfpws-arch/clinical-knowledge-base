@@ -2263,6 +2263,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
         results_container = st.container()
         success_count = 0
         fail_count = 0
+        blocked_count = 0
         total = len(new_images)
 
         for i, img in enumerate(new_images):
@@ -2276,7 +2277,15 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
             try:
                 result = _analyze_and_register_screenshot(service, fid, api_key, metadata)
-                if result:
+                if result and result.get("_blocked"):
+                    blocked_count += 1
+                    with results_container:
+                        st.markdown(
+                            f"🚫 {html.escape(fname)} — Gemini ブロック "
+                            f"({html.escape(str(result.get('block_reason', '')))}) "
+                            "— 以後スキャン対象から除外"
+                        )
+                elif result:
                     success_count += 1
                     with results_container:
                         st.markdown(
