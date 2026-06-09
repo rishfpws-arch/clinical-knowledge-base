@@ -940,6 +940,8 @@ def get_status_icon(meta: dict) -> str:
     s = get_status(meta)
     if s == STATUS_REVIEWED:
         return "✅"
+    if s == STATUS_BLOCKED:
+        return "🚫"
     return "🆕"
 
 
