@@ -1524,7 +1524,15 @@ def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> 
     画像付きの場合: [{"text": "..."}, {"inline_data": {"mime_type": "...", "data": "..."}}]
     """
     url = _GEMINI_API_URL.format(model=model or _GEMINI_MODEL, key=api_key)
-    payload = {"contents": [{"parts": contents}]}
+    payload = {
+        "contents": [{"parts": contents}],
+        "safetySettings": [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        ],
+    }
     resp = requests.post(url, json=payload, timeout=120)
     try:
         data = resp.json()
