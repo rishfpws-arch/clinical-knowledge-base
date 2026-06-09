@@ -79,6 +79,7 @@ PER_PAGE_OPTIONS = [10, 20, 30]  # 表示件数の選択肢
 # ステータス定数
 STATUS_AUTO = "auto_generated"
 STATUS_REVIEWED = "reviewed"
+STATUS_BLOCKED = "blocked"  # Gemini に永続ブロックされ解析できない画像
 
 # ソース識別子
 SOURCE_PATIENT_DATA = "patient_data"
