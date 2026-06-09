@@ -2145,23 +2145,30 @@ def auto_scan_new_images(service, folder_id: str, api_key: str) -> None:
             remaining = len(new_images) - len(batch)
 
             success_count = 0
+            blocked_count = 0
             for img in batch:
                 fid = img["id"]
                 try:
-                    if _analyze_and_register_screenshot(service, fid, api_key, metadata):
+                    res = _analyze_and_register_screenshot(service, fid, api_key, metadata)
+                    if res and res.get("_blocked"):
+                        blocked_count += 1
+                    elif res:
                         success_count += 1
                 except Exception:
                     continue
 
-            if success_count > 0:
+            if success_count > 0 or blocked_count > 0:
                 save_metadata(metadata)
                 _invalidate_all_caches()
                 list_images.clear()
                 list_patient_images.clear()
-                msg = f"✅ 新着 {success_count} 件を自動登録"
-                if remaining > 0:
-                    msg += f"（残り {remaining} 件は次回処理）"
-                st.toast(msg, icon="✅")
+                if success_count > 0:
+                    msg = f"✅ 新着 {success_count} 件を自動登録"
+                    if blocked_count > 0:
+                        msg += f"（{blocked_count} 件ブロックでスキップ登録）"
+                    if remaining > 0:
+                        msg += f"（残り {remaining} 件は次回処理）"
+                    st.toast(msg, icon="✅")
 
 
 def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
