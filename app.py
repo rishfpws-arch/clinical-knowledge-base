@@ -4516,7 +4516,8 @@ __SCOPE__ button[kind="primary"]:hover { background: linear-gradient(135deg, #FF
 
     # --- 手動スキャン（リアルタイム進捗表示） ---
     if st.session_state.pop("manual_scan_running", False):
-        st.markdown(
+        _scan_banner = st.empty()
+        _scan_banner.markdown(
             '<div class="loading-banner">🔄 スキャン中です… しばらくお待ちください</div>',
             unsafe_allow_html=True,
         )
@@ -4534,6 +4535,8 @@ __SCOPE__ button[kind="primary"]:hover { background: linear-gradient(135deg, #FF
                     st.toast(f"🍽️ 食事 {_fc} 枚を取り込みました", icon="🍽️")
         except Exception:
             st.warning("⚠️ スキャン中にエラーが発生しました。")
+        finally:
+            _scan_banner.empty()
         st.session_state["auto_scan_last"] = time.time()
         st.session_state["food_scan_last"] = time.time()
 
