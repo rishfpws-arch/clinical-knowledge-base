@@ -1519,6 +1519,18 @@ _GEMINI_API_URL = (
 )
 
 
+class GeminiBlockedError(RuntimeError):
+    """Gemini が永続的にプロンプトをブロックした状態。再試行不可。
+
+    safetySettings で抑えられない OTHER / PROHIBITED_CONTENT 等の判定で発生する。
+    呼び出し側で「以後スキャン対象から外す」マークを残すために通常エラーと区別する。
+    """
+
+    def __init__(self, reason: str):
+        super().__init__(f"Gemini API: プロンプトがブロックされました ({reason})")
+        self.reason = reason
+
+
 def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> str:
     """Gemini REST API を呼び出してテキスト応答を返す。
 
