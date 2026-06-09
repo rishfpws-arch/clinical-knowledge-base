@@ -1651,6 +1651,9 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         result["status"] = STATUS_AUTO
         return result
 
+    except GeminiBlockedError:
+        # 永続ブロックは呼び出し側でスキップマーカーを登録するため伝播させる
+        raise
     except json.JSONDecodeError:
         st.error("AI解析の結果をJSONとして解析できませんでした。再度お試しください。")
         return None
