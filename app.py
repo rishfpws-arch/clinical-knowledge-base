@@ -2305,7 +2305,7 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
 
         progress_bar.progress(1.0, text="完了！ Sheets に保存中...")
 
-        if success_count > 0:
+        if success_count > 0 or blocked_count > 0:
             # API Rate Limit 回避のため少し待機
             time.sleep(2)
             sheets_ok = save_metadata(metadata)
@@ -2317,11 +2317,23 @@ def _run_manual_scan(service, folder_id: str, api_key: str) -> None:
             else:
                 detail = st.session_state.pop("_save_error_detail", "不明")
                 sync_msg = f"（⚠️ Sheets同期失敗: {detail}）"
-            status_text.success(
-                f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました{sync_msg}"
-                + (f"（{fail_count} 件失敗）" if fail_count else "")
-            )
-            st.balloons()
+            extras = []
+            if blocked_count:
+                extras.append(f"{blocked_count} 件ブロック（以後スキップ）")
+            if fail_count:
+                extras.append(f"{fail_count} 件失敗")
+            extra_msg = f"（{' / '.join(extras)}）" if extras else ""
+            if success_count > 0:
+                status_text.success(
+                    f"🎉 スキャン完了！ **{success_count}** 件を新しく解析しました"
+                    f"{sync_msg}{extra_msg}"
+                )
+                st.balloons()
+            else:
+                status_text.info(
+                    f"スキャン完了。新規解析 0 件、{blocked_count} 件はブロックされたため "
+                    f"以後スキップ登録{sync_msg}"
+                )
         else:
             status_text.warning("⚠️ 新着画像の解析に失敗しました。再度お試しください。")
 
