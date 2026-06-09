@@ -1633,7 +1633,7 @@ def analyze_image_with_gemini(image_bytes: bytes, api_key: str, correction_hint:
         return None
     except Exception as e:
         _log.error(f"AI解析エラー: {e}")
-        st.error("AI解析中にエラーが発生しました。再度お試しください。")
+        st.error(f"AI解析中にエラーが発生しました: {e}")
         return None
 
 
