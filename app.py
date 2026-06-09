@@ -1568,7 +1568,7 @@ def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> 
         feedback = (data.get("promptFeedback") if isinstance(data, dict) else None) or {}
         block_reason = feedback.get("blockReason")
         if block_reason:
-            raise RuntimeError(f"Gemini API: プロンプトがブロックされました ({block_reason})")
+            raise GeminiBlockedError(block_reason)
         raise RuntimeError(
             f"Gemini API: candidates が空 (status={resp.status_code}, body={str(data)[:300]})"
         )
