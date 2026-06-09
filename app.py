@@ -1526,9 +1526,37 @@ def _gemini_generate(api_key: str, contents: list, model: str | None = None) -> 
     url = _GEMINI_API_URL.format(model=model or _GEMINI_MODEL, key=api_key)
     payload = {"contents": [{"parts": contents}]}
     resp = requests.post(url, json=payload, timeout=120)
-    resp.raise_for_status()
-    data = resp.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    try:
+        data = resp.json()
+    except ValueError:
+        raise RuntimeError(
+            f"Gemini API: 非JSONレスポンス (status={resp.status_code}, body={resp.text[:200]})"
+        )
+
+    # Gemini はエラー時 200 以外でも JSON body にエラー詳細を入れる
+    if isinstance(data, dict) and "error" in data:
+        err = data["error"] or {}
+        msg = err.get("message", "不明なエラー")
+        status = err.get("status", "")
+        raise RuntimeError(f"Gemini API エラー [{resp.status_code} {status}]: {msg}")
+
+    candidates = data.get("candidates") if isinstance(data, dict) else None
+    if not candidates:
+        feedback = (data.get("promptFeedback") if isinstance(data, dict) else None) or {}
+        block_reason = feedback.get("blockReason")
+        if block_reason:
+            raise RuntimeError(f"Gemini API: プロンプトがブロックされました ({block_reason})")
+        raise RuntimeError(
+            f"Gemini API: candidates が空 (status={resp.status_code}, body={str(data)[:300]})"
+        )
+
+    cand = candidates[0] or {}
+    parts = (cand.get("content") or {}).get("parts")
+    if not parts:
+        finish = cand.get("finishReason", "")
+        raise RuntimeError(f"Gemini API: 応答テキストが空 (finishReason={finish})")
+
+    return parts[0].get("text", "")
 
 
 # ---------------------------------------------------------------------------
