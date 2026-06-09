@@ -2011,7 +2011,23 @@ def _analyze_and_register_screenshot(service, fid: str, api_key: str,
         _log.warning(f"[analyze] OCR失敗 fid={fid}: {e}")
 
     # ② OCR テキストを参考情報として Gemini にタイトル/キーワードを生成させる
-    result = analyze_image_with_gemini(image_bytes, api_key, ocr_hint=ocr_text)
+    try:
+        result = analyze_image_with_gemini(image_bytes, api_key, ocr_hint=ocr_text)
+    except GeminiBlockedError as e:
+        # 永続ブロック: スタブを登録して次回スキャンから除外する
+        _log.warning(f"[analyze] Gemini ブロック fid={fid} reason={e.reason}")
+        stub = {
+            "title": f"[Geminiブロック: {e.reason}]",
+            "keywords": [],
+            "status": STATUS_BLOCKED,
+            "folder": DEFAULT_FOLDER,
+            "block_reason": e.reason,
+        }
+        if ocr_text:
+            stub["ocr_text"] = ocr_text
+        metadata[fid] = stub
+        return {"_blocked": True, "block_reason": e.reason}
+
     if not result:
         return None
     result["status"] = STATUS_REVIEWED
