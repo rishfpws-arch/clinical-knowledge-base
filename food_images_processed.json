@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-06-10T06:13:08.749271",
+    "processed_at": "2026-06-12T13:11:59.828336",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4122,6 +4122,54 @@
     "date": "2026-06-09",
     "file_name": "e6bff8da-cee6-4e60-84f9-709f3dc432ef~1.jpg",
     "processed_at": "2026-06-10T05:52:16.805479",
+    "status": "ok"
+  },
+  "16KZWeVjnnu9RLw9lPczt74JmFqvdw7Hd": {
+    "date": "2026-06-11",
+    "file_name": "88483c4f-7a4a-44b5-a09e-bfb0f186de81~1.jpg",
+    "processed_at": "2026-06-11T08:27:45.927437",
+    "status": "ok"
+  },
+  "11qmIe2Y0XtffTEUj2BB-ojZLh0OngWYf": {
+    "date": "2026-06-10",
+    "file_name": "8a4b70dd-ffc1-4a48-b034-3173c1fe2396~1.jpg",
+    "processed_at": "2026-06-11T08:28:07.886827",
+    "status": "ok"
+  },
+  "1ygUzkRJ_EYjrOoF_1ILFed7_8bIyktYI": {
+    "date": "2026-06-10",
+    "file_name": "0d5b9522-af2e-4477-8b35-680998a0c254~1.jpg",
+    "processed_at": "2026-06-11T08:28:34.114090",
+    "status": "ok"
+  },
+  "1Ehuj4MUC4JzT3ZEHXhNmwBXoSo_BVWtt": {
+    "date": "2026-06-11",
+    "file_name": "d25a9682-c6d8-4551-9594-07ad16c7fb1b~1.jpg",
+    "processed_at": "2026-06-11T12:27:42.384112",
+    "status": "ok"
+  },
+  "1K3pU8322WQ-lioDqCqR4kmkSEh2s9bLS": {
+    "date": "2026-06-11",
+    "file_name": "68b59e4c-5a02-4ae9-a880-3b834e133407~1.jpg",
+    "processed_at": "2026-06-11T16:52:22.931111",
+    "status": "ok"
+  },
+  "1aToAwCWl_VJ_DplBQvVHk4EcPAO8co3b": {
+    "date": "2026-06-11",
+    "file_name": "e15049ab-a7b8-4e59-8b09-dfb9464b013f~1.jpg",
+    "processed_at": "2026-06-12T04:01:08.668373",
+    "status": "ok"
+  },
+  "15FMnTGwGGxrw0uQQ-0L2RRrUgt16Nl3i": {
+    "date": "2026-06-12",
+    "file_name": "d53dd30c-1d0b-43f4-8900-4d50eb1a8ae2~1.jpg",
+    "processed_at": "2026-06-12T13:11:54.490734",
+    "status": "ok"
+  },
+  "1FW8iWgEU-h6uMiuHkFwQl82x8xYpIeLy": {
+    "date": "2026-06-12",
+    "file_name": "a8845746-4832-4b99-b6d1-fd0b253c06e3~1.jpg",
+    "processed_at": "2026-06-12T13:11:54.165682",
     "status": "ok"
   }
 }
