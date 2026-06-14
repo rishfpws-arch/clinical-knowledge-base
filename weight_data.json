@@ -48963,6 +48963,121 @@
         }
       ],
       "total_calories": 1260
+    },
+    "2026-06-15": {
+      "items": [
+        {
+          "id": "item_3571444ec805",
+          "name": "ご飯",
+          "quantity": "ふつう",
+          "calories": 252,
+          "nutrients": {
+            "protein": 3.75,
+            "fat": 0.45,
+            "carbs": 55.65,
+            "fiber": 0.45,
+            "salt": 0.0,
+            "calcium": 4.5,
+            "iron": 0.15,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_3a8c2a630f96",
+          "image_ext": "jpg",
+          "drive_file_id": "1JJZgbL9Hbq7guGqXTz0G2nyVCMlyN8Kn"
+        },
+        {
+          "id": "item_130d4de45979",
+          "name": "味噌汁 (わかめ)",
+          "quantity": "ふつう",
+          "calories": 35,
+          "nutrients": {
+            "protein": 2.0,
+            "fat": 1.0,
+            "carbs": 4.0,
+            "fiber": 1.0,
+            "salt": 1.5,
+            "calcium": 20.0,
+            "iron": 0.5,
+            "vitamin_a": 20.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_3a8c2a630f96",
+          "image_ext": "jpg",
+          "drive_file_id": "1JJZgbL9Hbq7guGqXTz0G2nyVCMlyN8Kn"
+        },
+        {
+          "id": "item_073fda27a251",
+          "name": "厚揚げと挽肉の煮物",
+          "quantity": "ふつう",
+          "calories": 192,
+          "nutrients": {
+            "protein": 11.1,
+            "fat": 11.58,
+            "carbs": 9.26,
+            "fiber": 1.6,
+            "salt": 1.5,
+            "calcium": 100.0,
+            "iron": 1.5,
+            "vitamin_a": 100.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_3a8c2a630f96",
+          "image_ext": "jpg",
+          "drive_file_id": "1JJZgbL9Hbq7guGqXTz0G2nyVCMlyN8Kn"
+        },
+        {
+          "id": "item_c6e91782b2df",
+          "name": "乳飲料 (マスカット風味)",
+          "quantity": "ふつう",
+          "calories": 41,
+          "nutrients": {
+            "protein": 1.5,
+            "fat": 0.1,
+            "carbs": 8.5,
+            "fiber": 0.0,
+            "salt": 0.1,
+            "calcium": 50.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_3a8c2a630f96",
+          "image_ext": "jpg",
+          "drive_file_id": "1JJZgbL9Hbq7guGqXTz0G2nyVCMlyN8Kn"
+        },
+        {
+          "id": "item_cf5d8de6377b",
+          "name": "減塩しそひじきふりかけ",
+          "quantity": "ふつう",
+          "calories": 7,
+          "nutrients": {
+            "protein": 0.5,
+            "fat": 0.2,
+            "carbs": 1.0,
+            "fiber": 0.5,
+            "salt": 0.3,
+            "calcium": 10.0,
+            "iron": 0.5,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_3a8c2a630f96",
+          "image_ext": "jpg",
+          "drive_file_id": "1JJZgbL9Hbq7guGqXTz0G2nyVCMlyN8Kn"
+        }
+      ],
+      "total_calories": 527
     }
   }
 }
