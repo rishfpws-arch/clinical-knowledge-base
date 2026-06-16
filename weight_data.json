@@ -49498,9 +49498,75 @@
           "image_id": "wm_12e9077e64df",
           "image_ext": "jpg",
           "drive_file_id": "1kdJoumunt4Gh83nMU9Y0l39omKNazhQ9"
+        },
+        {
+          "id": "item_28509c9b5a08",
+          "name": "4種のミックスサンド",
+          "quantity": "ふつう",
+          "calories": 350,
+          "nutrients": {
+            "protein": 12.6,
+            "fat": 21.0,
+            "carbs": 28.0,
+            "fiber": 1.12,
+            "salt": 1.4,
+            "calcium": 56.0,
+            "iron": 0.7,
+            "vitamin_a": 28.0,
+            "vitamin_c": 4.2,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_85c417e591e7",
+          "image_ext": "jpg",
+          "drive_file_id": "1HZEyt9EezKTxscJFgTbPP55c-eS4ePok"
+        },
+        {
+          "id": "item_9b0a0b618077",
+          "name": "マウントレーニア カフェラッテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 155,
+          "nutrients": {
+            "protein": 4.8,
+            "fat": 5.5,
+            "carbs": 21.2,
+            "fiber": 0.0,
+            "salt": 0.28,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_85c417e591e7",
+          "image_ext": "jpg",
+          "drive_file_id": "1HZEyt9EezKTxscJFgTbPP55c-eS4ePok"
+        },
+        {
+          "id": "item_577cfd04287c",
+          "name": "カゴメ 野菜生活100 Smoothie アサイー＆ベリーMix",
+          "quantity": "ふつう",
+          "calories": 151,
+          "nutrients": {
+            "protein": 2.0,
+            "fat": 0.0,
+            "carbs": 36.2,
+            "fiber": 2.5,
+            "salt": 0.1,
+            "calcium": 64.0,
+            "iron": 1.15,
+            "vitamin_a": 0.0,
+            "vitamin_c": 195.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_85c417e591e7",
+          "image_ext": "jpg",
+          "drive_file_id": "1HZEyt9EezKTxscJFgTbPP55c-eS4ePok"
         }
       ],
-      "total_calories": 639
+      "total_calories": 1295
     }
   }
 }
