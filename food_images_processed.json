@@ -3202,9 +3202,9 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-06-19T12:52:37.732843",
+    "processed_at": "2026-06-22T11:40:13.464112",
     "status": "error",
-    "error": "AI解析に失敗（一時エラー）"
+    "error": "[WinError 10053] 確立された接続がホスト コンピューターのソウトウェアによって中止されました。"
   },
   "15Et7zq7GLHUivSi4X5SCKwnhlmOsEYeL": {
     "date": "2026-05-07",
@@ -4368,6 +4368,66 @@
     "date": "2026-06-19",
     "file_name": "4abb0d6a-eac2-4fd2-97d9-e5f8fbff3452~1.jpg",
     "processed_at": "2026-06-19T12:52:32.183684",
+    "status": "ok"
+  },
+  "1UQTttoJOsj_nmC_EUz0H0bSXTcXyQXew": {
+    "date": "2026-06-21",
+    "file_name": "741eef03-c23a-41e0-bb18-6c2594f8fe0e~1.jpg",
+    "processed_at": "2026-06-22T04:49:45.596003",
+    "status": "ok"
+  },
+  "1rCaDRBlUIcj-qPxSgWQtpxW77UDEudb0": {
+    "date": "2026-06-21",
+    "file_name": "91db4428-3198-466a-9c9c-7c56c4f74321~1.jpg",
+    "processed_at": "2026-06-22T04:50:26.310235",
+    "status": "ok"
+  },
+  "19BK0jBS-uWoRRTwp0cUuWpgrEIFL8OFa": {
+    "date": "2026-06-21",
+    "file_name": "fb3d3d14-7403-42de-a9b5-e18e61e712b3~1.jpg",
+    "processed_at": "2026-06-22T04:50:44.365571",
+    "status": "ok"
+  },
+  "1bjhwifyZsXFXLyQ1XehGzjlgodxHpeTs": {
+    "date": "2026-06-21",
+    "file_name": "f72ca6dc-2e50-4b77-bbbc-8d127196c88e~1.jpg",
+    "processed_at": "2026-06-22T04:51:18.455318",
+    "status": "ok"
+  },
+  "1W7B3PmJiABcjqj0O5LKngy7dNsXNsph7": {
+    "date": "2026-06-21",
+    "file_name": "37fdddb8-e137-4bd7-a84b-99897b500430~1.jpg",
+    "processed_at": "2026-06-22T04:51:37.104253",
+    "status": "ok"
+  },
+  "1oxPB0C0WAvNGiRFPkayrfmixbVhtQTwj": {
+    "date": "2026-06-21",
+    "file_name": "9fb5d8c9-c9b4-46a7-b4b9-b1247724c9b8~1.jpg",
+    "processed_at": "2026-06-22T04:52:09.791376",
+    "status": "ok"
+  },
+  "1ZwZ-4YfcVK6JEA3lNoAuipnMyNZrOUcz": {
+    "date": "2026-06-20",
+    "file_name": "cdc16844-0b92-475a-8653-af1e512eacf6~1.jpg",
+    "processed_at": "2026-06-22T04:52:32.156378",
+    "status": "ok"
+  },
+  "1yfJNA1fplrZEdErivKEhSbXIgsrl0Ff9": {
+    "date": "2026-06-20",
+    "file_name": "67c138ab-1872-413b-923b-814b2f3eb1d4~1.jpg",
+    "processed_at": "2026-06-22T04:52:57.452115",
+    "status": "ok"
+  },
+  "1QsV21pRJy3Pp44FuIFO0Wx5m6XPsF1oD": {
+    "date": "2026-06-20",
+    "file_name": "b5f11fba-5115-48cb-b4e2-c95d3f84466e~1.jpg",
+    "processed_at": "2026-06-22T04:53:14.062779",
+    "status": "ok"
+  },
+  "1KQ0JIh4xXwz4rkLcBNAxeISgY8xcK158": {
+    "date": "2026-06-19",
+    "file_name": "28086260-e537-4ffb-92ad-046ca7d9d464~1.jpg",
+    "processed_at": "2026-06-22T11:40:05.318300",
     "status": "ok"
   }
 }
