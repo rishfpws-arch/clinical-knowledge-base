@@ -51902,6 +51902,55 @@
         }
       ],
       "total_calories": 2358
+    },
+    "2026-06-22": {
+      "items": [
+        {
+          "id": "item_1f53357a39a1",
+          "name": "メロンパン",
+          "quantity": "ふつう",
+          "calories": 320,
+          "nutrients": {
+            "protein": 7.0,
+            "fat": 12.0,
+            "carbs": 48.0,
+            "fiber": 2.0,
+            "salt": 0.5,
+            "calcium": 25.0,
+            "iron": 0.7,
+            "vitamin_a": 5.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.2
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_b35124ebc9af",
+          "image_ext": "jpg",
+          "drive_file_id": "1NIzAkTo7LhxfzK-9oQFqyaPJLcRT_nCe"
+        },
+        {
+          "id": "item_b6057ab64fc3",
+          "name": "ヤクルト（乳製品乳酸菌飲料）",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 0.8,
+            "fat": 0.1,
+            "carbs": 12.0,
+            "fiber": 0.0,
+            "salt": 0.03,
+            "calcium": 25.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_b35124ebc9af",
+          "image_ext": "jpg",
+          "drive_file_id": "1NIzAkTo7LhxfzK-9oQFqyaPJLcRT_nCe"
+        }
+      ],
+      "total_calories": 370
     }
   }
 }

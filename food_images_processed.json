@@ -3202,9 +3202,9 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-06-22T11:40:13.464112",
+    "processed_at": "2026-06-22T11:42:34.002806",
     "status": "error",
-    "error": "[WinError 10053] 確立された接続がホスト コンピューターのソウトウェアによって中止されました。"
+    "error": "AI解析に失敗（一時エラー）"
   },
   "15Et7zq7GLHUivSi4X5SCKwnhlmOsEYeL": {
     "date": "2026-05-07",
@@ -4428,6 +4428,12 @@
     "date": "2026-06-19",
     "file_name": "28086260-e537-4ffb-92ad-046ca7d9d464~1.jpg",
     "processed_at": "2026-06-22T11:40:05.318300",
+    "status": "ok"
+  },
+  "1NIzAkTo7LhxfzK-9oQFqyaPJLcRT_nCe": {
+    "date": "2026-06-22",
+    "file_name": "b45cfb4b-fa31-4fd8-ab3e-71495d8639e5~1.jpg",
+    "processed_at": "2026-06-22T11:42:27.618425",
     "status": "ok"
   }
 }
