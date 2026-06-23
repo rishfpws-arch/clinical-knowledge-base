@@ -52439,7 +52439,9 @@
           "drive_file_id": "1Q37KOM-UahVq6KVbgcbli7oVg5oedyfd"
         }
       ],
-      "total_calories": 1679
+      "total_calories": 1679,
+      "weight": 76.2,
+      "weight_recorded_at": "2026-06-23T12:41:18.291513"
     }
   }
 }
