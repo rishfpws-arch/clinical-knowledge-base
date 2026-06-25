@@ -52884,9 +52884,141 @@
           "image_id": "wm_7289c5af196d",
           "image_ext": "jpg",
           "drive_file_id": "1LSdRJhG5EVQKElXa8ddBZjq1AMdEa9fF"
+        },
+        {
+          "id": "item_d865c887aa2e",
+          "name": "雑穀米ごはん",
+          "quantity": "多め",
+          "calories": 400,
+          "nutrients": {
+            "protein": 7.5,
+            "fat": 2.0,
+            "carbs": 82.5,
+            "fiber": 3.75,
+            "salt": 0.0,
+            "calcium": 25.0,
+            "iron": 1.25,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
+        },
+        {
+          "id": "item_ad766c8fe4d2",
+          "name": "豚肉と青菜ときのこの炒め物",
+          "quantity": "多め",
+          "calories": 314,
+          "nutrients": {
+            "protein": 30.21,
+            "fat": 14.22,
+            "carbs": 18.65,
+            "fiber": 7.29,
+            "salt": 2.07,
+            "calcium": 255.0,
+            "iron": 4.2,
+            "vitamin_a": 390.0,
+            "vitamin_c": 58.5,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
+        },
+        {
+          "id": "item_c04c7c794018",
+          "name": "卵とワカメのスープ",
+          "quantity": "ふつう",
+          "calories": 72,
+          "nutrients": {
+            "protein": 5.75,
+            "fat": 4.35,
+            "carbs": 4.0,
+            "fiber": 1.3,
+            "salt": 6.0,
+            "calcium": 62.0,
+            "iron": 1.1,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
+        },
+        {
+          "id": "item_b63fe4c400bd",
+          "name": "スナック菓子（たこ焼き味）",
+          "quantity": "ふつう",
+          "calories": 500,
+          "nutrients": {
+            "protein": 5.0,
+            "fat": 30.0,
+            "carbs": 50.0,
+            "fiber": 2.0,
+            "salt": 1.5,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
+        },
+        {
+          "id": "item_506a2e608a10",
+          "name": "バナナ",
+          "quantity": "ふつう",
+          "calories": 93,
+          "nutrients": {
+            "protein": 1.1,
+            "fat": 0.2,
+            "carbs": 22.5,
+            "fiber": 1.1,
+            "salt": 0.0,
+            "calcium": 6.0,
+            "iron": 0.3,
+            "vitamin_a": 0.0,
+            "vitamin_c": 16.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
+        },
+        {
+          "id": "item_71ebc569abc5",
+          "name": "温かい飲み物",
+          "quantity": "ふつう",
+          "calories": 2,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_a506601a25ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1KS_yIyMC7hdfIXslaP46HKeHIpKLG88C"
         }
       ],
-      "total_calories": 1795
+      "total_calories": 3176
     },
     "2026-06-24": {
       "items": [
