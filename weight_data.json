@@ -53398,6 +53398,121 @@
         }
       ],
       "total_calories": 2408
+    },
+    "2026-06-26": {
+      "items": [
+        {
+          "id": "item_869cd3a6d6fe",
+          "name": "ご飯（お茶漬け用）",
+          "quantity": "ふつう",
+          "calories": 168,
+          "nutrients": {
+            "protein": 2.5,
+            "fat": 0.3,
+            "carbs": 37.1,
+            "fiber": 0.3,
+            "salt": 0.0,
+            "calcium": 3.0,
+            "iron": 0.1,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e43f6edd9064",
+          "image_ext": "jpg",
+          "drive_file_id": "1hRWowrHQdQr4t3iSgZqQnnxasnHKqGpx"
+        },
+        {
+          "id": "item_146abf748799",
+          "name": "刻み海苔（お茶漬け用）",
+          "quantity": "ふつう",
+          "calories": 4,
+          "nutrients": {
+            "protein": 0.83,
+            "fat": 0.07,
+            "carbs": 0.89,
+            "fiber": 0.72,
+            "salt": 0.048,
+            "calcium": 5.8,
+            "iron": 0.22,
+            "vitamin_a": 232.0,
+            "vitamin_c": 2.4,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e43f6edd9064",
+          "image_ext": "jpg",
+          "drive_file_id": "1hRWowrHQdQr4t3iSgZqQnnxasnHKqGpx"
+        },
+        {
+          "id": "item_13009032410e",
+          "name": "あられ（お茶漬け用）",
+          "quantity": "ふつう",
+          "calories": 19,
+          "nutrients": {
+            "protein": 0.29,
+            "fat": 0.245,
+            "carbs": 4.3,
+            "fiber": 0.055,
+            "salt": 0.055,
+            "calcium": 0.7,
+            "iron": 0.025,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e43f6edd9064",
+          "image_ext": "jpg",
+          "drive_file_id": "1hRWowrHQdQr4t3iSgZqQnnxasnHKqGpx"
+        },
+        {
+          "id": "item_d269f51078aa",
+          "name": "煮豆",
+          "quantity": "少なめ",
+          "calories": 8,
+          "nutrients": {
+            "protein": 0.83,
+            "fat": 0.25,
+            "carbs": 2.135,
+            "fiber": 0.375,
+            "salt": 0.025,
+            "calcium": 3.2,
+            "iron": 0.095,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e43f6edd9064",
+          "image_ext": "jpg",
+          "drive_file_id": "1hRWowrHQdQr4t3iSgZqQnnxasnHKqGpx"
+        },
+        {
+          "id": "item_2341a7c09e8b",
+          "name": "飲み物",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e43f6edd9064",
+          "image_ext": "jpg",
+          "drive_file_id": "1hRWowrHQdQr4t3iSgZqQnnxasnHKqGpx"
+        }
+      ],
+      "total_calories": 199
     }
   }
 }
