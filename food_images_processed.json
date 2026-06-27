@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-06-26T16:47:17.762263",
+    "processed_at": "2026-06-28T04:43:54.294716",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4519,5 +4519,36 @@
     "file_name": "89ed167d-c3f2-42ae-a7dc-a80b1b0c48e9~1.jpg",
     "processed_at": "2026-06-26T06:52:39.476671",
     "status": "ok"
+  },
+  "1o3yqneRm3EOLVeUOAbdfN6nEfWQtUZPO": {
+    "date": "2026-06-27",
+    "file_name": "4d0a4b65-5a42-415b-88fd-e2b5b83a6539~1.jpg",
+    "processed_at": "2026-06-27T14:38:03.764710",
+    "status": "ok"
+  },
+  "1voC4MbRGi3EMHFj1JTZ9uux0vJFLB4Rc": {
+    "date": "2026-06-27",
+    "file_name": "c7a0fb85-ae06-46c1-ab27-e47e02697160~1.jpg",
+    "processed_at": "2026-06-27T14:38:22.249965",
+    "status": "ok"
+  },
+  "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG": {
+    "date": "2026-06-27",
+    "file_name": "PXL_20260626_225215876.jpg",
+    "processed_at": "2026-06-27T14:38:48.808779",
+    "status": "ok"
+  },
+  "1-zWTr5P67SmKjjSe9QASo3Z02VlYBlaq": {
+    "date": "2026-06-27",
+    "file_name": "PXL_20260626_225217815.MP.jpg",
+    "processed_at": "2026-06-28T04:43:39.440525",
+    "status": "ok"
+  },
+  "1r1pHRKBZBXeYlVvf-GzhVU2hzliG2Cxa": {
+    "date": "",
+    "file_name": "cef0f434-754c-4c35-b1d2-4dab0905237b~1.jpg",
+    "processed_at": "2026-06-28T04:43:45.559558",
+    "status": "error",
+    "error": "[WinError 10054] 既存の接続はリモート ホストに強制的に切断されました。"
   }
 }

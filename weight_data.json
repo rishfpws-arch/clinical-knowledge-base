@@ -53513,6 +53513,297 @@
         }
       ],
       "total_calories": 199
+    },
+    "2026-06-27": {
+      "items": [
+        {
+          "id": "item_bcc7d90b3ace",
+          "name": "茶碗蒸し",
+          "quantity": "ふつう",
+          "calories": 120,
+          "nutrients": {
+            "protein": 7.5,
+            "fat": 6.0,
+            "carbs": 7.5,
+            "fiber": 0.0,
+            "salt": 1.05,
+            "calcium": 45.0,
+            "iron": 0.75,
+            "vitamin_a": 90.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.75
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_56a22d268ebe",
+          "image_ext": "jpg",
+          "drive_file_id": "1o3yqneRm3EOLVeUOAbdfN6nEfWQtUZPO"
+        },
+        {
+          "id": "item_b1e31862110c",
+          "name": "野菜ポタージュスープ",
+          "quantity": "ふつう",
+          "calories": 100,
+          "nutrients": {
+            "protein": 2.85,
+            "fat": 5.7,
+            "carbs": 9.6,
+            "fiber": 0.75,
+            "salt": 1.2,
+            "calcium": 30.0,
+            "iron": 0.45,
+            "vitamin_a": 45.0,
+            "vitamin_c": 7.5,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_56a22d268ebe",
+          "image_ext": "jpg",
+          "drive_file_id": "1o3yqneRm3EOLVeUOAbdfN6nEfWQtUZPO"
+        },
+        {
+          "id": "item_cd2f8175b8ea",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_56a22d268ebe",
+          "image_ext": "jpg",
+          "drive_file_id": "1o3yqneRm3EOLVeUOAbdfN6nEfWQtUZPO"
+        },
+        {
+          "id": "item_7c33c5b2d0e1",
+          "name": "担々麺",
+          "quantity": "ふつう",
+          "calories": 640,
+          "nutrients": {
+            "protein": 31.9,
+            "fat": 30.5,
+            "carbs": 68.9,
+            "fiber": 2.1,
+            "salt": 6.0,
+            "calcium": 65.0,
+            "iron": 1.0,
+            "vitamin_a": 210.0,
+            "vitamin_c": 21.5,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_6bf1bbc86170",
+          "image_ext": "jpg",
+          "drive_file_id": "1voC4MbRGi3EMHFj1JTZ9uux0vJFLB4Rc"
+        },
+        {
+          "id": "item_092f16bad016",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_6bf1bbc86170",
+          "image_ext": "jpg",
+          "drive_file_id": "1voC4MbRGi3EMHFj1JTZ9uux0vJFLB4Rc"
+        },
+        {
+          "id": "item_aa9a6ca5304d",
+          "name": "ジャムサンドイッチ",
+          "quantity": "ふつう",
+          "calories": 230,
+          "nutrients": {
+            "protein": 6.0,
+            "fat": 9.0,
+            "carbs": 35.0,
+            "fiber": 1.0,
+            "salt": 0.5,
+            "calcium": 20.0,
+            "iron": 0.5,
+            "vitamin_a": 5.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e3649e30016b",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG"
+        },
+        {
+          "id": "item_10df90205f2c",
+          "name": "カフェラテ",
+          "quantity": "ふつう",
+          "calories": 130,
+          "nutrients": {
+            "protein": 6.8,
+            "fat": 7.6,
+            "carbs": 9.6,
+            "fiber": 0.0,
+            "salt": 0.2,
+            "calcium": 220.0,
+            "iron": 0.0,
+            "vitamin_a": 76.0,
+            "vitamin_c": 2.0,
+            "vitamin_d": 0.7
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e3649e30016b",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG"
+        },
+        {
+          "id": "item_2c1ca958681f",
+          "name": "ブレンドコーヒー",
+          "quantity": "ふつう",
+          "calories": 7,
+          "nutrients": {
+            "protein": 0.4,
+            "fat": 0.0,
+            "carbs": 0.9,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e3649e30016b",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG"
+        },
+        {
+          "id": "item_4eeabc78d2ff",
+          "name": "空の紙コップ",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e3649e30016b",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG"
+        },
+        {
+          "id": "item_f9baa864a837",
+          "name": "砂糖・ミルクなどの小袋",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e3649e30016b",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG"
+        },
+        {
+          "id": "item_8880b81e75f9",
+          "name": "コーヒーゼリーとソフトクリーム",
+          "quantity": "ふつう",
+          "calories": 230,
+          "nutrients": {
+            "protein": 5.5,
+            "fat": 8.9,
+            "carbs": 45.6,
+            "fiber": 0.1,
+            "salt": 0.2,
+            "calcium": 119.0,
+            "iron": 0.2,
+            "vitamin_a": 32.0,
+            "vitamin_c": 0.8,
+            "vitamin_d": 0.4
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e7ec317249cc",
+          "image_ext": "jpg",
+          "drive_file_id": "1-zWTr5P67SmKjjSe9QASo3Z02VlYBlaq"
+        },
+        {
+          "id": "item_689e61ad9952",
+          "name": "チーズとチキンのホットサンドイッチ",
+          "quantity": "ふつう",
+          "calories": 450,
+          "nutrients": {
+            "protein": 27.4,
+            "fat": 22.7,
+            "carbs": 58.3,
+            "fiber": 2.8,
+            "salt": 1.9,
+            "calcium": 176.0,
+            "iron": 1.1,
+            "vitamin_a": 123.0,
+            "vitamin_c": 2.6,
+            "vitamin_d": 0.4
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e7ec317249cc",
+          "image_ext": "jpg",
+          "drive_file_id": "1-zWTr5P67SmKjjSe9QASo3Z02VlYBlaq"
+        },
+        {
+          "id": "item_bd1872576c67",
+          "name": "シュガーポーション",
+          "quantity": "少なめ",
+          "calories": 24,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 6.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e7ec317249cc",
+          "image_ext": "jpg",
+          "drive_file_id": "1-zWTr5P67SmKjjSe9QASo3Z02VlYBlaq"
+        }
+      ],
+      "total_calories": 1931
     }
   }
 }
