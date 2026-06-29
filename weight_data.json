@@ -54774,9 +54774,163 @@
           "image_id": "wm_424f7aeded2b",
           "image_ext": "jpg",
           "drive_file_id": "1tjdItZuZNSl0CVNlsvIwbNKPZNR0DteL"
+        },
+        {
+          "id": "item_93f8e6cc9a55",
+          "name": "レタスサラダ（ピエトロドレッシング和風しょうゆ味）",
+          "quantity": "多め",
+          "calories": 68,
+          "nutrients": {
+            "protein": 0.825,
+            "fat": 5.52,
+            "carbs": 3.945,
+            "fiber": 0.825,
+            "salt": 0.72,
+            "calcium": 18.75,
+            "iron": 0.225,
+            "vitamin_a": 15.0,
+            "vitamin_c": 15.75,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_57c1af037e0b",
+          "image_ext": "jpg",
+          "drive_file_id": "1Dl7cKb0RLc2Qbs2QJEC8msWJvLmXSwnW"
+        },
+        {
+          "id": "item_5b83247b4b6f",
+          "name": "雑穀米入りご飯",
+          "quantity": "ふつう",
+          "calories": 300,
+          "nutrients": {
+            "protein": 5.5,
+            "fat": 1.0,
+            "carbs": 62.0,
+            "fiber": 4.5,
+            "salt": 0.0,
+            "calcium": 12.0,
+            "iron": 1.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_1fd96f8e6bf0",
+          "image_ext": "jpg",
+          "drive_file_id": "1W0xWeOmV0kdVQuxeVAMfviS23ygo1Y6g"
+        },
+        {
+          "id": "item_4f6126e5f1fd",
+          "name": "牛肉カレー",
+          "quantity": "ふつう",
+          "calories": 300,
+          "nutrients": {
+            "protein": 12.0,
+            "fat": 20.0,
+            "carbs": 25.0,
+            "fiber": 3.0,
+            "salt": 2.5,
+            "calcium": 15.0,
+            "iron": 1.5,
+            "vitamin_a": 20.0,
+            "vitamin_c": 3.0,
+            "vitamin_d": 0.2
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_1fd96f8e6bf0",
+          "image_ext": "jpg",
+          "drive_file_id": "1W0xWeOmV0kdVQuxeVAMfviS23ygo1Y6g"
+        },
+        {
+          "id": "item_1ee0f757053d",
+          "name": "ミルクチョコレート",
+          "quantity": "少なめ",
+          "calories": 165,
+          "nutrients": {
+            "protein": 2.1,
+            "fat": 10.7,
+            "carbs": 15.6,
+            "fiber": 1.0,
+            "salt": 0.04,
+            "calcium": 54.0,
+            "iron": 0.3,
+            "vitamin_a": 2.4,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_1fd96f8e6bf0",
+          "image_ext": "jpg",
+          "drive_file_id": "1W0xWeOmV0kdVQuxeVAMfviS23ygo1Y6g"
+        },
+        {
+          "id": "item_bbae478e0886",
+          "name": "クロワッサン",
+          "quantity": "少なめ",
+          "calories": 156,
+          "nutrients": {
+            "protein": 3.24,
+            "fat": 9.36,
+            "carbs": 15.48,
+            "fiber": 0.84,
+            "salt": 0.36,
+            "calcium": 9.0,
+            "iron": 0.24,
+            "vitamin_a": 12.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.06
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8ff515937b3a",
+          "image_ext": "jpg",
+          "drive_file_id": "1PugJiUUNBJ4DQiCdawRxyjIaMC2G5vKH"
+        },
+        {
+          "id": "item_dae502c609b4",
+          "name": "クロワッサン",
+          "quantity": "少なめ",
+          "calories": 156,
+          "nutrients": {
+            "protein": 3.24,
+            "fat": 9.36,
+            "carbs": 15.48,
+            "fiber": 0.84,
+            "salt": 0.36,
+            "calcium": 9.0,
+            "iron": 0.24,
+            "vitamin_a": 12.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.06
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8ff515937b3a",
+          "image_ext": "jpg",
+          "drive_file_id": "1PugJiUUNBJ4DQiCdawRxyjIaMC2G5vKH"
+        },
+        {
+          "id": "item_4efaf4cebb5a",
+          "name": "クロワッサン",
+          "quantity": "少なめ",
+          "calories": 156,
+          "nutrients": {
+            "protein": 3.24,
+            "fat": 9.36,
+            "carbs": 15.48,
+            "fiber": 0.84,
+            "salt": 0.36,
+            "calcium": 9.0,
+            "iron": 0.24,
+            "vitamin_a": 12.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.06
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8ff515937b3a",
+          "image_ext": "jpg",
+          "drive_file_id": "1PugJiUUNBJ4DQiCdawRxyjIaMC2G5vKH"
         }
       ],
-      "total_calories": 1281
+      "total_calories": 2582
     },
     "2026-06-28": {
       "items": [
