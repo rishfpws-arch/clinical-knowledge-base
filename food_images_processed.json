@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-06-28T04:43:54.294716",
+    "processed_at": "2026-06-29T11:52:36.195832",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4523,32 +4523,56 @@
   "1o3yqneRm3EOLVeUOAbdfN6nEfWQtUZPO": {
     "date": "2026-06-27",
     "file_name": "4d0a4b65-5a42-415b-88fd-e2b5b83a6539~1.jpg",
-    "processed_at": "2026-06-27T14:38:03.764710",
+    "processed_at": "2026-06-29T11:50:55.599739",
     "status": "ok"
   },
   "1voC4MbRGi3EMHFj1JTZ9uux0vJFLB4Rc": {
     "date": "2026-06-27",
     "file_name": "c7a0fb85-ae06-46c1-ab27-e47e02697160~1.jpg",
-    "processed_at": "2026-06-27T14:38:22.249965",
+    "processed_at": "2026-06-29T11:51:17.503413",
     "status": "ok"
   },
   "1bGG94FVF9oYvGva-dmkSyn7xFOvGUCDG": {
     "date": "2026-06-27",
     "file_name": "PXL_20260626_225215876.jpg",
-    "processed_at": "2026-06-27T14:38:48.808779",
+    "processed_at": "2026-06-29T11:51:50.054541",
     "status": "ok"
   },
   "1-zWTr5P67SmKjjSe9QASo3Z02VlYBlaq": {
     "date": "2026-06-27",
     "file_name": "PXL_20260626_225217815.MP.jpg",
-    "processed_at": "2026-06-28T04:43:39.440525",
+    "processed_at": "2026-06-29T11:52:07.547379",
     "status": "ok"
   },
   "1r1pHRKBZBXeYlVvf-GzhVU2hzliG2Cxa": {
-    "date": "",
+    "date": "2026-06-26",
     "file_name": "cef0f434-754c-4c35-b1d2-4dab0905237b~1.jpg",
-    "processed_at": "2026-06-28T04:43:45.559558",
+    "processed_at": "2026-06-29T11:52:30.905245",
+    "status": "ok"
+  },
+  "1tLGX-Wk4XnlBUHWiQvYG61Du9esaVM67": {
+    "date": "2026-06-27",
+    "file_name": "64d6cc93-cdb7-4cc4-b00d-1e9a67ca899e~1.jpg",
+    "processed_at": "2026-06-28T04:44:24.817525",
+    "status": "ok"
+  },
+  "1CHe4dY-A6e0JwknS4O-UKI4jriZYu8VO": {
+    "date": "2026-06-27",
+    "file_name": "40984355-9bbf-4944-bf64-c13c4f08fcd4~1.jpg",
+    "processed_at": "2026-06-28T04:45:15.644917",
+    "status": "ok"
+  },
+  "1P4ynke2XMAlOuqENGMDkPD4lxSFnI1w0": {
+    "date": "2026-06-27",
+    "file_name": "4bae35df-de85-4ecc-bc39-0330e6ff28fd~1.jpg",
+    "processed_at": "2026-06-29T11:50:30.934191",
+    "status": "ok"
+  },
+  "1QKTaiDBhPVEIMvR1jVu_muWArUZeO_dj": {
+    "date": "",
+    "file_name": "PXL_20260627_083625505.jpg",
+    "processed_at": "2026-06-29T11:50:36.446766",
     "status": "error",
-    "error": "[WinError 10054] 既存の接続はリモート ホストに強制的に切断されました。"
+    "error": "[WinError 10053] 確立された接続がホスト コンピューターのソウトウェアによって中止されました。"
   }
 }
