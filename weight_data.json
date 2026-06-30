@@ -56102,6 +56102,165 @@
         }
       ],
       "total_calories": 3981
+    },
+    "2026-06-30": {
+      "items": [
+        {
+          "id": "item_b0ddc6cae3cf",
+          "name": "ごはん（白米）",
+          "quantity": "ふつう",
+          "calories": 336,
+          "nutrients": {
+            "protein": 5.0,
+            "fat": 0.6,
+            "carbs": 74.2,
+            "fiber": 1.0,
+            "salt": 0.0,
+            "calcium": 6.0,
+            "iron": 0.2,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_89bd526ef277",
+          "name": "鶏の唐揚げ",
+          "quantity": "ふつう",
+          "calories": 233,
+          "nutrients": {
+            "protein": 16.5,
+            "fat": 14.5,
+            "carbs": 9.3,
+            "fiber": 0.4,
+            "salt": 0.9,
+            "calcium": 14.0,
+            "iron": 0.8,
+            "vitamin_a": 17.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.2
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_accf3a6fb34c",
+          "name": "スパゲッティナポリタン",
+          "quantity": "少なめ",
+          "calories": 48,
+          "nutrients": {
+            "protein": 1.71,
+            "fat": 2.01,
+            "carbs": 5.85,
+            "fiber": 0.45,
+            "salt": 0.3,
+            "calcium": 5.4,
+            "iron": 0.12,
+            "vitamin_a": 6.0,
+            "vitamin_c": 1.8,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_266664b128de",
+          "name": "きんぴらごぼう",
+          "quantity": "少なめ",
+          "calories": 25,
+          "nutrients": {
+            "protein": 0.456,
+            "fat": 1.296,
+            "carbs": 2.688,
+            "fiber": 0.792,
+            "salt": 0.312,
+            "calcium": 7.44,
+            "iron": 0.12,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.48,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_bfbcae2dd968",
+          "name": "たくあん（大根の漬物）",
+          "quantity": "少なめ",
+          "calories": 4,
+          "nutrients": {
+            "protein": 0.072,
+            "fat": 0.024,
+            "carbs": 0.816,
+            "fiber": 0.252,
+            "salt": 0.336,
+            "calcium": 3.36,
+            "iron": 0.024,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.12,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_f407a89293ab",
+          "name": "わさび和え",
+          "quantity": "少なめ",
+          "calories": 4,
+          "nutrients": {
+            "protein": 0.468,
+            "fat": 0.072,
+            "carbs": 0.612,
+            "fiber": 0.504,
+            "salt": 0.108,
+            "calcium": 9.9,
+            "iron": 0.162,
+            "vitamin_a": 72.0,
+            "vitamin_c": 3.6,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        },
+        {
+          "id": "item_23a41374fcab",
+          "name": "昆布の佃煮",
+          "quantity": "少なめ",
+          "calories": 16,
+          "nutrients": {
+            "protein": 0.576,
+            "fat": 0.036,
+            "carbs": 3.42,
+            "fiber": 0.924,
+            "salt": 0.756,
+            "calcium": 19.2,
+            "iron": 0.396,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_87099dac4b89",
+          "image_ext": "jpg",
+          "drive_file_id": "12WWENRTJF8I5Oq0XOMyKCMcHeB8qGkwK"
+        }
+      ],
+      "total_calories": 666
     }
   }
 }
