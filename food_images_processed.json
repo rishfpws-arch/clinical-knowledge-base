@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-07-01T04:40:57.521365",
+    "processed_at": "2026-07-02T12:57:18.564956",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4698,6 +4698,60 @@
     "date": "2026-06-30",
     "file_name": "b789051e-6e51-464a-9715-fa0be48efe11~1.jpg",
     "processed_at": "2026-06-30T11:58:08.441409",
+    "status": "ok"
+  },
+  "16CQanVSM5AolsYssmggfdB8LoZfkRmDw": {
+    "date": "2026-07-01",
+    "file_name": "30eeb8e7-42f6-456f-ab3a-87c0e33b3a02~1.jpg",
+    "processed_at": "2026-07-02T08:25:17.404577",
+    "status": "ok"
+  },
+  "1_433-l5kusfeKwJCDeoqj-JiPd_sPP2I": {
+    "date": "2026-07-01",
+    "file_name": "a36b2f9a-da34-410b-afca-af433a754250~1.jpg",
+    "processed_at": "2026-07-02T08:25:52.575543",
+    "status": "ok"
+  },
+  "1qNx6DOoZ_OKTOSgYRRtccL-ox-l2Han2": {
+    "date": "2026-06-30",
+    "file_name": "PXL_20260630_110522607.jpg",
+    "processed_at": "2026-07-02T08:26:47.311852",
+    "status": "ok"
+  },
+  "1rJZn4LY97aDb0DxGLlv10mBQJCLaFUdm": {
+    "date": "2026-06-30",
+    "file_name": "PXL_20260630_111051260.jpg",
+    "processed_at": "2026-07-02T08:27:07.614657",
+    "status": "ok"
+  },
+  "1KoLssQFmskvCDMGUNj2LUTMSgmRLFeNK": {
+    "date": "2026-06-30",
+    "file_name": "PXL_20260630_111053695.jpg",
+    "processed_at": "2026-07-02T08:27:41.904397",
+    "status": "ok"
+  },
+  "1p4bsfMbf4cgMaw4CuVM7PnH1uE0aiRg_": {
+    "date": "2026-06-30",
+    "file_name": "PXL_20260630_111456149.jpg",
+    "processed_at": "2026-07-02T08:28:11.791074",
+    "status": "ok"
+  },
+  "1GjljcaBIkZL2ovVsVTT36_vyrJ2aLyl-": {
+    "date": "2026-06-30",
+    "file_name": "PXL_20260630_111458498.jpg",
+    "processed_at": "2026-07-02T08:28:31.119902",
+    "status": "ok"
+  },
+  "102X9b5wLrHBaN1c8tYmpCR-ugKFRMi_r": {
+    "date": "2026-07-01",
+    "file_name": "PXL_20260630_215217104.jpg",
+    "processed_at": "2026-07-02T08:29:00.446889",
+    "status": "ok"
+  },
+  "1rokAQfsQlgIaAAQX4U4XbH_gpyaxvg9u": {
+    "date": "2026-07-02",
+    "file_name": "fcbc2f94-d769-4766-99ec-3c7f4164cb8e~1.jpg",
+    "processed_at": "2026-07-02T08:32:30.259858",
     "status": "ok"
   }
 }
