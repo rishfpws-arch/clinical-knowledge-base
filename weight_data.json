@@ -57796,9 +57796,119 @@
           "image_id": "wm_e112d07fcb40",
           "image_ext": "jpg",
           "drive_file_id": "1K34V6-T9__ICk_mS5eRWO1dM9NbobGqG"
+        },
+        {
+          "id": "item_6f16c9aa7f0d",
+          "name": "ご飯（白米）",
+          "quantity": "ふつう",
+          "calories": 252,
+          "nutrients": {
+            "protein": 3.8,
+            "fat": 0.5,
+            "carbs": 57.2,
+            "fiber": 0.5,
+            "salt": 0.0,
+            "calcium": 5.0,
+            "iron": 0.2,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec0a0e43f53",
+          "image_ext": "jpg",
+          "drive_file_id": "1qNfA9jtOeABAi2EYZ5CwrZLIY-LHB1Pe"
+        },
+        {
+          "id": "item_28a2980812e8",
+          "name": "ハンバーグ（ケチャップ添え）と付け合わせ（人参、ヤングコーン）",
+          "quantity": "ふつう",
+          "calories": 250,
+          "nutrients": {
+            "protein": 15.4,
+            "fat": 15.0,
+            "carbs": 9.6,
+            "fiber": 1.9,
+            "salt": 1.0,
+            "calcium": 16.1,
+            "iron": 1.2,
+            "vitamin_a": 150.0,
+            "vitamin_c": 1.9,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec0a0e43f53",
+          "image_ext": "jpg",
+          "drive_file_id": "1qNfA9jtOeABAi2EYZ5CwrZLIY-LHB1Pe"
+        },
+        {
+          "id": "item_151a65ad6f0e",
+          "name": "豆もやしと海藻の和え物",
+          "quantity": "ふつう",
+          "calories": 50,
+          "nutrients": {
+            "protein": 3.3,
+            "fat": 2.0,
+            "carbs": 5.6,
+            "fiber": 3.8,
+            "salt": 0.8,
+            "calcium": 27.0,
+            "iron": 0.6,
+            "vitamin_a": 20.0,
+            "vitamin_c": 25.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec0a0e43f53",
+          "image_ext": "jpg",
+          "drive_file_id": "1qNfA9jtOeABAi2EYZ5CwrZLIY-LHB1Pe"
+        },
+        {
+          "id": "item_b00e5a9b284e",
+          "name": "スープ（人参入り）",
+          "quantity": "ふつう",
+          "calories": 15,
+          "nutrients": {
+            "protein": 0.5,
+            "fat": 0.5,
+            "carbs": 2.0,
+            "fiber": 0.5,
+            "salt": 1.0,
+            "calcium": 5.0,
+            "iron": 0.1,
+            "vitamin_a": 20.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec0a0e43f53",
+          "image_ext": "jpg",
+          "drive_file_id": "1qNfA9jtOeABAi2EYZ5CwrZLIY-LHB1Pe"
+        },
+        {
+          "id": "item_920b94113f6a",
+          "name": "緑茶（ペットボトル）",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3ec0a0e43f53",
+          "image_ext": "jpg",
+          "drive_file_id": "1qNfA9jtOeABAi2EYZ5CwrZLIY-LHB1Pe"
         }
       ],
-      "total_calories": 1241
+      "total_calories": 1808
     },
     "2026-07-04": {
       "items": [
