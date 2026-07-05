@@ -57681,9 +57681,217 @@
           "image_id": "wm_d582884ea995",
           "image_ext": "jpg",
           "drive_file_id": "10erPSwijM1Ylwxkv3ce60mv_FBD4L5dJ"
+        },
+        {
+          "id": "item_11f5f79f1a50",
+          "name": "ケンタッキーフライドチキン オリジナルチキン（ウイング）",
+          "quantity": "ふつう",
+          "calories": 183,
+          "nutrients": {
+            "protein": 11.0,
+            "fat": 14.5,
+            "carbs": 2.9,
+            "fiber": 0.0,
+            "salt": 1.5,
+            "calcium": 5.5,
+            "iron": 0.3,
+            "vitamin_a": 13.2,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_9403e690cdcb",
+          "image_ext": "jpg",
+          "drive_file_id": "1MyQnoG0eMvAVW2h5mHMNbBojaN6iiXEV"
         }
       ],
-      "total_calories": 1792
+      "total_calories": 1975
+    },
+    "2026-07-05": {
+      "items": [
+        {
+          "id": "item_dd04fe01944f",
+          "name": "ナスとひき肉のミートソーススパゲッティ",
+          "quantity": "多め",
+          "calories": 975,
+          "nutrients": {
+            "protein": 43.5,
+            "fat": 32.7,
+            "carbs": 133.8,
+            "fiber": 10.5,
+            "salt": 3.2,
+            "calcium": 90.0,
+            "iron": 5.6,
+            "vitamin_a": 93.0,
+            "vitamin_c": 37.5,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_5ded62127a73",
+          "image_ext": "jpg",
+          "drive_file_id": "1vKs46vzAeqoPbZ5q538BCh34w56ZCB7z"
+        },
+        {
+          "id": "item_b80f16c02368",
+          "name": "パンケーキ",
+          "quantity": "少なめ",
+          "calories": 150,
+          "nutrients": {
+            "protein": 3.3,
+            "fat": 5.28,
+            "carbs": 22.98,
+            "fiber": 0.9,
+            "salt": 0.42,
+            "calcium": 30.0,
+            "iron": 0.48,
+            "vitamin_a": 1.2,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.06
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e112d07fcb40",
+          "image_ext": "jpg",
+          "drive_file_id": "1K34V6-T9__ICk_mS5eRWO1dM9NbobGqG"
+        },
+        {
+          "id": "item_f495b039694c",
+          "name": "ケーキシロップ",
+          "quantity": "ふつう",
+          "calories": 116,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 29.2,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e112d07fcb40",
+          "image_ext": "jpg",
+          "drive_file_id": "1K34V6-T9__ICk_mS5eRWO1dM9NbobGqG"
+        },
+        {
+          "id": "item_8d5c51a968fc",
+          "name": "水",
+          "quantity": "半量",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_e112d07fcb40",
+          "image_ext": "jpg",
+          "drive_file_id": "1K34V6-T9__ICk_mS5eRWO1dM9NbobGqG"
+        }
+      ],
+      "total_calories": 1241
+    },
+    "2026-07-04": {
+      "items": [
+        {
+          "id": "item_34300b27410c",
+          "name": "あんかけ焼きそば",
+          "quantity": "ふつう",
+          "calories": 700,
+          "nutrients": {
+            "protein": 25.0,
+            "fat": 35.0,
+            "carbs": 75.0,
+            "fiber": 5.0,
+            "salt": 4.0,
+            "calcium": 50.0,
+            "iron": 1.5,
+            "vitamin_a": 250.0,
+            "vitamin_c": 30.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8d2cce48b4ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1MnsBgh_Oto22iyskER7qwfKWl60BDAW9"
+        },
+        {
+          "id": "item_b8fef1f1dc2a",
+          "name": "冷奴（絹ごし豆腐）",
+          "quantity": "ふつう",
+          "calories": 85,
+          "nutrients": {
+            "protein": 8.1,
+            "fat": 4.8,
+            "carbs": 4.2,
+            "fiber": 0.2,
+            "salt": 0.5,
+            "calcium": 90.0,
+            "iron": 1.05,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8d2cce48b4ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1MnsBgh_Oto22iyskER7qwfKWl60BDAW9"
+        },
+        {
+          "id": "item_a2b0d8776c4a",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8d2cce48b4ec",
+          "image_ext": "jpg",
+          "drive_file_id": "1MnsBgh_Oto22iyskER7qwfKWl60BDAW9"
+        },
+        {
+          "id": "item_b7fb74d1b8ab",
+          "name": "鶏肉の唐揚げ (骨付き)",
+          "quantity": "ふつう",
+          "calories": 200,
+          "nutrients": {
+            "protein": 11.9,
+            "fat": 15.4,
+            "carbs": 3.5,
+            "fiber": 0.35,
+            "salt": 0.56,
+            "calcium": 7.0,
+            "iron": 0.56,
+            "vitamin_a": 21.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.14
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_a27b84e512ed",
+          "image_ext": "jpg",
+          "drive_file_id": "1ytd6h-bzcmRCe-JBsveItWt4-9XkQ0bj"
+        }
+      ],
+      "total_calories": 985
     }
   }
 }
