@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-07-05T22:52:13.758440",
+    "processed_at": "2026-07-06T08:37:36.208694",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4836,6 +4836,12 @@
     "date": "2026-07-05",
     "file_name": "65732a03-0564-40f9-8877-71665297988c~1.jpg",
     "processed_at": "2026-07-05T17:42:29.319164",
+    "status": "ok"
+  },
+  "1kUGGzHhcaF4uT6kLL1TOtqHVXq-ST8-V": {
+    "date": "2026-07-06",
+    "file_name": "f2da7d72-e094-4e84-a432-15644f7a2fd1~1.jpg",
+    "processed_at": "2026-07-06T08:37:30.890768",
     "status": "ok"
   }
 }

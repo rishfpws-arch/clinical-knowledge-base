@@ -58002,6 +58002,99 @@
         }
       ],
       "total_calories": 985
+    },
+    "2026-07-06": {
+      "items": [
+        {
+          "id": "item_0d95fc24ba52",
+          "name": "ごはん（ふりかけ）",
+          "quantity": "ふつう",
+          "calories": 272,
+          "nutrients": {
+            "protein": 4.75,
+            "fat": 1.45,
+            "carbs": 58.65,
+            "fiber": 0.95,
+            "salt": 0.6,
+            "calcium": 24.5,
+            "iron": 0.45,
+            "vitamin_a": 10.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e155b73e83ad",
+          "image_ext": "jpg",
+          "drive_file_id": "1kUGGzHhcaF4uT6kLL1TOtqHVXq-ST8-V"
+        },
+        {
+          "id": "item_a5e1d775efb2",
+          "name": "和え物（白菜、人参、油揚げ、豚肉など）",
+          "quantity": "ふつう",
+          "calories": 93,
+          "nutrients": {
+            "protein": 8.2,
+            "fat": 5.8,
+            "carbs": 3.7,
+            "fiber": 1.2,
+            "salt": 1.0,
+            "calcium": 49.0,
+            "iron": 0.7,
+            "vitamin_a": 72.0,
+            "vitamin_c": 11.1,
+            "vitamin_d": 0.02
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e155b73e83ad",
+          "image_ext": "jpg",
+          "drive_file_id": "1kUGGzHhcaF4uT6kLL1TOtqHVXq-ST8-V"
+        },
+        {
+          "id": "item_af025f581f8e",
+          "name": "味噌汁（豆腐、ねぎ）",
+          "quantity": "ふつう",
+          "calories": 48,
+          "nutrients": {
+            "protein": 2.8,
+            "fat": 1.4,
+            "carbs": 5.4,
+            "fiber": 0.7,
+            "salt": 1.8,
+            "calcium": 33.0,
+            "iron": 0.4,
+            "vitamin_a": 6.0,
+            "vitamin_c": 1.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e155b73e83ad",
+          "image_ext": "jpg",
+          "drive_file_id": "1kUGGzHhcaF4uT6kLL1TOtqHVXq-ST8-V"
+        },
+        {
+          "id": "item_0c56409c7dd8",
+          "name": "牛乳（180ml）",
+          "quantity": "ふつう",
+          "calories": 122,
+          "nutrients": {
+            "protein": 6.1,
+            "fat": 6.9,
+            "carbs": 8.8,
+            "fiber": 0.0,
+            "salt": 0.2,
+            "calcium": 205.2,
+            "iron": 0.0,
+            "vitamin_a": 79.2,
+            "vitamin_c": 1.8,
+            "vitamin_d": 0.6
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_e155b73e83ad",
+          "image_ext": "jpg",
+          "drive_file_id": "1kUGGzHhcaF4uT6kLL1TOtqHVXq-ST8-V"
+        }
+      ],
+      "total_calories": 535
     }
   }
 }
