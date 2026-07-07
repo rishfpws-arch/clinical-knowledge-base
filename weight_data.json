@@ -58471,9 +58471,53 @@
           "image_id": "wm_4c3e737974ac",
           "image_ext": "jpg",
           "drive_file_id": "1ru0YaG-1yMJDiEWyRRgAeVS2_GlIppYU"
+        },
+        {
+          "id": "item_1581db04b947",
+          "name": "マウントレーニア カフェラッテ エスプレッソ",
+          "quantity": "ふつう",
+          "calories": 156,
+          "nutrients": {
+            "protein": 6.7,
+            "fat": 7.7,
+            "carbs": 14.8,
+            "fiber": 0.0,
+            "salt": 0.22,
+            "calcium": 200.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_ee80d4147073",
+          "image_ext": "jpg",
+          "drive_file_id": "13HOu5jbATS3XhJMQulxMJygvJPGdlvKy"
+        },
+        {
+          "id": "item_ba5977526d3a",
+          "name": "4種のミックスサンド",
+          "quantity": "ふつう",
+          "calories": 340,
+          "nutrients": {
+            "protein": 15.0,
+            "fat": 15.0,
+            "carbs": 35.0,
+            "fiber": 2.0,
+            "salt": 1.5,
+            "calcium": 60.0,
+            "iron": 1.0,
+            "vitamin_a": 50.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "lunch",
+          "image_id": "wm_ee80d4147073",
+          "image_ext": "jpg",
+          "drive_file_id": "13HOu5jbATS3XhJMQulxMJygvJPGdlvKy"
         }
       ],
-      "total_calories": 443
+      "total_calories": 939
     }
   }
 }
