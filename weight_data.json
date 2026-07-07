@@ -58403,6 +58403,77 @@
         }
       ],
       "total_calories": 3198
+    },
+    "2026-07-07": {
+      "items": [
+        {
+          "id": "item_c1f27e9e1ed8",
+          "name": "大豆グラノーラと牛乳",
+          "quantity": "ふつう",
+          "calories": 366,
+          "nutrients": {
+            "protein": 16.2,
+            "fat": 15.9,
+            "carbs": 45.4,
+            "fiber": 4.0,
+            "salt": 0.5,
+            "calcium": 217.4,
+            "iron": 2.05,
+            "vitamin_a": 60.5,
+            "vitamin_c": 1.55,
+            "vitamin_d": 0.47
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4c3e737974ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1ru0YaG-1yMJDiEWyRRgAeVS2_GlIppYU"
+        },
+        {
+          "id": "item_c94028b7cd2d",
+          "name": "バナナ",
+          "quantity": "ふつう",
+          "calories": 77,
+          "nutrients": {
+            "protein": 1.0,
+            "fat": 0.2,
+            "carbs": 21.0,
+            "fiber": 1.1,
+            "salt": 0.0,
+            "calcium": 5.0,
+            "iron": 0.2,
+            "vitamin_a": 4.0,
+            "vitamin_c": 12.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4c3e737974ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1ru0YaG-1yMJDiEWyRRgAeVS2_GlIppYU"
+        },
+        {
+          "id": "item_c2372c5f0e32",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_4c3e737974ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1ru0YaG-1yMJDiEWyRRgAeVS2_GlIppYU"
+        }
+      ],
+      "total_calories": 443
     }
   }
 }
