@@ -3202,7 +3202,7 @@
   "1ZZyTqpYI9tZeKooJHCKP9xDMgGLCOwOo": {
     "date": "",
     "file_name": "0b016f0f-051e-4a70-9039-3e5f53610cf5~1.jpg",
-    "processed_at": "2026-07-07T13:42:13.835127",
+    "processed_at": "2026-07-09T03:37:34.575572",
     "status": "error",
     "error": "AI解析に失敗（一時エラー）"
   },
@@ -4878,6 +4878,30 @@
     "date": "2026-07-07",
     "file_name": "5d976597-7cd5-4b45-9341-f578e4e81764~1.jpg",
     "processed_at": "2026-07-07T12:02:35.337544",
+    "status": "ok"
+  },
+  "1dVmhhGBOsx8M9tXArqgKXHbqpP1X-9uw": {
+    "date": "2026-07-08",
+    "file_name": "93821b87-b03d-4e7f-b413-c75e5b195380~1.jpg",
+    "processed_at": "2026-07-09T03:35:34.867772",
+    "status": "ok"
+  },
+  "1ZjLtDMOekAov4hhahtQic45TRogqydCf": {
+    "date": "2026-07-08",
+    "file_name": "c967cb75-53ba-4666-b378-96b954d606a5~1.jpg",
+    "processed_at": "2026-07-09T03:35:58.763763",
+    "status": "ok"
+  },
+  "1gKgXV-Idh02qAtR1ZQ8PDa-8JpG3enBA": {
+    "date": "2026-07-07",
+    "file_name": "PXL_20260707_102742238.jpg",
+    "processed_at": "2026-07-09T03:36:19.276121",
+    "status": "ok"
+  },
+  "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO": {
+    "date": "2026-07-07",
+    "file_name": "PXL_20260707_115738361.jpg",
+    "processed_at": "2026-07-09T03:37:27.661882",
     "status": "ok"
   }
 }

@@ -58515,9 +58515,410 @@
           "image_id": "wm_ee80d4147073",
           "image_ext": "jpg",
           "drive_file_id": "13HOu5jbATS3XhJMQulxMJygvJPGdlvKy"
+        },
+        {
+          "id": "item_110509775c25",
+          "name": "ポップコーン（油と塩で調理）",
+          "quantity": "多め",
+          "calories": 720,
+          "nutrients": {
+            "protein": 13.95,
+            "fat": 34.2,
+            "carbs": 89.7,
+            "fiber": 16.8,
+            "salt": 1.5,
+            "calcium": 7.5,
+            "iron": 1.65,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_13af14ab08fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1gKgXV-Idh02qAtR1ZQ8PDa-8JpG3enBA"
+        },
+        {
+          "id": "item_9e1d1b09fa32",
+          "name": "五穀米ごはん",
+          "quantity": "多め",
+          "calories": 504,
+          "nutrients": {
+            "protein": 9.0,
+            "fat": 1.8,
+            "carbs": 108.3,
+            "fiber": 4.5,
+            "salt": 0.0,
+            "calcium": 45.0,
+            "iron": 1.5,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_49ff9abbf064",
+          "name": "唐揚げ タルタルソースがけ",
+          "quantity": "多め",
+          "calories": 1175,
+          "nutrients": {
+            "protein": 47.5,
+            "fat": 100.0,
+            "carbs": 35.0,
+            "fiber": 1.0,
+            "salt": 5.0,
+            "calcium": 30.0,
+            "iron": 1.5,
+            "vitamin_a": 20.0,
+            "vitamin_c": 5.0,
+            "vitamin_d": 0.5
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_7a3d6cfd710c",
+          "name": "ミニトマト",
+          "quantity": "ふつう",
+          "calories": 68,
+          "nutrients": {
+            "protein": 2.3,
+            "fat": 0.2,
+            "carbs": 14.6,
+            "fiber": 2.3,
+            "salt": 0.0,
+            "calcium": 15.8,
+            "iron": 0.5,
+            "vitamin_a": 155.3,
+            "vitamin_c": 42.8,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_ae4987d52661",
+          "name": "卵サラダ",
+          "quantity": "多め",
+          "calories": 750,
+          "nutrients": {
+            "protein": 24.0,
+            "fat": 66.0,
+            "carbs": 18.0,
+            "fiber": 3.0,
+            "salt": 2.4,
+            "calcium": 120.0,
+            "iron": 3.0,
+            "vitamin_a": 240.0,
+            "vitamin_c": 15.0,
+            "vitamin_d": 1.5
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_7c17df0f157b",
+          "name": "野菜スープ",
+          "quantity": "多め",
+          "calories": 100,
+          "nutrients": {
+            "protein": 4.0,
+            "fat": 2.0,
+            "carbs": 16.0,
+            "fiber": 3.0,
+            "salt": 2.0,
+            "calcium": 40.0,
+            "iron": 0.6,
+            "vitamin_a": 200.0,
+            "vitamin_c": 10.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_ec906c0109cb",
+          "name": "納豆",
+          "quantity": "ふつう",
+          "calories": 95,
+          "nutrients": {
+            "protein": 8.3,
+            "fat": 5.0,
+            "carbs": 6.5,
+            "fiber": 3.4,
+            "salt": 0.8,
+            "calcium": 45.0,
+            "iron": 1.6,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.75
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_55c3477d78e0",
+          "name": "イカの炒め物",
+          "quantity": "少なめ",
+          "calories": 60,
+          "nutrients": {
+            "protein": 9.0,
+            "fat": 3.5,
+            "carbs": 1.0,
+            "fiber": 0.0,
+            "salt": 0.5,
+            "calcium": 5.0,
+            "iron": 0.2,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.1
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_488a66520586",
+          "name": "水",
+          "quantity": "多め",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_241cacf25eac",
+          "name": "フルーツアイスティー",
+          "quantity": "ふつう",
+          "calories": 100,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 25.0,
+            "fiber": 0.0,
+            "salt": 0.15,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 50.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
+        },
+        {
+          "id": "item_82512b327596",
+          "name": "緑茶",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_3c3620d293fa",
+          "image_ext": "jpg",
+          "drive_file_id": "1Fx8jxH11De7kBlYgTJVXeuuYSi7iQLuO"
         }
       ],
-      "total_calories": 939
+      "total_calories": 4511
+    },
+    "2026-07-08": {
+      "items": [
+        {
+          "id": "item_f1b24010a082",
+          "name": "焼きそば",
+          "quantity": "多め",
+          "calories": 825,
+          "nutrients": {
+            "protein": 30.0,
+            "fat": 37.5,
+            "carbs": 97.5,
+            "fiber": 6.0,
+            "salt": 4.5,
+            "calcium": 45.0,
+            "iron": 2.25,
+            "vitamin_a": 45.0,
+            "vitamin_c": 22.5,
+            "vitamin_d": 0.15
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8b22ead3c3c0",
+          "image_ext": "jpg",
+          "drive_file_id": "1dVmhhGBOsx8M9tXArqgKXHbqpP1X-9uw"
+        },
+        {
+          "id": "item_ac4cbf1a9a68",
+          "name": "お好み焼き",
+          "quantity": "多め",
+          "calories": 675,
+          "nutrients": {
+            "protein": 30.0,
+            "fat": 30.0,
+            "carbs": 75.0,
+            "fiber": 6.0,
+            "salt": 3.75,
+            "calcium": 105.0,
+            "iron": 2.25,
+            "vitamin_a": 75.0,
+            "vitamin_c": 30.0,
+            "vitamin_d": 0.3
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8b22ead3c3c0",
+          "image_ext": "jpg",
+          "drive_file_id": "1dVmhhGBOsx8M9tXArqgKXHbqpP1X-9uw"
+        },
+        {
+          "id": "item_9cde88460ced",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "dinner",
+          "image_id": "wm_8b22ead3c3c0",
+          "image_ext": "jpg",
+          "drive_file_id": "1dVmhhGBOsx8M9tXArqgKXHbqpP1X-9uw"
+        },
+        {
+          "id": "item_5bb4d79bd245",
+          "name": "バナナ",
+          "quantity": "ふつう",
+          "calories": 86,
+          "nutrients": {
+            "protein": 1.1,
+            "fat": 0.2,
+            "carbs": 22.5,
+            "fiber": 1.1,
+            "salt": 0.0,
+            "calcium": 6.0,
+            "iron": 0.2,
+            "vitamin_a": 4.0,
+            "vitamin_c": 16.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_1779e4c0fce0",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZjLtDMOekAov4hhahtQic45TRogqydCf"
+        },
+        {
+          "id": "item_681666f1c2a9",
+          "name": "ヤクルト1000",
+          "quantity": "ふつう",
+          "calories": 67,
+          "nutrients": {
+            "protein": 3.0,
+            "fat": 0.1,
+            "carbs": 13.9,
+            "fiber": 0.0,
+            "salt": 0.1,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_1779e4c0fce0",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZjLtDMOekAov4hhahtQic45TRogqydCf"
+        },
+        {
+          "id": "item_7ba7da86d508",
+          "name": "水",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_1779e4c0fce0",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZjLtDMOekAov4hhahtQic45TRogqydCf"
+        },
+        {
+          "id": "item_fe47ce58b040",
+          "name": "飲み物（詳細不明）",
+          "quantity": "ふつう",
+          "calories": 0,
+          "nutrients": {
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "fiber": 0.0,
+            "salt": 0.0,
+            "calcium": 0.0,
+            "iron": 0.0,
+            "vitamin_a": 0.0,
+            "vitamin_c": 0.0,
+            "vitamin_d": 0.0
+          },
+          "meal_type": "breakfast",
+          "image_id": "wm_1779e4c0fce0",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZjLtDMOekAov4hhahtQic45TRogqydCf"
+        }
+      ],
+      "total_calories": 1653
     }
   }
 }
