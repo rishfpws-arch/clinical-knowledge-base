@@ -58965,6 +58965,44 @@
           "image_id": "wm_32248accf9bd",
           "image_ext": "jpg",
           "drive_file_id": "1leKM9rqwMdEXEHqqrv_fmJkwAJAOktuq"
+        },
+        {
+          "id": "item_443d4070a628",
+          "name": "そうめん・めんつゆ・刻みネギ・かぼちゃサラダ・日向夏ジュース",
+          "items_extracted": [
+            "そうめん",
+            "めんつゆ",
+            "刻みネギ",
+            "かぼちゃサラダ",
+            "日向夏ジュース"
+          ],
+          "image_id": "wm_990ccbaffe7e",
+          "image_ext": "jpg",
+          "drive_file_id": "1XDjwEAD9BLHc3WD_xlnCpEG8sLPRzd92"
+        },
+        {
+          "id": "item_a373637f5212",
+          "name": "焼き海苔・カニ風味サラダ・にぎり寿司盛り合わせ",
+          "items_extracted": [
+            "焼き海苔",
+            "カニ風味サラダ",
+            "にぎり寿司盛り合わせ"
+          ],
+          "image_id": "wm_86e06584cf0c",
+          "image_ext": "jpg",
+          "drive_file_id": "1kKaG9jD5EzjkEct-jvpJBvtsLv480Q8y"
+        },
+        {
+          "id": "item_00674731a878",
+          "name": "明太子おむすび・カフェラテ・春雨スープ",
+          "items_extracted": [
+            "明太子おむすび",
+            "カフェラテ",
+            "春雨スープ"
+          ],
+          "image_id": "wm_28e6c8acccd1",
+          "image_ext": "jpg",
+          "drive_file_id": "1zZgaIs64f-kwZaNzFAbHIEE3bIvsHB75"
         }
       ],
       "total_calories": 540
@@ -59449,6 +59487,19 @@
           "image_id": "wm_02f27980464a",
           "image_ext": "jpg",
           "drive_file_id": "1UYDZNe5kTZLabmFHMBebGTzpZLhPI00I"
+        },
+        {
+          "id": "item_3556d8cdba34",
+          "name": "乳酸菌飲料・ナイストスティック ミルククリーム・ビーンズロール・牛乳",
+          "items_extracted": [
+            "乳酸菌飲料",
+            "ナイストスティック ミルククリーム",
+            "ビーンズロール",
+            "牛乳"
+          ],
+          "image_id": "wm_32d6f453fa85",
+          "image_ext": "jpg",
+          "drive_file_id": "1YnYXOYdnl60rKtC6NT0-78xVMFb4rvBn"
         }
       ]
     }
