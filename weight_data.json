@@ -59033,6 +59033,48 @@
           "image_id": "wm_8e86d29794bd",
           "image_ext": "jpg",
           "drive_file_id": "1VTMpWbkpo9nu9lY9g6bnOVZUhOwQ5HK4"
+        },
+        {
+          "id": "item_c0d4bafd3135",
+          "name": "カレーライス・ミニトマト・牛乳",
+          "items_extracted": [
+            "カレーライス",
+            "ミニトマト",
+            "牛乳"
+          ],
+          "image_id": "wm_0f756309bc17",
+          "image_ext": "jpg",
+          "drive_file_id": "1o3ROo7aWAQgYxxEl6XJATwhtWht7_tiC"
+        },
+        {
+          "id": "item_268634012750",
+          "name": "アップルパイ・ピーチブレンドジュース・紅茶飲料",
+          "items_extracted": [
+            "アップルパイ",
+            "ピーチブレンドジュース",
+            "紅茶飲料"
+          ],
+          "image_id": "wm_ea8c4559ae0f",
+          "image_ext": "jpg",
+          "drive_file_id": "1hXfx---3etEyqshc5WH8IW7g4PEagvHy"
+        },
+        {
+          "id": "item_be14fe733b5a",
+          "name": "グリーンスムージー・無糖紅茶・明太子おむすび・高菜おむすび・沢庵・唐揚げ・卵焼き・ウインナー・カップ担担麺",
+          "items_extracted": [
+            "グリーンスムージー",
+            "無糖紅茶",
+            "明太子おむすび",
+            "高菜おむすび",
+            "沢庵",
+            "唐揚げ",
+            "卵焼き",
+            "ウインナー",
+            "カップ担担麺"
+          ],
+          "image_id": "wm_65a4b9df0c84",
+          "image_ext": "jpg",
+          "drive_file_id": "1bSxv7l8uB3nyglgF51UvloQA2tbhqfZy"
         }
       ]
     },
@@ -59500,6 +59542,74 @@
           "image_id": "wm_32d6f453fa85",
           "image_ext": "jpg",
           "drive_file_id": "1YnYXOYdnl60rKtC6NT0-78xVMFb4rvBn"
+        }
+      ]
+    },
+    "2026-07-22": {
+      "items": [
+        {
+          "id": "item_6f41f5638439",
+          "name": "無糖アイスティー・レーズンバターロール",
+          "items_extracted": [
+            "無糖アイスティー",
+            "レーズンバターロール"
+          ],
+          "image_id": "wm_0a4bd621f89f",
+          "image_ext": "jpg",
+          "drive_file_id": "1hKNxzNuD9wg5xQ0XEZ-G-9ZYOBArqEuZ"
+        },
+        {
+          "id": "item_9ba7590440dc",
+          "name": "たまごサンド・アイスカフェラテ",
+          "items_extracted": [
+            "たまごサンド",
+            "アイスカフェラテ"
+          ],
+          "image_id": "wm_4795c0c5db3c",
+          "image_ext": "jpg",
+          "drive_file_id": "11nr4jf0LO6_zlCHhAxOoASeap_pbKxff"
+        },
+        {
+          "id": "item_4edb1c6991bf",
+          "name": "ご飯・豚肉と野菜の炒め物・春雨の和え物・金時豆・吸い物・マンゴー",
+          "items_extracted": [
+            "ご飯",
+            "豚肉と野菜の炒め物",
+            "春雨の和え物",
+            "金時豆",
+            "吸い物",
+            "マンゴー"
+          ],
+          "image_id": "wm_e69d8c47a6f5",
+          "image_ext": "jpg",
+          "drive_file_id": "1OSGkJMTqAGm9oXyDUB4r92lpGoA-mTw3"
+        },
+        {
+          "id": "item_c184d09ef25e",
+          "name": "うどん・炊き込みご飯・和え物・沢庵・お茶",
+          "items_extracted": [
+            "うどん",
+            "炊き込みご飯",
+            "和え物",
+            "沢庵",
+            "お茶"
+          ],
+          "image_id": "wm_7195ff81e545",
+          "image_ext": "jpg",
+          "drive_file_id": "1ckjK6UsvatmBkPWfTZSm_Vu_1Q9jAvpG"
+        },
+        {
+          "id": "item_2a34ec534b54",
+          "name": "バナナ・グラノーラ・牛乳・ドライフルーツ（いちご）",
+          "items_extracted": [
+            "バナナ",
+            "グラノーラ",
+            "牛乳",
+            "ドライフルーツ（いちご）"
+          ],
+          "image_id": "wm_99af0101d06f",
+          "image_ext": "jpg",
+          "drive_file_id": "1KpgLryf2Fk05sQyQRGtWzNF6M79XOogc"
         }
       ]
     }
