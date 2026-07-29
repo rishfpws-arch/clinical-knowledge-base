@@ -59612,6 +59612,404 @@
           "drive_file_id": "1KpgLryf2Fk05sQyQRGtWzNF6M79XOogc"
         }
       ]
+    },
+    "2026-07-30": {
+      "items": [
+        {
+          "id": "item_a6e3946e9bd5",
+          "name": "無糖アイスティー・おむすび（高菜明太）",
+          "items_extracted": [
+            "無糖アイスティー",
+            "おむすび（高菜明太）"
+          ],
+          "image_id": "wm_bd612db3bba8",
+          "image_ext": "jpg",
+          "drive_file_id": "1g5-E8bqywmIRBUPQXy2p6-bb8ofgu9rF"
+        }
+      ]
+    },
+    "2026-07-29": {
+      "items": [
+        {
+          "id": "item_a64071f2d253",
+          "name": "ご飯・味噌汁・豚肉の炒め物・マッシュポテト・たくあん・青菜の和え物・筍と厚揚げの煮物・緑茶",
+          "items_extracted": [
+            "ご飯",
+            "味噌汁",
+            "豚肉の炒め物",
+            "マッシュポテト",
+            "たくあん",
+            "青菜の和え物",
+            "筍と厚揚げの煮物",
+            "緑茶"
+          ],
+          "image_id": "wm_5b999b49a4f8",
+          "image_ext": "jpg",
+          "drive_file_id": "1isDVuMnugf0Mv05sWL0zLEC1S9EkjdBk"
+        },
+        {
+          "id": "item_e4dccc996471",
+          "name": "ご飯・ふりかけ・ブロッコリーのサラダ・味噌汁・チキンカツ・キャベツのサラダ・トマト・お茶",
+          "items_extracted": [
+            "ご飯",
+            "ふりかけ",
+            "ブロッコリーのサラダ",
+            "味噌汁",
+            "チキンカツ",
+            "キャベツのサラダ",
+            "トマト",
+            "お茶"
+          ],
+          "image_id": "wm_cd1e9ac6d435",
+          "image_ext": "jpg",
+          "drive_file_id": "1O1Vv2OSBbuVKSQN9dWusA4MkmsmhyEpg"
+        }
+      ]
+    },
+    "2026-07-28": {
+      "items": [
+        {
+          "id": "item_281091cb4878",
+          "name": "から揚げ",
+          "items_extracted": [
+            "から揚げ"
+          ],
+          "image_id": "wm_403ec027ab4b",
+          "image_ext": "jpg",
+          "drive_file_id": "1pHJPE9xRLn90NCUjIvULQb7Iz9Qx2UAH"
+        },
+        {
+          "id": "item_f71b3237cc0a",
+          "name": "うどんですかい・高菜明太子おにぎり・お茶・カフェラッテ",
+          "items_extracted": [
+            "うどんですかい",
+            "高菜明太子おにぎり",
+            "お茶",
+            "カフェラッテ"
+          ],
+          "image_id": "wm_04e98f5118be",
+          "image_ext": "jpg",
+          "drive_file_id": "196NYqLGYQLyDNG-Qh8H-hX0GhzeSiYDn"
+        },
+        {
+          "id": "item_1ebe429aa5af",
+          "name": "バナナ・ヤクルト1000",
+          "items_extracted": [
+            "バナナ",
+            "ヤクルト1000"
+          ],
+          "image_id": "wm_52bd797adb18",
+          "image_ext": "jpg",
+          "drive_file_id": "1pkTWalERrVANTxPOUwWE_MzFWXSMOmmF"
+        }
+      ]
+    },
+    "2026-07-27": {
+      "items": [
+        {
+          "id": "item_7fe65cea28e5",
+          "name": "雑穀米・マカロニサラダ・ポテトサラダ・豚肉とニラのキムチ炒め・茹でキャベツ・タコとキュウリの酢の物・緑茶・水",
+          "items_extracted": [
+            "雑穀米",
+            "マカロニサラダ",
+            "ポテトサラダ",
+            "豚肉とニラのキムチ炒め",
+            "茹でキャベツ",
+            "タコとキュウリの酢の物",
+            "緑茶",
+            "水"
+          ],
+          "image_id": "wm_da90e65bbbeb",
+          "image_ext": "jpg",
+          "drive_file_id": "1cw9OxMpzz0XAiCpedXpAcbEEIW8R3w-e"
+        },
+        {
+          "id": "item_cda2f65df6ac",
+          "name": "黄色いふりかけおにぎり・海苔おにぎり・紫色のふりかけおにぎり・玉子焼き・カニカマ・揚げ物・シュウマイ・沢庵・伊右衛門・カゴメ 野菜生活 Smoothie・日清 らーめんですかい",
+          "items_extracted": [
+            "黄色いふりかけおにぎり",
+            "海苔おにぎり",
+            "紫色のふりかけおにぎり",
+            "玉子焼き",
+            "カニカマ",
+            "揚げ物",
+            "シュウマイ",
+            "沢庵",
+            "伊右衛門",
+            "カゴメ 野菜生活 Smoothie",
+            "日清 らーめんですかい"
+          ],
+          "image_id": "wm_2e70f68e4439",
+          "image_ext": "jpg",
+          "drive_file_id": "1AFzslvLo0oLWhuHI-GXWyzUNWBLJtnJx"
+        },
+        {
+          "id": "item_1320744b2d24",
+          "name": "ミニクロワッサン",
+          "items_extracted": [
+            "ミニクロワッサン"
+          ],
+          "image_id": "wm_d0301fbcf6ba",
+          "image_ext": "jpg",
+          "drive_file_id": "1a2HY12RsGBHzlUYH9_kauCPcrGFdTXrK"
+        }
+      ]
+    },
+    "2026-07-26": {
+      "items": [
+        {
+          "id": "item_791448e6ee8d",
+          "name": "素麺・豆腐・卵とじスープ・きゅうりの和え物・大葉・おろししょうが・めんつゆ",
+          "items_extracted": [
+            "素麺",
+            "豆腐",
+            "卵とじスープ",
+            "きゅうりの和え物",
+            "大葉",
+            "おろししょうが",
+            "めんつゆ"
+          ],
+          "image_id": "wm_67cfbff9fcbf",
+          "image_ext": "jpg",
+          "drive_file_id": "1Z9rjIx-V85ZhPh46sFVbHQDPxXQjpNgr"
+        },
+        {
+          "id": "item_ece178c9b5f5",
+          "name": "チョコレートケーキ・アイスコーヒー・クリームソーダ・バニラアイス・さくらんぼ",
+          "items_extracted": [
+            "チョコレートケーキ",
+            "アイスコーヒー",
+            "クリームソーダ",
+            "バニラアイス",
+            "さくらんぼ"
+          ],
+          "image_id": "wm_c1aec0dafa13",
+          "image_ext": "jpg",
+          "drive_file_id": "1_PzFbF0Npn5igkInGFQT_41DzXquy4OI"
+        },
+        {
+          "id": "item_f5727af5bf97",
+          "name": "うなぎの蒲焼・ご飯・青ネギ・漬物・佃煮・お茶",
+          "items_extracted": [
+            "うなぎの蒲焼",
+            "ご飯",
+            "青ネギ",
+            "漬物",
+            "佃煮",
+            "お茶"
+          ],
+          "image_id": "wm_57c4fb94c0b1",
+          "image_ext": "jpg",
+          "drive_file_id": "1fxEXR7tgq6RjmZMrY4nNBPxnw7fRAfp8"
+        },
+        {
+          "id": "item_86ea7721b4e9",
+          "name": "ステーキ・ハーブバター・ローストポテト・ルッコラサラダ・アスパラガス・ソース",
+          "items_extracted": [
+            "ステーキ",
+            "ハーブバター",
+            "ローストポテト",
+            "ルッコラサラダ",
+            "アスパラガス",
+            "ソース"
+          ],
+          "image_id": "wm_389c03850d1a",
+          "image_ext": "jpg",
+          "drive_file_id": "1SabMYsSIn9DZ3QPYW9stjLebLlzHd9YI"
+        },
+        {
+          "id": "item_1401382a2b8e",
+          "name": "黄色いご飯・エビカレー・ミックスリーフサラダ・紫玉ねぎ・コーン・ミックスビーンズ・ミニトマト・カリフラワー・ブロッコリー・茹でエビ・ドレッシング・とびっこ・ローストポーク・スイカ・パイナップル・グレープフルーツ・ぶどう・チアシードプディング・ブルーベリー・ミントの葉・コーヒー",
+          "items_extracted": [
+            "黄色いご飯",
+            "エビカレー",
+            "ミックスリーフサラダ",
+            "紫玉ねぎ",
+            "コーン",
+            "ミックスビーンズ",
+            "ミニトマト",
+            "カリフラワー",
+            "ブロッコリー",
+            "茹でエビ",
+            "ドレッシング",
+            "とびっこ",
+            "ローストポーク",
+            "スイカ",
+            "パイナップル",
+            "グレープフルーツ",
+            "ぶどう",
+            "チアシードプディング",
+            "ブルーベリー",
+            "ミントの葉",
+            "コーヒー"
+          ],
+          "image_id": "wm_6c884ca4f56d",
+          "image_ext": "jpg",
+          "drive_file_id": "1uRh4lMetEA4cQuu-B_ZPQ-7nn0iJzkTO"
+        }
+      ]
+    },
+    "2026-07-25": {
+      "items": [
+        {
+          "id": "item_52ffb7a1838d",
+          "name": "海鮮サラダ・鶏肉の旨辛煮・たこ焼き・おはぎ・まぐろのたたき",
+          "items_extracted": [
+            "海鮮サラダ",
+            "鶏肉の旨辛煮",
+            "たこ焼き",
+            "おはぎ",
+            "まぐろのたたき"
+          ],
+          "image_id": "wm_645510432f57",
+          "image_ext": "jpg",
+          "drive_file_id": "1WexuiN7CStLX_rBxLwxVeLXLCOELvcn1"
+        },
+        {
+          "id": "item_171a1f9fcf27",
+          "name": "マカロン・アイスカフェラテ・スパークリングワイン",
+          "items_extracted": [
+            "マカロン",
+            "アイスカフェラテ",
+            "スパークリングワイン"
+          ],
+          "image_id": "wm_397bb272bd4e",
+          "image_ext": "jpg",
+          "drive_file_id": "1f8P4pAsP3GDpq4v-0_1Qb4iUTHklpjtL"
+        },
+        {
+          "id": "item_1a56ca1939b8",
+          "name": "アイスクリーム・りんご・バナナ・みかん・桃・白玉団子・小豆あん・グレープフルーツ・緑茶・コーヒー・ガムシロップ・水",
+          "items_extracted": [
+            "アイスクリーム",
+            "りんご",
+            "バナナ",
+            "みかん",
+            "桃",
+            "白玉団子",
+            "小豆あん",
+            "グレープフルーツ",
+            "緑茶",
+            "コーヒー",
+            "ガムシロップ",
+            "水"
+          ],
+          "image_id": "wm_b616a5a2002f",
+          "image_ext": "jpg",
+          "drive_file_id": "1L0tVjWvifHIhw6oPVRSDpPk4Q89aeDEJ"
+        },
+        {
+          "id": "item_16d79ebcdcd6",
+          "name": "チャーハン・味噌汁・きゅうりの漬物・人参の漬物・ビール・お茶・水・卵焼き・肉と野菜の炒め物",
+          "items_extracted": [
+            "チャーハン",
+            "味噌汁",
+            "きゅうりの漬物",
+            "人参の漬物",
+            "ビール",
+            "お茶",
+            "水",
+            "卵焼き",
+            "肉と野菜の炒め物"
+          ],
+          "image_id": "wm_c7d2a34fc22e",
+          "image_ext": "jpg",
+          "drive_file_id": "1iEkVnr2S0WdHShT-gwNxQuSbtH-G23Q7"
+        },
+        {
+          "id": "item_19ca82bdaa82",
+          "name": "そば・錦糸卵・刻み海苔・ネギ・薄切り肉・レモン・おろし・つけ汁・ビール・お茶・水",
+          "items_extracted": [
+            "そば",
+            "錦糸卵",
+            "刻み海苔",
+            "ネギ",
+            "薄切り肉",
+            "レモン",
+            "おろし",
+            "つけ汁",
+            "ビール",
+            "お茶",
+            "水"
+          ],
+          "image_id": "wm_bce239ea857a",
+          "image_ext": "jpg",
+          "drive_file_id": "1xwIhUifY9vVdb6YogiGaWON4ypNtw2Ge"
+        },
+        {
+          "id": "item_cb2daec71344",
+          "name": "チョコレートドーナツ・アイスカフェラテ・ホットコーヒー・ホットサンド",
+          "items_extracted": [
+            "チョコレートドーナツ",
+            "アイスカフェラテ",
+            "ホットコーヒー",
+            "ホットサンド"
+          ],
+          "image_id": "wm_2208a2868288",
+          "image_ext": "jpg",
+          "drive_file_id": "19uwAEVfHePHZDrPVgpsiamaxlUquqHOb"
+        }
+      ]
+    },
+    "2026-07-24": {
+      "items": [
+        {
+          "id": "item_94981cc91bed",
+          "name": "ご飯・昆布の佃煮・鶏肉と野菜のスパイス煮込み・ゆで卵・オクラ・ゴーヤチャンプルー・豚肉と茄子の煮物・きゅうりの漬物・だし巻き卵・切り干し大根の煮物・卯の花",
+          "items_extracted": [
+            "ご飯",
+            "昆布の佃煮",
+            "鶏肉と野菜のスパイス煮込み",
+            "ゆで卵",
+            "オクラ",
+            "ゴーヤチャンプルー",
+            "豚肉と茄子の煮物",
+            "きゅうりの漬物",
+            "だし巻き卵",
+            "切り干し大根の煮物",
+            "卯の花"
+          ],
+          "image_id": "wm_083c90ab210f",
+          "image_ext": "jpg",
+          "drive_file_id": "1R9TNc_SX7FBVz80PsFcE95fMuhMq-aCm"
+        }
+      ]
+    },
+    "2026-07-23": {
+      "items": [
+        {
+          "id": "item_7d4bdcf2e287",
+          "name": "ステーキ・雑穀米・卵とえのきのスープ・茹でキャベツ・茄子の煮浸し・きゅうりの胡麻和え・オクラの和え物・水・カップデザート・ラスク",
+          "items_extracted": [
+            "ステーキ",
+            "雑穀米",
+            "卵とえのきのスープ",
+            "茹でキャベツ",
+            "茄子の煮浸し",
+            "きゅうりの胡麻和え",
+            "オクラの和え物",
+            "水",
+            "カップデザート",
+            "ラスク"
+          ],
+          "image_id": "wm_1947f17aa5ab",
+          "image_ext": "jpg",
+          "drive_file_id": "1kYMmfYboQGCPXldt4V6OkribTVgMrQvT"
+        },
+        {
+          "id": "item_ef0826cb120e",
+          "name": "どん兵衛 きつねうどん・わかめごはんおむすび・緑茶・午後の紅茶 無糖アイスティー",
+          "items_extracted": [
+            "どん兵衛 きつねうどん",
+            "わかめごはんおむすび",
+            "緑茶",
+            "午後の紅茶 無糖アイスティー"
+          ],
+          "image_id": "wm_f3d1a15cce78",
+          "image_ext": "jpg",
+          "drive_file_id": "1esjIx5ubnEnp5jlBTULT9iCYlu7tBwuX"
+        }
+      ]
     }
   }
 }
