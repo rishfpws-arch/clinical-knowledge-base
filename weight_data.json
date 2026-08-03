@@ -59625,6 +59625,32 @@
           "image_id": "wm_bd612db3bba8",
           "image_ext": "jpg",
           "drive_file_id": "1g5-E8bqywmIRBUPQXy2p6-bb8ofgu9rF"
+        },
+        {
+          "id": "item_fdd637b6616d",
+          "name": "ご飯・焼き魚・味噌汁・青菜と昆布の和え物",
+          "items_extracted": [
+            "ご飯",
+            "焼き魚",
+            "味噌汁",
+            "青菜と昆布の和え物"
+          ],
+          "image_id": "wm_745ec9097a66",
+          "image_ext": "jpg",
+          "drive_file_id": "18Ad5hPANX1XU-afAlcQdFnbtS8m7ozQP"
+        },
+        {
+          "id": "item_8e64f1fd48b0",
+          "name": "水・カフェラテ・シルベーヌバー・ゼロチョコバー",
+          "items_extracted": [
+            "水",
+            "カフェラテ",
+            "シルベーヌバー",
+            "ゼロチョコバー"
+          ],
+          "image_id": "wm_39a83a093973",
+          "image_ext": "jpg",
+          "drive_file_id": "1cteFc77c0kYmfyhZ3luLHOWYQbiFRHav"
         }
       ]
     },
@@ -60008,6 +60034,139 @@
           "image_id": "wm_f3d1a15cce78",
           "image_ext": "jpg",
           "drive_file_id": "1esjIx5ubnEnp5jlBTULT9iCYlu7tBwuX"
+        }
+      ]
+    },
+    "2026-08-03": {
+      "items": [
+        {
+          "id": "item_8072002df28d",
+          "name": "グリーンスムージー・スープはるさめ 担担味・おむすび (高菜明太)",
+          "items_extracted": [
+            "グリーンスムージー",
+            "スープはるさめ 担担味",
+            "おむすび (高菜明太)"
+          ],
+          "image_id": "wm_06114f3daeef",
+          "image_ext": "jpg",
+          "drive_file_id": "1QhTmmp2kbxtP8s7PYpSXHLcan9aZA-L-"
+        },
+        {
+          "id": "item_33ee96e10d19",
+          "name": "グラノーラ・牛乳",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳"
+          ],
+          "image_id": "wm_37edc18f9f9f",
+          "image_ext": "jpg",
+          "drive_file_id": "1fmW4789dpBm67L8d03MyTC0j51gtCaOX"
+        }
+      ]
+    },
+    "2026-08-02": {
+      "items": [
+        {
+          "id": "item_769f241e530a",
+          "name": "スパゲッティ・パスタソース・キャベツ・水・緑茶",
+          "items_extracted": [
+            "スパゲッティ",
+            "パスタソース",
+            "キャベツ",
+            "水",
+            "緑茶"
+          ],
+          "image_id": "wm_fff3e4f61c46",
+          "image_ext": "jpg",
+          "drive_file_id": "1aiLxG9hNzc4RlHUgBWsy7LyEkovZ_yng"
+        },
+        {
+          "id": "item_70bddf5f8ed4",
+          "name": "緑茶飲料・McCafé ドリンク・炭酸飲料・水・ホットケーキ・ソーセージマフィン・タルタルデミ ソーセージマフィン・ハッシュポテト・ポテトチップス",
+          "items_extracted": [
+            "緑茶飲料",
+            "McCafé ドリンク",
+            "炭酸飲料",
+            "水",
+            "ホットケーキ",
+            "ソーセージマフィン",
+            "タルタルデミ ソーセージマフィン",
+            "ハッシュポテト",
+            "ポテトチップス"
+          ],
+          "image_id": "wm_d5009e1cfa41",
+          "image_ext": "jpg",
+          "drive_file_id": "1O-s3r-nuynUxPdqkix5IIZ82-jxIBJGc"
+        }
+      ]
+    },
+    "2026-08-01": {
+      "items": [
+        {
+          "id": "item_df0e645ec677",
+          "name": "そうめん・めんつゆ・刻みのり・オクラの和え物・水・緑茶・お茶漬けの素・ポテトチップス・バジルソース・栄養ドリンク",
+          "items_extracted": [
+            "そうめん",
+            "めんつゆ",
+            "刻みのり",
+            "オクラの和え物",
+            "水",
+            "緑茶",
+            "お茶漬けの素",
+            "ポテトチップス",
+            "バジルソース",
+            "栄養ドリンク"
+          ],
+          "image_id": "wm_11e3167dfd9c",
+          "image_ext": "jpg",
+          "drive_file_id": "1JmcSqi5yz3qBs0G_MTguTah2EZSjG-Cd"
+        },
+        {
+          "id": "item_0384fe07aa93",
+          "name": "雑穀米・ナスのひき肉炒め・きゅうりの和え物・水・緑茶・昆布・チョコレートバー・炭酸飲料",
+          "items_extracted": [
+            "雑穀米",
+            "ナスのひき肉炒め",
+            "きゅうりの和え物",
+            "水",
+            "緑茶",
+            "昆布",
+            "チョコレートバー",
+            "炭酸飲料"
+          ],
+          "image_id": "wm_641f18d13cb2",
+          "image_ext": "jpg",
+          "drive_file_id": "18J8jQEOLP0DbWs6QG4aly_3vCKePl2fr"
+        }
+      ]
+    },
+    "2026-07-31": {
+      "items": [
+        {
+          "id": "item_6ee849b8e008",
+          "name": "お好み焼き・削り節・揚げ物・マヨネーズ・水",
+          "items_extracted": [
+            "お好み焼き",
+            "削り節",
+            "揚げ物",
+            "マヨネーズ",
+            "水"
+          ],
+          "image_id": "wm_35a2038023ad",
+          "image_ext": "jpg",
+          "drive_file_id": "1Utfoq63PchpOElf8xbN191qQeNEjkRCH"
+        },
+        {
+          "id": "item_337ee58defba",
+          "name": "焼きそば・野菜生活100スムージー・梅ごはんおむすび",
+          "items_extracted": [
+            "焼きそば",
+            "野菜生活100スムージー",
+            "梅ごはんおむすび"
+          ],
+          "image_id": "wm_4828b885f28f",
+          "image_ext": "jpg",
+          "drive_file_id": "1Ls2gBW0T6tmO0PAZkU294ON3iP0Efjc1"
         }
       ]
     }
