@@ -60218,6 +60218,22 @@
           "image_id": "wm_dd63272cfd02",
           "image_ext": "jpg",
           "drive_file_id": "1nQxe5WlqOWkFhgvf2aBHrNCJacPPeE_n"
+        },
+        {
+          "id": "item_9430d1f10f72",
+          "name": "鯖の塩焼き・きゅうりとワカメの酢の物・キャベツの和え物・揚げせんべい・お茶・カフェラテ・水",
+          "items_extracted": [
+            "鯖の塩焼き",
+            "きゅうりとワカメの酢の物",
+            "キャベツの和え物",
+            "揚げせんべい",
+            "お茶",
+            "カフェラテ",
+            "水"
+          ],
+          "image_id": "wm_6ee9d37b83a1",
+          "image_ext": "jpg",
+          "drive_file_id": "12cBN0F_OtZ6vMhVdz73jxOUojtkOvBk-"
         }
       ]
     },
@@ -60514,6 +60530,144 @@
           "image_id": "wm_eaa9d19c8bbe",
           "image_ext": "jpg",
           "drive_file_id": "14wRCncuYljWw3cHoEAuUpP_6mvIKuDrq"
+        }
+      ]
+    },
+    "2026-08-13": {
+      "items": [
+        {
+          "id": "item_4982e482f28b",
+          "name": "たっぷりりんごカスタードパイ・ランチパック チョコレート・KAGOME 野菜生活100 Smoothie バナナ&アーモンド mix",
+          "items_extracted": [
+            "たっぷりりんごカスタードパイ",
+            "ランチパック チョコレート",
+            "KAGOME 野菜生活100 Smoothie バナナ&アーモンド mix"
+          ],
+          "image_id": "wm_d043bb08e31a",
+          "image_ext": "jpg",
+          "drive_file_id": "18FHSQG5KeXVHyOP3WZq4YntUp18bE_M4"
+        },
+        {
+          "id": "item_036045538742",
+          "name": "じゃりぱん・スターバックス ラテ・綾鷹",
+          "items_extracted": [
+            "じゃりぱん",
+            "スターバックス ラテ",
+            "綾鷹"
+          ],
+          "image_id": "wm_2c511c40a615",
+          "image_ext": "jpg",
+          "drive_file_id": "1s4JR2AaqBG0YdKpngFAYBtesmu8zrOmb"
+        }
+      ]
+    },
+    "2026-08-12": {
+      "items": [
+        {
+          "id": "item_ff5e7afc6fb0",
+          "name": "ご飯・汁物・豚肉と野菜炒め・ポテトサラダ・オクラの和え物・漬物",
+          "items_extracted": [
+            "ご飯",
+            "汁物",
+            "豚肉と野菜炒め",
+            "ポテトサラダ",
+            "オクラの和え物",
+            "漬物"
+          ],
+          "image_id": "wm_96e7dcb68653",
+          "image_ext": "jpg",
+          "drive_file_id": "10vOh1PZCDNPRUVTkiyHNkRGHCmvt7non"
+        }
+      ]
+    },
+    "2026-08-11": {
+      "items": [
+        {
+          "id": "item_791033053014",
+          "name": "プリン・バニラアイスクリーム・コーヒー・コーヒーフレッシュ",
+          "items_extracted": [
+            "プリン",
+            "バニラアイスクリーム",
+            "コーヒー",
+            "コーヒーフレッシュ"
+          ],
+          "image_id": "wm_805230dc4d0a",
+          "image_ext": "jpg",
+          "drive_file_id": "1K2zeROExGCDSafVdusCrDxoGGnNihWGP"
+        },
+        {
+          "id": "item_c42f79345934",
+          "name": "ハンバーグ・コーン・いんげん・にんじん・じゃがいも・ビーフシチュー・フライドポテト・ケチャップ・コーンスープ・コーヒー・水",
+          "items_extracted": [
+            "ハンバーグ",
+            "コーン",
+            "いんげん",
+            "にんじん",
+            "じゃがいも",
+            "ビーフシチュー",
+            "フライドポテト",
+            "ケチャップ",
+            "コーンスープ",
+            "コーヒー",
+            "水"
+          ],
+          "image_id": "wm_2e3b55ecf855",
+          "image_ext": "jpg",
+          "drive_file_id": "1FSCMEZ5vsKOzINCEvFD44wmcBrMu8fgT"
+        },
+        {
+          "id": "item_04f89af8fdd2",
+          "name": "フライドポテト・ケチャップ・スープ",
+          "items_extracted": [
+            "フライドポテト",
+            "ケチャップ",
+            "スープ"
+          ],
+          "image_id": "wm_164cab1444ff",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZIU4HDbO2cT6f8S3QkesCNaohfMhIvFb"
+        },
+        {
+          "id": "item_be51cb11db62",
+          "name": "サラダ・ポタージュスープ・コンソメスープ",
+          "items_extracted": [
+            "サラダ",
+            "ポタージュスープ",
+            "コンソメスープ"
+          ],
+          "image_id": "wm_894bfd389c1e",
+          "image_ext": "jpg",
+          "drive_file_id": "1SJwsG7zH-PYjcRCaurxZ8CnYhEi_HR_L"
+        },
+        {
+          "id": "item_580e5caad54f",
+          "name": "ラーメン・煮卵・チャーシュー・きくらげ・青ネギ・ごま",
+          "items_extracted": [
+            "ラーメン",
+            "煮卵",
+            "チャーシュー",
+            "きくらげ",
+            "青ネギ",
+            "ごま"
+          ],
+          "image_id": "wm_ad4ed1a08b52",
+          "image_ext": "jpg",
+          "drive_file_id": "1pqEKVcVcFgBkUBIRL8LyqWOA63yaOo8i"
+        },
+        {
+          "id": "item_d6bb96af02a0",
+          "name": "麺・肉そぼろ・トマト・きゅうり・高菜漬け・もやし",
+          "items_extracted": [
+            "麺",
+            "肉そぼろ",
+            "トマト",
+            "きゅうり",
+            "高菜漬け",
+            "もやし"
+          ],
+          "image_id": "wm_f4cbaea90091",
+          "image_ext": "jpg",
+          "drive_file_id": "1CkxgvxewBfUBfvgmnhjmfFvorYnr6mvB"
         }
       ]
     }
