@@ -60558,6 +60558,52 @@
           "image_id": "wm_2c511c40a615",
           "image_ext": "jpg",
           "drive_file_id": "1s4JR2AaqBG0YdKpngFAYBtesmu8zrOmb"
+        },
+        {
+          "id": "item_752601c14478",
+          "name": "ご飯・卵焼き・焼き魚・れんこんの煮物・にんじんの煮物・ひじきの煮物・サラダ・五目豆・海鮮サラダ・きのこご飯・菜めし・とんかつ・春巻き・唐揚げ・オムライス・水・プロテインバー",
+          "items_extracted": [
+            "ご飯",
+            "卵焼き",
+            "焼き魚",
+            "れんこんの煮物",
+            "にんじんの煮物",
+            "ひじきの煮物",
+            "サラダ",
+            "五目豆",
+            "海鮮サラダ",
+            "きのこご飯",
+            "菜めし",
+            "とんかつ",
+            "春巻き",
+            "唐揚げ",
+            "オムライス",
+            "水",
+            "プロテインバー"
+          ],
+          "image_id": "wm_851975a0f228",
+          "image_ext": "jpg",
+          "drive_file_id": "12levxzDSE8oYEwYrYrLi8mqScx9LuewZ"
+        },
+        {
+          "id": "item_3f2aab8605f9",
+          "name": "五目豆・サラダ・鶏めし・野沢菜ちりめんごはん・とんかつ・春巻・オムライス・弁当・タンパク質オイシイ・水・お茶",
+          "items_extracted": [
+            "五目豆",
+            "サラダ",
+            "鶏めし",
+            "野沢菜ちりめんごはん",
+            "とんかつ",
+            "春巻",
+            "オムライス",
+            "弁当",
+            "タンパク質オイシイ",
+            "水",
+            "お茶"
+          ],
+          "image_id": "wm_6cd067411a56",
+          "image_ext": "jpg",
+          "drive_file_id": "1DjgZnRb_KgHS5aGRRaSUIMFNCiH3w8ag"
         }
       ]
     },
@@ -60668,6 +60714,193 @@
           "image_id": "wm_f4cbaea90091",
           "image_ext": "jpg",
           "drive_file_id": "1CkxgvxewBfUBfvgmnhjmfFvorYnr6mvB"
+        }
+      ]
+    },
+    "2026-08-18": {
+      "items": [
+        {
+          "id": "item_74b3e621ed49",
+          "name": "コメダ珈琲店監修 まろやかミルクコーヒー・ミルクパン",
+          "items_extracted": [
+            "コメダ珈琲店監修 まろやかミルクコーヒー",
+            "ミルクパン"
+          ],
+          "image_id": "wm_4c58e9d02687",
+          "image_ext": "jpg",
+          "drive_file_id": "1xrnzqmuEXztPCnahElqEx-eLTwLnrQWF"
+        }
+      ]
+    },
+    "2026-08-17": {
+      "items": [
+        {
+          "id": "item_a6857ca750b6",
+          "name": "焼きそば・目玉焼き・紅しょうが・青のり・お茶",
+          "items_extracted": [
+            "焼きそば",
+            "目玉焼き",
+            "紅しょうが",
+            "青のり",
+            "お茶"
+          ],
+          "image_id": "wm_5fc804ad7d9c",
+          "image_ext": "jpg",
+          "drive_file_id": "1nBaKApbwtTkfEJGxvLbxScugf6vaIBgO"
+        },
+        {
+          "id": "item_52998b8a3fca",
+          "name": "カフェラテ・シルベーヌバー",
+          "items_extracted": [
+            "カフェラテ",
+            "シルベーヌバー"
+          ],
+          "image_id": "wm_281dd96a254d",
+          "image_ext": "jpg",
+          "drive_file_id": "1xy8IThIU59Xd5swST6shBT1WT1bcxiS1"
+        },
+        {
+          "id": "item_2a1cb1660328",
+          "name": "カロリーメイト ブロック・つぶらなカボス",
+          "items_extracted": [
+            "カロリーメイト ブロック",
+            "つぶらなカボス"
+          ],
+          "image_id": "wm_373a5320d541",
+          "image_ext": "jpg",
+          "drive_file_id": "1NAV2f1B9nAJi2Z5SQnXEOCOk33CaQ2f1"
+        }
+      ]
+    },
+    "2026-08-16": {
+      "items": [
+        {
+          "id": "item_04f08fe10b5f",
+          "name": "ご飯・卵とじスープ・ニラ玉炒め・きゅうりの和え物・お茶・水",
+          "items_extracted": [
+            "ご飯",
+            "卵とじスープ",
+            "ニラ玉炒め",
+            "きゅうりの和え物",
+            "お茶",
+            "水"
+          ],
+          "image_id": "wm_449b9ea24842",
+          "image_ext": "jpg",
+          "drive_file_id": "144VT68kLOupysQTjK4DwVF28WppRYKEk"
+        },
+        {
+          "id": "item_8714ed4c59d6",
+          "name": "ピザ・ピザ・フライドポテト・チキンナゲット・水・お茶",
+          "items_extracted": [
+            "ピザ",
+            "ピザ",
+            "フライドポテト",
+            "チキンナゲット",
+            "水",
+            "お茶"
+          ],
+          "image_id": "wm_f57d1298aacc",
+          "image_ext": "jpg",
+          "drive_file_id": "1d7nvTqLvIS-Ql7q03zYSyaywAGi4KtJs"
+        },
+        {
+          "id": "item_41a90b9563d2",
+          "name": "照焼チキンとたまごサンド・タリーズコーヒー 無糖ラテ・緑茶",
+          "items_extracted": [
+            "照焼チキンとたまごサンド",
+            "タリーズコーヒー 無糖ラテ",
+            "緑茶"
+          ],
+          "image_id": "wm_77a4d6634958",
+          "image_ext": "jpg",
+          "drive_file_id": "1-UbEx1fI84XImn5vC7UAGnEKh9fOWZvL"
+        }
+      ]
+    },
+    "2026-08-15": {
+      "items": [
+        {
+          "id": "item_e92e4a8c887d",
+          "name": "練乳ミルクフランス・無糖ラテ・緑茶",
+          "items_extracted": [
+            "練乳ミルクフランス",
+            "無糖ラテ",
+            "緑茶"
+          ],
+          "image_id": "wm_d5a694e2922b",
+          "image_ext": "jpg",
+          "drive_file_id": "1FAWwqVnB5-IcYDaPB-PtJhbdQwpT4Vvc"
+        },
+        {
+          "id": "item_5253b3102d6a",
+          "name": "ご飯・もやしとツナの和え物・白身魚の煮付け・野菜の和え物・味噌汁",
+          "items_extracted": [
+            "ご飯",
+            "もやしとツナの和え物",
+            "白身魚の煮付け",
+            "野菜の和え物",
+            "味噌汁"
+          ],
+          "image_id": "wm_a0ccee24f5a1",
+          "image_ext": "jpg",
+          "drive_file_id": "15u4zdYM5gjSnAoZiP66V-9Ll9JynskVi"
+        },
+        {
+          "id": "item_e654569ea897",
+          "name": "カップラーメン・コーヒー",
+          "items_extracted": [
+            "カップラーメン",
+            "コーヒー"
+          ],
+          "image_id": "wm_250c92001109",
+          "image_ext": "jpg",
+          "drive_file_id": "1lojIHRqQaR1U_RH0R7Y0iFr93NcahA3u"
+        },
+        {
+          "id": "item_bc9c47e6b4d6",
+          "name": "キッシュ・シナモンロール・マンゴードリンク・ホットドリンク",
+          "items_extracted": [
+            "キッシュ",
+            "シナモンロール",
+            "マンゴードリンク",
+            "ホットドリンク"
+          ],
+          "image_id": "wm_d7639eabbecf",
+          "image_ext": "jpg",
+          "drive_file_id": "1hN-v1qCUZJ8psRI260cNnkY6f-kvxiEY"
+        }
+      ]
+    },
+    "2026-08-14": {
+      "items": [
+        {
+          "id": "item_9d8bda9666cd",
+          "name": "天丼・カツ丼・焼きそば・肉うどん・天ぷら・緑茶・水",
+          "items_extracted": [
+            "天丼",
+            "カツ丼",
+            "焼きそば",
+            "肉うどん",
+            "天ぷら",
+            "緑茶",
+            "水"
+          ],
+          "image_id": "wm_4d0076ce135d",
+          "image_ext": "jpg",
+          "drive_file_id": "1N26yFePLbarDXSVyPDSsKqbNIvte3IEJ"
+        },
+        {
+          "id": "item_4ff0ace905fc",
+          "name": "カロリーメイト ブロック・シルベーヌバー・カフェラッテ",
+          "items_extracted": [
+            "カロリーメイト ブロック",
+            "シルベーヌバー",
+            "カフェラッテ"
+          ],
+          "image_id": "wm_6af465f5880f",
+          "image_ext": "jpg",
+          "drive_file_id": "111sHoS6sqUehgLZorVdq-fi5BI-BRX4f"
         }
       ]
     }
