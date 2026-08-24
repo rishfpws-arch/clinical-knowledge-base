@@ -60945,6 +60945,22 @@
           "image_id": "wm_c18cada598af",
           "image_ext": "jpg",
           "drive_file_id": "1bkftBAcXlZ6BtZM-h-emZireCVP2DBDm"
+        },
+        {
+          "id": "item_2cb580d78ef2",
+          "name": "カレー・ナン・サラダ・タンドリーチキン・レモン・ラッシー・水",
+          "items_extracted": [
+            "カレー",
+            "ナン",
+            "サラダ",
+            "タンドリーチキン",
+            "レモン",
+            "ラッシー",
+            "水"
+          ],
+          "image_id": "wm_e774fa46b911",
+          "image_ext": "jpg",
+          "drive_file_id": "1zEQWW_Psfrc2b5O_G-BoohWLAeTJhdsd"
         }
       ]
     },
@@ -60978,6 +60994,170 @@
           "image_id": "wm_236c883c58ce",
           "image_ext": "jpg",
           "drive_file_id": "1sQuk61VZ0WRCAkMgwM-eYdV-U-e6QO8H"
+        }
+      ]
+    },
+    "2026-08-24": {
+      "items": [
+        {
+          "id": "item_6a3ae9841145",
+          "name": "チョコレート菓子・無糖アイスティー・カフェラテ",
+          "items_extracted": [
+            "チョコレート菓子",
+            "無糖アイスティー",
+            "カフェラテ"
+          ],
+          "image_id": "wm_0a145327bcfd",
+          "image_ext": "jpg",
+          "drive_file_id": "1xu_ecsLFnNJOmiVUe8wvYqKRpb0frZ70"
+        },
+        {
+          "id": "item_5f36449de6ec",
+          "name": "午後の紅茶 おいしい無糖 レモン・ミネラルウォーター・コカ・コーラ・カルピス 濃いめ・ジョア 鉄＆葉酸 ぶどう・ヤクルト1000・カロリーメイト ブロック チーズ味・パン",
+          "items_extracted": [
+            "午後の紅茶 おいしい無糖 レモン",
+            "ミネラルウォーター",
+            "コカ・コーラ",
+            "カルピス 濃いめ",
+            "ジョア 鉄＆葉酸 ぶどう",
+            "ヤクルト1000",
+            "カロリーメイト ブロック チーズ味",
+            "パン"
+          ],
+          "image_id": "wm_99ce4ed43c7f",
+          "image_ext": "jpg",
+          "drive_file_id": "1fToZdt3WjYhd7y_30pw96iSPY4S2AXv7"
+        }
+      ]
+    },
+    "2026-08-23": {
+      "items": [
+        {
+          "id": "item_def26b64f343",
+          "name": "カレー・にんじんしりしり・ミニトマト・水・かつお節",
+          "items_extracted": [
+            "カレー",
+            "にんじんしりしり",
+            "ミニトマト",
+            "水",
+            "かつお節"
+          ],
+          "image_id": "wm_b1e45fbee31c",
+          "image_ext": "jpg",
+          "drive_file_id": "1BC18JalrdOM5sXdCy1BQcHC9HhrUsHDG"
+        },
+        {
+          "id": "item_64f16ef5e5fb",
+          "name": "ご飯・ポテトサラダ・豚肉とピーマンの炒め物・味噌汁・パイナップル",
+          "items_extracted": [
+            "ご飯",
+            "ポテトサラダ",
+            "豚肉とピーマンの炒め物",
+            "味噌汁",
+            "パイナップル"
+          ],
+          "image_id": "wm_393886f1fef5",
+          "image_ext": "jpg",
+          "drive_file_id": "1mtoCayhT-b05m9YjbGpwkstaF2M3yr4r"
+        },
+        {
+          "id": "item_64ecd4d22f95",
+          "name": "ご飯・ふりかけ・味噌汁・卵と野菜の炒め物・牛乳・レモン風味飲料",
+          "items_extracted": [
+            "ご飯",
+            "ふりかけ",
+            "味噌汁",
+            "卵と野菜の炒め物",
+            "牛乳",
+            "レモン風味飲料"
+          ],
+          "image_id": "wm_69021ff9720b",
+          "image_ext": "jpg",
+          "drive_file_id": "1yf6tmAY7qe98OiDlhfLYb1n9ETJf4g5P"
+        }
+      ]
+    },
+    "2026-08-22": {
+      "items": [
+        {
+          "id": "item_8949e5ff7780",
+          "name": "ご飯・肉じゃが・小松菜と油揚げの煮物・そうめんの吸い物・昆布の佃煮",
+          "items_extracted": [
+            "ご飯",
+            "肉じゃが",
+            "小松菜と油揚げの煮物",
+            "そうめんの吸い物",
+            "昆布の佃煮"
+          ],
+          "image_id": "wm_2b2a5c04e81c",
+          "image_ext": "jpg",
+          "drive_file_id": "1_h-UQxakBH86NLILs4hU8s6m6fTh7xjv"
+        },
+        {
+          "id": "item_969915090267",
+          "name": "そうめん・茹でキャベツ・バナナ・水・めんつゆ・緑茶・りんごジュース・きざみのり・フライドチキン",
+          "items_extracted": [
+            "そうめん",
+            "茹でキャベツ",
+            "バナナ",
+            "水",
+            "めんつゆ",
+            "緑茶",
+            "りんごジュース",
+            "きざみのり",
+            "フライドチキン"
+          ],
+          "image_id": "wm_5c6c444bc74d",
+          "image_ext": "jpg",
+          "drive_file_id": "1OFqBIHKLX0nujjz4D0w0NOqZ0oN5WGnJ"
+        }
+      ]
+    },
+    "2026-08-21": {
+      "items": [
+        {
+          "id": "item_c173ac428567",
+          "name": "フライドチキン・フライドポテト・コールスロー・お茶・三ツ矢サイダー",
+          "items_extracted": [
+            "フライドチキン",
+            "フライドポテト",
+            "コールスロー",
+            "お茶",
+            "三ツ矢サイダー"
+          ],
+          "image_id": "wm_3cbcdcc8016e",
+          "image_ext": "jpg",
+          "drive_file_id": "1NTCO8ESOw7iRVOwyrd0Bp49IrCrsXWDC"
+        },
+        {
+          "id": "item_d5d21e66a8e9",
+          "name": "カロリーメイト ブロック・マウントレーニア カフェラッテ・プロテインバー",
+          "items_extracted": [
+            "カロリーメイト ブロック",
+            "マウントレーニア カフェラッテ",
+            "プロテインバー"
+          ],
+          "image_id": "wm_9f1ba99fa0fb",
+          "image_ext": "jpg",
+          "drive_file_id": "1W-JHrztKx9rSqbSdxFMUDEWUpS34pFrf"
+        },
+        {
+          "id": "item_d02bebed1d15",
+          "name": "バナナ・ヤクルト1000・いちごジャムパン・チョコブレッド・緑茶飲料・チョコレート菓子・水・インスタント味噌汁の素・サプリメント",
+          "items_extracted": [
+            "バナナ",
+            "ヤクルト1000",
+            "いちごジャムパン",
+            "チョコブレッド",
+            "緑茶飲料",
+            "チョコレート菓子",
+            "水",
+            "インスタント味噌汁の素",
+            "サプリメント"
+          ],
+          "image_id": "wm_018dad540f2f",
+          "image_ext": "jpg",
+          "drive_file_id": "1BmKI-gw-s0S2THazizUIkIwRwzGIVsIP"
         }
       ]
     }
