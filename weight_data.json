@@ -61027,6 +61027,33 @@
           "image_id": "wm_99ce4ed43c7f",
           "image_ext": "jpg",
           "drive_file_id": "1fToZdt3WjYhd7y_30pw96iSPY4S2AXv7"
+        },
+        {
+          "id": "item_8a3848257e88",
+          "name": "スパゲッティ・スープ・玉ねぎの丸煮・水・天然水・紅茶・緑茶",
+          "items_extracted": [
+            "スパゲッティ",
+            "スープ",
+            "玉ねぎの丸煮",
+            "水",
+            "天然水",
+            "紅茶",
+            "緑茶"
+          ],
+          "image_id": "wm_eae9c99a8a9a",
+          "image_ext": "jpg",
+          "drive_file_id": "1-CzVcPKGWSEMRbOOQjMEkP7PN_3qOefM"
+        },
+        {
+          "id": "item_eb4f254bcdf5",
+          "name": "チキン スティック・野菜生活100 Smoothie バナナ＆アーモンドmix",
+          "items_extracted": [
+            "チキン スティック",
+            "野菜生活100 Smoothie バナナ＆アーモンドmix"
+          ],
+          "image_id": "wm_b184e7b9445e",
+          "image_ext": "jpg",
+          "drive_file_id": "1v9Vti5yTqljGpeeaSpiDcTDrlcrzvZXh"
         }
       ]
     },
@@ -61158,6 +61185,449 @@
           "image_id": "wm_018dad540f2f",
           "image_ext": "jpg",
           "drive_file_id": "1BmKI-gw-s0S2THazizUIkIwRwzGIVsIP"
+        }
+      ]
+    },
+    "2026-08-31": {
+      "items": [
+        {
+          "id": "item_7dee4283ef4a",
+          "name": "ピーナッツクリームパン・緑茶・グリーンスムージー",
+          "items_extracted": [
+            "ピーナッツクリームパン",
+            "緑茶",
+            "グリーンスムージー"
+          ],
+          "image_id": "wm_8c431c2e7a8b",
+          "image_ext": "jpg",
+          "drive_file_id": "14n8ATPJN2lGTY8rcqwbVTIYm5zgWKXbi"
+        }
+      ]
+    },
+    "2026-08-28": {
+      "items": [
+        {
+          "id": "item_514530139291",
+          "name": "味噌汁・雑穀米・豚肉と青菜の炒め物・オクラ・お茶・炭酸水・清涼飲料水",
+          "items_extracted": [
+            "味噌汁",
+            "雑穀米",
+            "豚肉と青菜の炒め物",
+            "オクラ",
+            "お茶",
+            "炭酸水",
+            "清涼飲料水"
+          ],
+          "image_id": "wm_aa948e0fdb92",
+          "image_ext": "jpg",
+          "drive_file_id": "16wi3Y738dFSLbHjbcj_VB82l-_2BtcYZ"
+        },
+        {
+          "id": "item_446208ad2cac",
+          "name": "雑穀米・ワカメと玉ねぎの味噌汁・豚肉と小松菜の炒め物・オクラの和え物・オレンジジュース・炭酸水・飲み物",
+          "items_extracted": [
+            "雑穀米",
+            "ワカメと玉ねぎの味噌汁",
+            "豚肉と小松菜の炒め物",
+            "オクラの和え物",
+            "オレンジジュース",
+            "炭酸水",
+            "飲み物"
+          ],
+          "image_id": "wm_e0804a35b35b",
+          "image_ext": "jpg",
+          "drive_file_id": "1yIipOluRW292KSTK671llV5gFYMlzLwe"
+        },
+        {
+          "id": "item_2d9054377fe2",
+          "name": "グラノーラ・牛乳",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳"
+          ],
+          "image_id": "wm_ec2748b05d9e",
+          "image_ext": "jpg",
+          "drive_file_id": "1gKhPyrhU-r6As2hQz32TQ8joZILqtNk0"
+        }
+      ]
+    },
+    "2026-08-29": {
+      "items": [
+        {
+          "id": "item_d3daabd110a7",
+          "name": "そうめん・麺つゆ・刻み海苔・三ツ矢サイダー・緑茶・サントリー天然水・水・追いがつおつゆ・揚げ玉・胡椒",
+          "items_extracted": [
+            "そうめん",
+            "麺つゆ",
+            "刻み海苔",
+            "三ツ矢サイダー",
+            "緑茶",
+            "サントリー天然水",
+            "水",
+            "追いがつおつゆ",
+            "揚げ玉",
+            "胡椒"
+          ],
+          "image_id": "wm_ee8deb1f79ae",
+          "image_ext": "jpg",
+          "drive_file_id": "1NBQX8sTD6pJF2FkbqFhb_AyF1shC5UGf"
+        },
+        {
+          "id": "item_76ca300651d1",
+          "name": "緑茶",
+          "items_extracted": [
+            "緑茶"
+          ],
+          "image_id": "wm_7a8dfbc1615d",
+          "image_ext": "jpg",
+          "drive_file_id": "11FYeuceE39LvZySU2Ih8-wzV9zi85Aw8"
+        },
+        {
+          "id": "item_a775cb0a1d66",
+          "name": "緑茶・玉露ほろ",
+          "items_extracted": [
+            "緑茶",
+            "玉露ほろ"
+          ],
+          "image_id": "wm_0fbe6357893f",
+          "image_ext": "jpg",
+          "drive_file_id": "1-BR9l_1H7wJDLkb1gpGmCUiTzexfP0GZ"
+        },
+        {
+          "id": "item_ac7e16b77172",
+          "name": "水・冷製スープ・ハーブオイル・魚介のマリネ・ミニシュー",
+          "items_extracted": [
+            "水",
+            "冷製スープ",
+            "ハーブオイル",
+            "魚介のマリネ",
+            "ミニシュー"
+          ],
+          "image_id": "wm_67216e7cc281",
+          "image_ext": "jpg",
+          "drive_file_id": "1rr7vKBWk1v7F7WH4vLhwR7GKbuJRPIOw"
+        },
+        {
+          "id": "item_6c3b516258fa",
+          "name": "薄切り肉・ラディッシュ・コーン・ハーブ・オリーブオイル",
+          "items_extracted": [
+            "薄切り肉",
+            "ラディッシュ",
+            "コーン",
+            "ハーブ",
+            "オリーブオイル"
+          ],
+          "image_id": "wm_993a3c8ab92d",
+          "image_ext": "jpg",
+          "drive_file_id": "1WenR7X4-YE3g94xX6yTAJUbT-31ZyX7b"
+        },
+        {
+          "id": "item_7edde1854e5b",
+          "name": "白いポタージュ・生ハム・マイクログリーン・オリーブオイル",
+          "items_extracted": [
+            "白いポタージュ",
+            "生ハム",
+            "マイクログリーン",
+            "オリーブオイル"
+          ],
+          "image_id": "wm_09a4fd8e4599",
+          "image_ext": "jpg",
+          "drive_file_id": "19D2qEVzKbZ-iJROZHiM8OGMRlCalqNnw"
+        },
+        {
+          "id": "item_1b4fc9fd8598",
+          "name": "魚のポワレ・バジルソース・アスパラガス・ミニトマト・スプラウト・ドライトマト・オリーブペースト・オリーブオイル",
+          "items_extracted": [
+            "魚のポワレ",
+            "バジルソース",
+            "アスパラガス",
+            "ミニトマト",
+            "スプラウト",
+            "ドライトマト",
+            "オリーブペースト",
+            "オリーブオイル"
+          ],
+          "image_id": "wm_5adfd7ecde2b",
+          "image_ext": "jpg",
+          "drive_file_id": "1siP5AhWxZzfAn9OilplNVqHmBg6Z3KGE"
+        },
+        {
+          "id": "item_1cb362f2f576",
+          "name": "牛肉のステーキ・ソース・マッシュポテト・インゲン・キノコ・ナス・人参・オイル",
+          "items_extracted": [
+            "牛肉のステーキ",
+            "ソース",
+            "マッシュポテト",
+            "インゲン",
+            "キノコ",
+            "ナス",
+            "人参",
+            "オイル"
+          ],
+          "image_id": "wm_05f06ebcfea3",
+          "image_ext": "jpg",
+          "drive_file_id": "1saU6kwwcQkkjQWma9WPxloIOMgfZMqQB"
+        },
+        {
+          "id": "item_70e65e96ed32",
+          "name": "アイスクリーム・クランブル・ブドウ・ベリーソース・ハーブ",
+          "items_extracted": [
+            "アイスクリーム",
+            "クランブル",
+            "ブドウ",
+            "ベリーソース",
+            "ハーブ"
+          ],
+          "image_id": "wm_9cb1e73b9350",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZBcqtRic0pwywY_tWJnePvc47dWrdWkT"
+        },
+        {
+          "id": "item_1ee20207ff66",
+          "name": "アイスクリーム・ベリー・クランブル・フィナンシェ・マカロン",
+          "items_extracted": [
+            "アイスクリーム",
+            "ベリー",
+            "クランブル",
+            "フィナンシェ",
+            "マカロン"
+          ],
+          "image_id": "wm_c784aead8c8d",
+          "image_ext": "jpg",
+          "drive_file_id": "1QTMSdvDj__YV0z0hS2Xbu_Z0fkRfLkoJ"
+        },
+        {
+          "id": "item_11950bf4f3ea",
+          "name": "アイスクリーム・クランブル・ベリーソース・食用ハーブ・マカロン（ピンク）・フィナンシェ・マカロン（緑）・オレンジジュース・抹茶ドリンク",
+          "items_extracted": [
+            "アイスクリーム",
+            "クランブル",
+            "ベリーソース",
+            "食用ハーブ",
+            "マカロン（ピンク）",
+            "フィナンシェ",
+            "マカロン（緑）",
+            "オレンジジュース",
+            "抹茶ドリンク"
+          ],
+          "image_id": "wm_445ad0ab6875",
+          "image_ext": "jpg",
+          "drive_file_id": "1Leaz9lqsta1kFHwa7qxBcR6wjP434i1a"
+        },
+        {
+          "id": "item_6ca420019515",
+          "name": "そうめん・めんつゆ・刻み海苔・水・お茶・炭酸水",
+          "items_extracted": [
+            "そうめん",
+            "めんつゆ",
+            "刻み海苔",
+            "水",
+            "お茶",
+            "炭酸水"
+          ],
+          "image_id": "wm_d299dc6b4053",
+          "image_ext": "jpg",
+          "drive_file_id": "1r1jdxi5FyPPqiyEVON-ZonmwgtQfmA75"
+        }
+      ]
+    },
+    "2026-08-30": {
+      "items": [
+        {
+          "id": "item_2b964a66a874",
+          "name": "抹茶・和菓子",
+          "items_extracted": [
+            "抹茶",
+            "和菓子"
+          ],
+          "image_id": "wm_baaa4f20b2b1",
+          "image_ext": "jpg",
+          "drive_file_id": "1UMxA05mrpzNN5TBDHaToSiiT7elgnt0H"
+        },
+        {
+          "id": "item_69603f915d45",
+          "name": "ご飯・味噌汁・焼き魚・煮物・茶碗蒸し・鶏肉と野菜の煮物・きんぴらごぼう・冷奴・大豆の甘納豆・豚肉と大根の煮物・漬物・野菜の和え物・お茶",
+          "items_extracted": [
+            "ご飯",
+            "味噌汁",
+            "焼き魚",
+            "煮物",
+            "茶碗蒸し",
+            "鶏肉と野菜の煮物",
+            "きんぴらごぼう",
+            "冷奴",
+            "大豆の甘納豆",
+            "豚肉と大根の煮物",
+            "漬物",
+            "野菜の和え物",
+            "お茶"
+          ],
+          "image_id": "wm_bd89bf1cb556",
+          "image_ext": "jpg",
+          "drive_file_id": "1xxBaGljfs_PrmGSpSfsDvnV-snIjhSL-"
+        },
+        {
+          "id": "item_97adb5d41154",
+          "name": "とんかつ・キャベツ・ご飯・うどん・牛肉・青ネギ・いなり寿司・紅しょうが・たくあん・天かす",
+          "items_extracted": [
+            "とんかつ",
+            "キャベツ",
+            "ご飯",
+            "うどん",
+            "牛肉",
+            "青ネギ",
+            "いなり寿司",
+            "紅しょうが",
+            "たくあん",
+            "天かす"
+          ],
+          "image_id": "wm_497e9b605ac4",
+          "image_ext": "jpg",
+          "drive_file_id": "1yD0vCQ3nwADuZGyJbbKbqILBUuBWfJW0"
+        }
+      ]
+    },
+    "2026-08-27": {
+      "items": [
+        {
+          "id": "item_e1bc9f41fc9d",
+          "name": "ご飯・味噌汁・納豆・豚肉とピーマンとナスの炒め物・きゅうりとわかめの酢の物",
+          "items_extracted": [
+            "ご飯",
+            "味噌汁",
+            "納豆",
+            "豚肉とピーマンとナスの炒め物",
+            "きゅうりとわかめの酢の物"
+          ],
+          "image_id": "wm_73b84eefa426",
+          "image_ext": "jpg",
+          "drive_file_id": "173HIIbdpdjJyKu3F41Dxz7EZZmj1tyXu"
+        },
+        {
+          "id": "item_25b70db4e048",
+          "name": "カゴメ 野菜生活100 スムージー グリーンスムージー・じゅるる ヨーグルト飲料・ロッテ ゼロ プロテインバー チョコレート・スターバックス ボトルコーヒー",
+          "items_extracted": [
+            "カゴメ 野菜生活100 スムージー グリーンスムージー",
+            "じゅるる ヨーグルト飲料",
+            "ロッテ ゼロ プロテインバー チョコレート",
+            "スターバックス ボトルコーヒー"
+          ],
+          "image_id": "wm_b3981ba1bd65",
+          "image_ext": "jpg",
+          "drive_file_id": "1FETxf1cjfRb7-a0W1T-bAheke_JJ1eYa"
+        },
+        {
+          "id": "item_5babf9b4beb6",
+          "name": "サラダチキン・マンゴー・スターバックス ブリュードブラックコーヒー",
+          "items_extracted": [
+            "サラダチキン",
+            "マンゴー",
+            "スターバックス ブリュードブラックコーヒー"
+          ],
+          "image_id": "wm_d26da2716aaa",
+          "image_ext": "jpg",
+          "drive_file_id": "1hSZzXWqD81IWUZh0QY-uKezkZnK3EKtB"
+        }
+      ]
+    },
+    "2026-08-26": {
+      "items": [
+        {
+          "id": "item_5ba5adbde6df",
+          "name": "ご飯・卯の花・かぼちゃの煮物・鶏肉とえのきの煮物・きゅうりの漬物・味噌汁",
+          "items_extracted": [
+            "ご飯",
+            "卯の花",
+            "かぼちゃの煮物",
+            "鶏肉とえのきの煮物",
+            "きゅうりの漬物",
+            "味噌汁"
+          ],
+          "image_id": "wm_e37cc3279d1d",
+          "image_ext": "jpg",
+          "drive_file_id": "1ojafw7s9WitqXEgVlm3shPzlaFouGzVg"
+        },
+        {
+          "id": "item_2fecf7aa6889",
+          "name": "ご飯・ふりかけ・野菜の和え物・味噌汁・甘酢あんかけ・お茶",
+          "items_extracted": [
+            "ご飯",
+            "ふりかけ",
+            "野菜の和え物",
+            "味噌汁",
+            "甘酢あんかけ",
+            "お茶"
+          ],
+          "image_id": "wm_ff947290c27e",
+          "image_ext": "jpg",
+          "drive_file_id": "17cqQQ-J_2sLUt5sLJIyykIpKonQpgaag"
+        },
+        {
+          "id": "item_a29b77b6efdb",
+          "name": "グラノーラ・牛乳・バナナ・えびせんべい",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "バナナ",
+            "えびせんべい"
+          ],
+          "image_id": "wm_5ce047f3cce4",
+          "image_ext": "jpg",
+          "drive_file_id": "1y3rwbZXUztJ9CXg1zwN8ImNLtBM8ruAE"
+        }
+      ]
+    },
+    "2026-08-25": {
+      "items": [
+        {
+          "id": "item_eb5de397e5ec",
+          "name": "雑穀米・味噌汁・サラダ・辛味噌・肉野菜炒め・フライドポテト・ケチャップ・焼き魚・卵焼き・納豆・冷奴・和え物・水・お茶",
+          "items_extracted": [
+            "雑穀米",
+            "味噌汁",
+            "サラダ",
+            "辛味噌",
+            "肉野菜炒め",
+            "フライドポテト",
+            "ケチャップ",
+            "焼き魚",
+            "卵焼き",
+            "納豆",
+            "冷奴",
+            "和え物",
+            "水",
+            "お茶"
+          ],
+          "image_id": "wm_ab8e84193f56",
+          "image_ext": "jpg",
+          "drive_file_id": "1vjZS2hvyzoVXjHjgEoYDzCIoIcFGRIhJ"
+        },
+        {
+          "id": "item_74f13dcd3b56",
+          "name": "カフェラテ・野菜生活100 スムージー アサイー&バナナMix・サラダチキン スティック ゆず胡椒・1本満足バー 栄養チョコバー",
+          "items_extracted": [
+            "カフェラテ",
+            "野菜生活100 スムージー アサイー&バナナMix",
+            "サラダチキン スティック ゆず胡椒",
+            "1本満足バー 栄養チョコバー"
+          ],
+          "image_id": "wm_f730f125ffeb",
+          "image_ext": "jpg",
+          "drive_file_id": "1708iUJNSGjF1KDxOfMKlL6kz7evaNUSS"
+        },
+        {
+          "id": "item_7c9c727546d9",
+          "name": "ツナサラダサンドイッチ・ハムレタスサンドイッチ・たまごサンドイッチ・カゴメ 野菜生活100 スムージー アサイー&バナナMix・サラダチキンスモークペッパー",
+          "items_extracted": [
+            "ツナサラダサンドイッチ",
+            "ハムレタスサンドイッチ",
+            "たまごサンドイッチ",
+            "カゴメ 野菜生活100 スムージー アサイー&バナナMix",
+            "サラダチキンスモークペッパー"
+          ],
+          "image_id": "wm_0e9a37c22a49",
+          "image_ext": "jpg",
+          "drive_file_id": "18Z1A3_C_B_N1eH_S9eBzHYi0pzLz8au0"
         }
       ]
     }
