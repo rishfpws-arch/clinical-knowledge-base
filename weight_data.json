@@ -61201,6 +61201,20 @@
           "image_id": "wm_8c431c2e7a8b",
           "image_ext": "jpg",
           "drive_file_id": "14n8ATPJN2lGTY8rcqwbVTIYm5zgWKXbi"
+        },
+        {
+          "id": "item_4c765edbdb5c",
+          "name": "フライドチキン・チキンフィレサンド・フライドポテト・コールスロー・お茶（ペットボトル）",
+          "items_extracted": [
+            "フライドチキン",
+            "チキンフィレサンド",
+            "フライドポテト",
+            "コールスロー",
+            "お茶（ペットボトル）"
+          ],
+          "image_id": "wm_abc6170e0060",
+          "image_ext": "jpg",
+          "drive_file_id": "16FbXiVEyBgrK8J1omQMXYWuUPYhykBXe"
         }
       ]
     },
@@ -61628,6 +61642,142 @@
           "image_id": "wm_0e9a37c22a49",
           "image_ext": "jpg",
           "drive_file_id": "18Z1A3_C_B_N1eH_S9eBzHYi0pzLz8au0"
+        }
+      ]
+    },
+    "2026-09-03": {
+      "items": [
+        {
+          "id": "item_45caed9fe6a1",
+          "name": "プロテインバー・チョコレート菓子",
+          "items_extracted": [
+            "プロテインバー",
+            "チョコレート菓子"
+          ],
+          "image_id": "wm_450ba58680d0",
+          "image_ext": "jpg",
+          "drive_file_id": "1KC0usMfZXkPMIkOIS0C7NDbcGgC3LT-u"
+        }
+      ]
+    },
+    "2026-09-02": {
+      "items": [
+        {
+          "id": "item_1da9d677a8fa",
+          "name": "油そば・メンマ・青ネギ・豚肉・玉ねぎ",
+          "items_extracted": [
+            "油そば",
+            "メンマ",
+            "青ネギ",
+            "豚肉",
+            "玉ねぎ"
+          ],
+          "image_id": "wm_5f805cbeb2b4",
+          "image_ext": "jpg",
+          "drive_file_id": "1iwBJjA-z0RNixIluu2_sLsz3aD0A_A_n"
+        },
+        {
+          "id": "item_db3875b2d6df",
+          "name": "ご飯・お吸い物・かぼちゃの煮物・鶏肉の卵とじ・マンゴー・白菜の和え物",
+          "items_extracted": [
+            "ご飯",
+            "お吸い物",
+            "かぼちゃの煮物",
+            "鶏肉の卵とじ",
+            "マンゴー",
+            "白菜の和え物"
+          ],
+          "image_id": "wm_caba997051d5",
+          "image_ext": "jpg",
+          "drive_file_id": "1JKnB9_P_dY2otQJVTwZ5GUvkGoUUFQLL"
+        },
+        {
+          "id": "item_fc702477bd9a",
+          "name": "どら焼き",
+          "items_extracted": [
+            "どら焼き"
+          ],
+          "image_id": "wm_973851e463b3",
+          "image_ext": "jpg",
+          "drive_file_id": "1fGYeXpHoZXSMdZ7icJnzL1-378-epoqt"
+        },
+        {
+          "id": "item_2b835a32bfad",
+          "name": "ご飯・ハンバーグ・ブロッコリー・じゃがいも・にんじん・味噌汁・パスタサラダ・漬物・お茶",
+          "items_extracted": [
+            "ご飯",
+            "ハンバーグ",
+            "ブロッコリー",
+            "じゃがいも",
+            "にんじん",
+            "味噌汁",
+            "パスタサラダ",
+            "漬物",
+            "お茶"
+          ],
+          "image_id": "wm_1645488ee881",
+          "image_ext": "jpg",
+          "drive_file_id": "1n_MdaMvdKjlt8zdbY0whnQ4TvMRY7Wid"
+        },
+        {
+          "id": "item_449ef6e03e64",
+          "name": "バナナ・グラノーラ・牛乳",
+          "items_extracted": [
+            "バナナ",
+            "グラノーラ",
+            "牛乳"
+          ],
+          "image_id": "wm_98e4cdc21f70",
+          "image_ext": "jpg",
+          "drive_file_id": "1PDS43bHVduogPgMOyYepJhGwUAyQuI3F"
+        }
+      ]
+    },
+    "2026-09-01": {
+      "items": [
+        {
+          "id": "item_2fbbd50e3627",
+          "name": "野菜とひき肉の卵炒め",
+          "items_extracted": [
+            "野菜とひき肉の卵炒め"
+          ],
+          "image_id": "wm_eb65bd015b38",
+          "image_ext": "jpg",
+          "drive_file_id": "1AyuHfoADwOCih6ifQCMy7wqMr3mq2K-L"
+        },
+        {
+          "id": "item_0b2b11ba69c1",
+          "name": "ジョア ストロベリー・サラダチキン スティック スモーク・伊右衛門",
+          "items_extracted": [
+            "ジョア ストロベリー",
+            "サラダチキン スティック スモーク",
+            "伊右衛門"
+          ],
+          "image_id": "wm_51b101f23a3a",
+          "image_ext": "jpg",
+          "drive_file_id": "1zdrOefyhXKsKO3xKFRmFxdNu84x7Ht-p"
+        },
+        {
+          "id": "item_9654895c4aca",
+          "name": "お茶・カフェラテ・プロテインバー",
+          "items_extracted": [
+            "お茶",
+            "カフェラテ",
+            "プロテインバー"
+          ],
+          "image_id": "wm_1e4e9055f80f",
+          "image_ext": "jpg",
+          "drive_file_id": "1kS8ge2fXApCL98DGFDmo0Yr5ZzV6_lcK"
+        },
+        {
+          "id": "item_7bcc7fda1372",
+          "name": "フライドチキン",
+          "items_extracted": [
+            "フライドチキン"
+          ],
+          "image_id": "wm_9fa4935d254a",
+          "image_ext": "jpg",
+          "drive_file_id": "1hV6mmnn5V7YKn8dxWWGtfUDeQUlB6jsu"
         }
       ]
     }
