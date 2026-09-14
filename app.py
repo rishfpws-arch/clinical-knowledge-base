@@ -3438,8 +3438,12 @@ def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[d
 
 
 @st.cache_data(show_spinner=False)
-def _load_food_index_cached(_mtimes: tuple[float, float]):
-    """食事検索インデックス（説明文 + 埋め込み）をファイル更新時刻をキーに読み込む。"""
+def _load_food_index_cached(mtimes: tuple[float, float]):
+    """食事検索インデックス（説明文 + 埋め込み）をファイル更新時刻をキーに読み込む。
+
+    引数名にアンダースコアを付けると st.cache_data のキーから外れて
+    再読込されなくなるので、そのまま mtimes をキーに使う。
+    """
     index = _fs.load_index()
     ids, mat = _fs.load_embeddings()
     return index, ids, mat
