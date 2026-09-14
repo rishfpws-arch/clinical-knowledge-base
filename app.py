@@ -3528,21 +3528,26 @@ def _food_hybrid_search(entries: list[dict], query: str,
 
     sem: list[dict] = []
     semantic_ok = False
-    _, ids, mat = _get_food_index()
+    index, ids, mat = _get_food_index()
     if api_key and len(ids) and query.strip():
         qv = _fs.cached_query_embedding(query, api_key)
         if qv is not None:
             semantic_ok = True
             scores = _fs.semantic_scores(qv, ids, mat)
             by_id = {e["fid"]: e for e in entries}
-            ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
-            for iid, sc in ranked[: _fs.SEMANTIC_TOP_K]:
-                if sc < _fs.SEMANTIC_THRESHOLD:
-                    break
-                e = by_id.get(iid)
-                if e is None or iid in kw_ids:
+            cands = [(iid, sc) for iid, sc in _fs.select_candidates(scores, exclude=kw_ids)
+                     if iid in by_id]
+            # 候補を Gemini に最終判定させる（失敗時は候補をそのまま採用）
+            picked = _fs.rerank_with_llm(
+                query,
+                [(iid, (index.get(iid) or {}).get("embed_text", "")) for iid, _ in cands],
+                api_key,
+            )
+            keep = set(picked) if picked is not None else {iid for iid, _ in cands}
+            for iid, sc in cands:
+                if iid not in keep:
                     continue
-                e2 = dict(e)
+                e2 = dict(by_id[iid])
                 e2["score"] = sc
                 sem.append(e2)
     return {"keyword": kw, "semantic": sem, "groups": groups, "semantic_ok": semantic_ok}
