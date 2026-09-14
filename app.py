@@ -3909,6 +3909,7 @@ def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
     if not targets:
         return 0
     index = _fs.load_index()
+    pending: dict = {}
     prog_text = st.empty()
     prog = st.progress(0.0)
     done = 0
@@ -3925,6 +3926,7 @@ def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
                                     extra_names=e.get("items_extracted") or [],
                                     index=index, embed=False)
             if entry:
+                pending[e["fid"]] = entry
                 done += 1
         except _fs.GeminiRateLimited:
             st.warning("⚠️ Gemini のレート制限に達しました。しばらくしてから再実行してください。")
@@ -3932,7 +3934,7 @@ def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
         except Exception as ex:
             _log.warning(f"[food index] {e['fid']} 失敗: {ex}")
         time.sleep(0.5)
-    _fs.save_index(index)
+    index = _fs.merge_save_index(pending)
     try:
         _fs.embed_pending(index, api_key)
     except Exception as ex:
