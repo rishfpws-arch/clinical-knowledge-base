@@ -189,10 +189,13 @@ def gemini_generate(api_key: str, parts: list, model: str | None = None,
         ],
     }
     if json_mode:
+        # gemini-2.5-flash は思考トークンも maxOutputTokens に含まれるため、
+        # 思考を切って出力枠を JSON 本文に全部使う（途中で切れて解析失敗するのを防ぐ）
         payload["generationConfig"] = {
             "responseMimeType": "application/json",
             "temperature": 0.2,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": 4096,
+            "thinkingConfig": {"thinkingBudget": 0},
         }
     data = _post_gemini(url, payload)
     candidates = data.get("candidates") or []
@@ -239,9 +242,17 @@ def _image_part(image_bytes: bytes, max_px: int = DESCRIBE_MAX_PX) -> dict:
                             "data": base64.b64encode(data).decode("utf-8")}}
 
 
-def describe_food_image(image_bytes: bytes, api_key: str) -> dict | None:
-    """画像 1 枚から検索用の構造化説明を得る。失敗時は None（呼び出し側で判断）。"""
-    parts = [{"text": FOOD_DESCRIBE_PROMPT}, _image_part(image_bytes)]
+def describe_food_image(image_bytes: bytes, api_key: str, hint: str = "") -> dict | None:
+    """画像 1 枚から検索用の構造化説明を得る。失敗時は None（呼び出し側で判断）。
+
+    hint には撮影者からの補足（例: 「ビニール袋に入った食べ物です」）を渡せる。
+    品目が読み取れなかった写真の再解析に使う。
+    """
+    prompt = FOOD_DESCRIBE_PROMPT
+    hint = (hint or "").strip()
+    if hint:
+        prompt += chr(10)*2 + f"補足（撮影者からの情報。これを前提に判断すること）: {hint[:300]}"
+    parts = [{"text": prompt}, _image_part(image_bytes)]
     parsed = None
     for attempt in range(2):  # 出力が崩れた場合に 1 回だけ再試行
         text = gemini_generate(api_key, parts, json_mode=True)
@@ -307,10 +318,23 @@ def embed_query(query: str, api_key: str) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # 永続化
 # ---------------------------------------------------------------------------
+def _replace_with_retry(tmp: Path, path: Path, tries: int = 6) -> None:
+    """Windows では別プロセス（Streamlit）が読んでいる瞬間に os.replace が
+    PermissionError になるので、少し待って再試行する。"""
+    for i in range(tries):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise
+            time.sleep(0.3 * (i + 1))
+
+
 def _atomic_write_json(path: Path, data) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
+    _replace_with_retry(tmp, path)
 
 
 def _load_json(path: Path, default):
@@ -364,7 +388,7 @@ def save_embeddings(ids: list[str], mat: np.ndarray) -> None:
     tmp = EMB_PATH.with_suffix(".npz.tmp")
     with open(tmp, "wb") as f:
         np.savez(f, ids=np.asarray(ids, dtype=str), vectors=mat.astype(np.float32))
-    os.replace(tmp, EMB_PATH)
+    _replace_with_retry(tmp, EMB_PATH)
 
 
 def upsert_embeddings(new: dict[str, np.ndarray]) -> None:
@@ -403,17 +427,20 @@ def file_mtimes() -> tuple[float, float]:
 # ---------------------------------------------------------------------------
 def index_image(image_id: str, image_bytes: bytes, api_key: str,
                 extra_names: list[str] | None = None,
-                index: dict | None = None, embed: bool = True) -> dict | None:
+                index: dict | None = None, embed: bool = True,
+                hint: str = "") -> dict | None:
     """画像 1 枚を説明 → 索引に登録（→ 埋め込み）。
 
     index を渡した場合はそこに書き込むだけで保存しない（バッチ用）。
     渡さない場合は読み込み → 更新 → 保存まで行う。
     戻り値は索引エントリ（失敗時 None）。
     """
-    desc = describe_food_image(image_bytes, api_key)
+    desc = describe_food_image(image_bytes, api_key, hint=hint)
     if desc is None:
         return None
     entry = dict(desc)
+    if hint:
+        entry["hint"] = hint.strip()[:300]
     entry["search_text"] = build_search_text(desc, extra_names)
     entry["embed_text"] = embedding_text(desc, extra_names)
     entry["embedded"] = False
