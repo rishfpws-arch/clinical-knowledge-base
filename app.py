@@ -3522,7 +3522,9 @@ def _food_hybrid_search(entries: list[dict], query: str,
         groups:   展開後のトークン群
         semantic_ok: 意味検索が動いたか（インデックス・API キーがあるか）
     """
-    groups = _fs.keyword_groups(query, api_key, expand=True)
+    # キーワード段は直接一致のみ（索引に別名・カテゴリが入ったので類義語展開は不要。
+    # 展開すると「コンビニ」→おにぎり等で過剰一致する）。取りこぼしは意味検索段が拾う。
+    groups = _fs.keyword_groups(query, api_key, expand=False)
     kw = [e for e in entries if _fs.keyword_match(e.get("search_text", ""), groups)]
     kw_ids = {e["fid"] for e in kw}
 
@@ -3878,11 +3880,7 @@ def page_food_gallery():
         res = _food_hybrid_search(entries, query, api_key)
     kw, sem, groups = res["keyword"], res["semantic"], res["groups"]
 
-    term_strs = []
-    for group in groups:
-        terms = sorted(group)
-        term_strs.append(" / ".join(terms[:6]) + (f" 他{len(terms)-6}語" if len(terms) > 6 else ""))
-    cap = f"🔍 「{query}」→ {' & '.join(term_strs)}: 一致 {len(kw)} 件"
+    cap = f"🔍 「{query}」: 一致 {len(kw)} 件"
     if res["semantic_ok"]:
         cap += f" ＋ 関連 {len(sem)} 件"
     elif not len(_ids):
