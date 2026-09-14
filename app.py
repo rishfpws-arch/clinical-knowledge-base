@@ -3829,7 +3829,8 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                 if e.get("kind") == "food":
                     items_ext = [x for x in (e.get("items_extracted") or [])
                                  if not re.search(r"\.(jpe?g|png|heic)$", str(x), re.IGNORECASE)]
-                    if not items_ext and e.get("desc"):
+                    # 索引が「品目なし」と判定した写真は、旧解析の誤ったタグより説明文を優先
+                    if e.get("desc") and (not items_ext or e.get("no_items")):
                         st.markdown(
                             f'<div class="g-caption">🧠 {html.escape(str(e["desc"])[:60])}</div>',
                             unsafe_allow_html=True,
