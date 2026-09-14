@@ -3502,6 +3502,8 @@ def _build_food_entries(weight_data: dict, index: dict | None = None) -> list[di
             def _looks_like_filename(x: str) -> bool:
                 return bool(re.search(r"\.(jpe?g|png|heic)$", x, re.IGNORECASE))
             real_names = [x for x in items_extracted if not _looks_like_filename(x)]
+            # 「品目なし」検索用: 取り込み時の品目が無い、または索引で品目が空と判定された画像
+            no_items = (not real_names) or (bool(ix) and not ix.get("items"))
             if not real_names and ix.get("items"):
                 real_names = [str(x) for x in ix["items"] if x]
                 items_extracted = real_names + [x for x in items_extracted if x not in real_names]
@@ -3525,6 +3527,7 @@ def _build_food_entries(weight_data: dict, index: dict | None = None) -> list[di
                 "search_text": search_text,
                 "desc": ix.get("description", ""),
                 "indexed": bool(ix.get("search_text")),
+                "no_items": no_items,
             })
     return entries
 
@@ -3541,6 +3544,21 @@ def _food_hybrid_search(entries: list[dict], query: str,
     """
     # キーワード段は直接一致のみ（索引に別名・カテゴリが入ったので類義語展開は不要。
     # 展開すると「コンビニ」→おにぎり等で過剰一致する）。取りこぼしは意味検索段が拾う。
+    # 特別キーワード: 「品目なし」= 品目が取れなかった画像、「未索引」= 説明文索引が無い画像。
+    # 他の語と併用可（例: 「品目なし 6月」は無いので日付は不可だが「品目なし コンビニ」は可）。
+    special = {"品目なし": "no_items", "品目無し": "no_items", "未索引": "unindexed"}
+    q_tokens = [t for t in (query or "").split() if t]
+    flags = {special[t] for t in q_tokens if t in special}
+    rest = " ".join(t for t in q_tokens if t not in special)
+    if "no_items" in flags:
+        entries = [e for e in entries if e.get("no_items")]
+    if "unindexed" in flags:
+        entries = [e for e in entries if not e.get("indexed")]
+    if flags and not rest.strip():
+        return {"keyword": entries, "semantic": [], "groups": [], "semantic_ok": False,
+                "special": True}
+    query = rest
+
     groups = _fs.keyword_groups(query, api_key, expand=False)
     kw = [e for e in entries if _fs.keyword_match(e.get("search_text", ""), groups)]
     kw_ids = {e["fid"] for e in kw}
@@ -3569,7 +3587,8 @@ def _food_hybrid_search(entries: list[dict], query: str,
                 e2 = dict(by_id[iid])
                 e2["score"] = sc
                 sem.append(e2)
-    return {"keyword": kw, "semantic": sem, "groups": groups, "semantic_ok": semantic_ok}
+    return {"keyword": kw, "semantic": sem, "groups": groups, "semantic_ok": semantic_ok,
+            "special": bool(flags)}
 
 
 def _fuzzy_filter_entries(entries: list[dict], query: str) -> list[dict]:
@@ -3873,6 +3892,7 @@ def page_food_gallery():
             help=(
                 "スペース区切りは AND 検索（例: 「肉 野菜」）。各語は関連語にも展開されます。"
                 "キーワードで外れても、説明文の意味が近い画像は「関連」として下に表示されます。"
+                "「品目なし」で品目が取れなかった画像、「未索引」で説明文がまだ無い画像を一覧できます。"
             ),
             label_visibility="collapsed",
         )
