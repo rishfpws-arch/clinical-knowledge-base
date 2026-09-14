@@ -58978,7 +58978,8 @@
           ],
           "image_id": "wm_990ccbaffe7e",
           "image_ext": "jpg",
-          "drive_file_id": "1XDjwEAD9BLHc3WD_xlnCpEG8sLPRzd92"
+          "drive_file_id": "1XDjwEAD9BLHc3WD_xlnCpEG8sLPRzd92",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a373637f5212",
@@ -58990,7 +58991,8 @@
           ],
           "image_id": "wm_86e06584cf0c",
           "image_ext": "jpg",
-          "drive_file_id": "1kKaG9jD5EzjkEct-jvpJBvtsLv480Q8y"
+          "drive_file_id": "1kKaG9jD5EzjkEct-jvpJBvtsLv480Q8y",
+          "quantity": "ふつう"
         },
         {
           "id": "item_00674731a878",
@@ -59002,7 +59004,8 @@
           ],
           "image_id": "wm_28e6c8acccd1",
           "image_ext": "jpg",
-          "drive_file_id": "1zZgaIs64f-kwZaNzFAbHIEE3bIvsHB75"
+          "drive_file_id": "1zZgaIs64f-kwZaNzFAbHIEE3bIvsHB75",
+          "quantity": "ふつう"
         }
       ],
       "total_calories": 540
@@ -59018,7 +59021,8 @@
           ],
           "image_id": "wm_8ba43cd0aea6",
           "image_ext": "jpg",
-          "drive_file_id": "1kXLWK2SN9cu8vZlQqeZJ97gu41bVhdNa"
+          "drive_file_id": "1kXLWK2SN9cu8vZlQqeZJ97gu41bVhdNa",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f7d61226ad6c",
@@ -59032,7 +59036,8 @@
           ],
           "image_id": "wm_8e86d29794bd",
           "image_ext": "jpg",
-          "drive_file_id": "1VTMpWbkpo9nu9lY9g6bnOVZUhOwQ5HK4"
+          "drive_file_id": "1VTMpWbkpo9nu9lY9g6bnOVZUhOwQ5HK4",
+          "quantity": "ふつう"
         },
         {
           "id": "item_c0d4bafd3135",
@@ -59044,7 +59049,8 @@
           ],
           "image_id": "wm_0f756309bc17",
           "image_ext": "jpg",
-          "drive_file_id": "1o3ROo7aWAQgYxxEl6XJATwhtWht7_tiC"
+          "drive_file_id": "1o3ROo7aWAQgYxxEl6XJATwhtWht7_tiC",
+          "quantity": "ふつう"
         },
         {
           "id": "item_268634012750",
@@ -59056,7 +59062,8 @@
           ],
           "image_id": "wm_ea8c4559ae0f",
           "image_ext": "jpg",
-          "drive_file_id": "1hXfx---3etEyqshc5WH8IW7g4PEagvHy"
+          "drive_file_id": "1hXfx---3etEyqshc5WH8IW7g4PEagvHy",
+          "quantity": "ふつう"
         },
         {
           "id": "item_be14fe733b5a",
@@ -59074,9 +59081,11 @@
           ],
           "image_id": "wm_65a4b9df0c84",
           "image_ext": "jpg",
-          "drive_file_id": "1bSxv7l8uB3nyglgF51UvloQA2tbhqfZy"
+          "drive_file_id": "1bSxv7l8uB3nyglgF51UvloQA2tbhqfZy",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-20": {
       "items": [
@@ -59091,7 +59100,8 @@
           ],
           "image_id": "wm_6adf10521a4f",
           "image_ext": "jpg",
-          "drive_file_id": "1qaDn9iMBfIyezncQbK3CBkPkudlIoAsm"
+          "drive_file_id": "1qaDn9iMBfIyezncQbK3CBkPkudlIoAsm",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e16e9706462d",
@@ -59103,7 +59113,8 @@
           ],
           "image_id": "wm_3c337efd4c40",
           "image_ext": "jpg",
-          "drive_file_id": "10hGMKdCIDcUTtcONuY01_BksjXGfZS9j"
+          "drive_file_id": "10hGMKdCIDcUTtcONuY01_BksjXGfZS9j",
+          "quantity": "ふつう"
         },
         {
           "id": "item_df1e67c53154",
@@ -59115,9 +59126,11 @@
           ],
           "image_id": "wm_ac7ccae095e5",
           "image_ext": "jpg",
-          "drive_file_id": "1lUuGSJ7FId41EDDSLGh-hbz2SSUJ03s1"
+          "drive_file_id": "1lUuGSJ7FId41EDDSLGh-hbz2SSUJ03s1",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-19": {
       "items": [
@@ -59140,7 +59153,8 @@
           ],
           "image_id": "wm_1ccb9ed35c31",
           "image_ext": "jpg",
-          "drive_file_id": "1G-jE_a4uWShhRl-I3SlYECmS0ye_gdBY"
+          "drive_file_id": "1G-jE_a4uWShhRl-I3SlYECmS0ye_gdBY",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5541bb843230",
@@ -59153,7 +59167,8 @@
           ],
           "image_id": "wm_65232eb250ba",
           "image_ext": "jpg",
-          "drive_file_id": "16sdcTZHklhuukBXvMPFY0nyLg1fGDUzW"
+          "drive_file_id": "16sdcTZHklhuukBXvMPFY0nyLg1fGDUzW",
+          "quantity": "ふつう"
         },
         {
           "id": "item_908febfc32da",
@@ -59163,9 +59178,11 @@
           ],
           "image_id": "wm_46e023b461ce",
           "image_ext": "jpg",
-          "drive_file_id": "1uYtlNh0jKIHK6y5pEKsDm_6Awl0diRRb"
+          "drive_file_id": "1uYtlNh0jKIHK6y5pEKsDm_6Awl0diRRb",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-18": {
       "items": [
@@ -59180,7 +59197,8 @@
           ],
           "image_id": "wm_0dfa6160a97b",
           "image_ext": "jpg",
-          "drive_file_id": "1crMR5ZmsO3uxIG1gdeYpg6DGHvNrhIiY"
+          "drive_file_id": "1crMR5ZmsO3uxIG1gdeYpg6DGHvNrhIiY",
+          "quantity": "ふつう"
         },
         {
           "id": "item_b0781d8ab7fa",
@@ -59197,7 +59215,8 @@
           ],
           "image_id": "wm_b48bf704e1b7",
           "image_ext": "jpg",
-          "drive_file_id": "11qbhlpUMWbo0HitlP93PJ2lTEd56KurZ"
+          "drive_file_id": "11qbhlpUMWbo0HitlP93PJ2lTEd56KurZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8f3adbf79a06",
@@ -59213,9 +59232,11 @@
           ],
           "image_id": "wm_bca964d0b6e8",
           "image_ext": "jpg",
-          "drive_file_id": "1V7LUXNVC1zFs72_XjaVCdxYa6eayoDM5"
+          "drive_file_id": "1V7LUXNVC1zFs72_XjaVCdxYa6eayoDM5",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-17": {
       "items": [
@@ -59246,7 +59267,8 @@
           ],
           "image_id": "wm_328daef10760",
           "image_ext": "jpg",
-          "drive_file_id": "1yU-pCUYNsS-MBTVjUZ7S0Sgi-5MtgIfR"
+          "drive_file_id": "1yU-pCUYNsS-MBTVjUZ7S0Sgi-5MtgIfR",
+          "quantity": "ふつう"
         },
         {
           "id": "item_7b528bcd51c2",
@@ -59258,9 +59280,11 @@
           ],
           "image_id": "wm_b5f2929d0d3e",
           "image_ext": "jpg",
-          "drive_file_id": "1c5mzZqfcnrG1nJPt6Qlf7H6iycJZsP1i"
+          "drive_file_id": "1c5mzZqfcnrG1nJPt6Qlf7H6iycJZsP1i",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-16": {
       "items": [
@@ -59275,7 +59299,8 @@
           ],
           "image_id": "wm_3d34728ccd37",
           "image_ext": "jpg",
-          "drive_file_id": "1_VzMuIS8WYHW4D4MoAqPZ9u4EyhIwO5j"
+          "drive_file_id": "1_VzMuIS8WYHW4D4MoAqPZ9u4EyhIwO5j",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f231dcb775fd",
@@ -59287,7 +59312,8 @@
           ],
           "image_id": "wm_df1aa849c90e",
           "image_ext": "jpg",
-          "drive_file_id": "1tv2LG81XcOJCeZCr8H7cA9GJcU63dxjA"
+          "drive_file_id": "1tv2LG81XcOJCeZCr8H7cA9GJcU63dxjA",
+          "quantity": "ふつう"
         },
         {
           "id": "item_10024b9e0679",
@@ -59299,9 +59325,11 @@
           ],
           "image_id": "wm_6583468c4fb9",
           "image_ext": "jpg",
-          "drive_file_id": "1oTUcw2MoCoLZQlVDd6nQWygAfE4j7Jsa"
+          "drive_file_id": "1oTUcw2MoCoLZQlVDd6nQWygAfE4j7Jsa",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-15": {
       "items": [
@@ -59320,7 +59348,8 @@
           ],
           "image_id": "wm_5f9922fbd357",
           "image_ext": "jpg",
-          "drive_file_id": "1ueqeInLKZdSmjTcygm8RC62AHSzbcEnR"
+          "drive_file_id": "1ueqeInLKZdSmjTcygm8RC62AHSzbcEnR",
+          "quantity": "ふつう"
         },
         {
           "id": "item_3db5282530a7",
@@ -59336,7 +59365,8 @@
           ],
           "image_id": "wm_cfa57ddcc565",
           "image_ext": "jpg",
-          "drive_file_id": "1mtkADi_egq3t3OrEOzsYtEmnemvxiQFZ"
+          "drive_file_id": "1mtkADi_egq3t3OrEOzsYtEmnemvxiQFZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e0f46024a5a0",
@@ -59348,9 +59378,11 @@
           ],
           "image_id": "wm_470f7b0bacbc",
           "image_ext": "jpg",
-          "drive_file_id": "1xdfssHMZnFLNHC2M_7jPhor-p0skqnDo"
+          "drive_file_id": "1xdfssHMZnFLNHC2M_7jPhor-p0skqnDo",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-14": {
       "items": [
@@ -59365,7 +59397,8 @@
           ],
           "image_id": "wm_f67fd73e7d2f",
           "image_ext": "jpg",
-          "drive_file_id": "11Gu-ssI3xaUavgsIddUDNX7atgzjvhxf"
+          "drive_file_id": "11Gu-ssI3xaUavgsIddUDNX7atgzjvhxf",
+          "quantity": "ふつう"
         },
         {
           "id": "item_148e01505b38",
@@ -59377,9 +59410,11 @@
           ],
           "image_id": "wm_2d54672c4d7f",
           "image_ext": "jpg",
-          "drive_file_id": "12ewNrcrbdMJIQfWn1jMUeEbWogRKsFsM"
+          "drive_file_id": "12ewNrcrbdMJIQfWn1jMUeEbWogRKsFsM",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-13": {
       "items": [
@@ -59393,7 +59428,8 @@
           ],
           "image_id": "wm_af31e0bdf907",
           "image_ext": "jpg",
-          "drive_file_id": "1MDowBjzqM-YAf6oLfGI68TICu4NdJ_iK"
+          "drive_file_id": "1MDowBjzqM-YAf6oLfGI68TICu4NdJ_iK",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d0a63911eb5f",
@@ -59406,7 +59442,8 @@
           ],
           "image_id": "wm_188128c0335a",
           "image_ext": "jpg",
-          "drive_file_id": "1qA09iBy-XPl-QgnXbQdYEaCHE8JHHZ34"
+          "drive_file_id": "1qA09iBy-XPl-QgnXbQdYEaCHE8JHHZ34",
+          "quantity": "ふつう"
         },
         {
           "id": "item_db5a648d9896",
@@ -59419,9 +59456,11 @@
           ],
           "image_id": "wm_726d9f7a6eec",
           "image_ext": "jpg",
-          "drive_file_id": "1a0wmm7v3NVEQvzxe8gIEESVr9CHOMjVO"
+          "drive_file_id": "1a0wmm7v3NVEQvzxe8gIEESVr9CHOMjVO",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-12": {
       "items": [
@@ -59441,7 +59480,8 @@
           ],
           "image_id": "wm_7f55cfbb5a0a",
           "image_ext": "jpg",
-          "drive_file_id": "1rlJcrZMboqFJa3mHHwlBZeuVo30rsTR1"
+          "drive_file_id": "1rlJcrZMboqFJa3mHHwlBZeuVo30rsTR1",
+          "quantity": "ふつう"
         },
         {
           "id": "item_622a328c64e9",
@@ -59454,7 +59494,8 @@
           ],
           "image_id": "wm_797dd105fb2a",
           "image_ext": "jpg",
-          "drive_file_id": "1_3NIajqotUTfHpZs5VNRCIKki3VeujJH"
+          "drive_file_id": "1_3NIajqotUTfHpZs5VNRCIKki3VeujJH",
+          "quantity": "ふつう"
         },
         {
           "id": "item_24b9ca2b8d81",
@@ -59467,9 +59508,11 @@
           ],
           "image_id": "wm_94002d363d94",
           "image_ext": "jpg",
-          "drive_file_id": "1F4MBNlB6ByCE4wMdTTqUn7zI02yddZKu"
+          "drive_file_id": "1F4MBNlB6ByCE4wMdTTqUn7zI02yddZKu",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-11": {
       "items": [
@@ -59486,7 +59529,8 @@
           ],
           "image_id": "wm_580e7e3bb78f",
           "image_ext": "jpg",
-          "drive_file_id": "1Z6gHO9VvzRB6Y15nIH4881hz-fksTEw4"
+          "drive_file_id": "1Z6gHO9VvzRB6Y15nIH4881hz-fksTEw4",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1437d8377c10",
@@ -59501,9 +59545,11 @@
           ],
           "image_id": "wm_50c71c4bc2ac",
           "image_ext": "jpg",
-          "drive_file_id": "1thZ8Uzstkg_OmleAuSgQ7zta3euUIs63"
+          "drive_file_id": "1thZ8Uzstkg_OmleAuSgQ7zta3euUIs63",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-10": {
       "items": [
@@ -59528,7 +59574,8 @@
           ],
           "image_id": "wm_02f27980464a",
           "image_ext": "jpg",
-          "drive_file_id": "1UYDZNe5kTZLabmFHMBebGTzpZLhPI00I"
+          "drive_file_id": "1UYDZNe5kTZLabmFHMBebGTzpZLhPI00I",
+          "quantity": "ふつう"
         },
         {
           "id": "item_3556d8cdba34",
@@ -59541,9 +59588,11 @@
           ],
           "image_id": "wm_32d6f453fa85",
           "image_ext": "jpg",
-          "drive_file_id": "1YnYXOYdnl60rKtC6NT0-78xVMFb4rvBn"
+          "drive_file_id": "1YnYXOYdnl60rKtC6NT0-78xVMFb4rvBn",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-22": {
       "items": [
@@ -59556,7 +59605,8 @@
           ],
           "image_id": "wm_0a4bd621f89f",
           "image_ext": "jpg",
-          "drive_file_id": "1hKNxzNuD9wg5xQ0XEZ-G-9ZYOBArqEuZ"
+          "drive_file_id": "1hKNxzNuD9wg5xQ0XEZ-G-9ZYOBArqEuZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_9ba7590440dc",
@@ -59567,7 +59617,8 @@
           ],
           "image_id": "wm_4795c0c5db3c",
           "image_ext": "jpg",
-          "drive_file_id": "11nr4jf0LO6_zlCHhAxOoASeap_pbKxff"
+          "drive_file_id": "11nr4jf0LO6_zlCHhAxOoASeap_pbKxff",
+          "quantity": "ふつう"
         },
         {
           "id": "item_4edb1c6991bf",
@@ -59582,7 +59633,8 @@
           ],
           "image_id": "wm_e69d8c47a6f5",
           "image_ext": "jpg",
-          "drive_file_id": "1OSGkJMTqAGm9oXyDUB4r92lpGoA-mTw3"
+          "drive_file_id": "1OSGkJMTqAGm9oXyDUB4r92lpGoA-mTw3",
+          "quantity": "ふつう"
         },
         {
           "id": "item_c184d09ef25e",
@@ -59596,7 +59648,8 @@
           ],
           "image_id": "wm_7195ff81e545",
           "image_ext": "jpg",
-          "drive_file_id": "1ckjK6UsvatmBkPWfTZSm_Vu_1Q9jAvpG"
+          "drive_file_id": "1ckjK6UsvatmBkPWfTZSm_Vu_1Q9jAvpG",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2a34ec534b54",
@@ -59609,9 +59662,11 @@
           ],
           "image_id": "wm_99af0101d06f",
           "image_ext": "jpg",
-          "drive_file_id": "1KpgLryf2Fk05sQyQRGtWzNF6M79XOogc"
+          "drive_file_id": "1KpgLryf2Fk05sQyQRGtWzNF6M79XOogc",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-30": {
       "items": [
@@ -59624,7 +59679,8 @@
           ],
           "image_id": "wm_bd612db3bba8",
           "image_ext": "jpg",
-          "drive_file_id": "1g5-E8bqywmIRBUPQXy2p6-bb8ofgu9rF"
+          "drive_file_id": "1g5-E8bqywmIRBUPQXy2p6-bb8ofgu9rF",
+          "quantity": "ふつう"
         },
         {
           "id": "item_fdd637b6616d",
@@ -59637,7 +59693,8 @@
           ],
           "image_id": "wm_745ec9097a66",
           "image_ext": "jpg",
-          "drive_file_id": "18Ad5hPANX1XU-afAlcQdFnbtS8m7ozQP"
+          "drive_file_id": "18Ad5hPANX1XU-afAlcQdFnbtS8m7ozQP",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8e64f1fd48b0",
@@ -59650,9 +59707,11 @@
           ],
           "image_id": "wm_39a83a093973",
           "image_ext": "jpg",
-          "drive_file_id": "1cteFc77c0kYmfyhZ3luLHOWYQbiFRHav"
+          "drive_file_id": "1cteFc77c0kYmfyhZ3luLHOWYQbiFRHav",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-29": {
       "items": [
@@ -59671,7 +59730,8 @@
           ],
           "image_id": "wm_5b999b49a4f8",
           "image_ext": "jpg",
-          "drive_file_id": "1isDVuMnugf0Mv05sWL0zLEC1S9EkjdBk"
+          "drive_file_id": "1isDVuMnugf0Mv05sWL0zLEC1S9EkjdBk",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e4dccc996471",
@@ -59688,9 +59748,11 @@
           ],
           "image_id": "wm_cd1e9ac6d435",
           "image_ext": "jpg",
-          "drive_file_id": "1O1Vv2OSBbuVKSQN9dWusA4MkmsmhyEpg"
+          "drive_file_id": "1O1Vv2OSBbuVKSQN9dWusA4MkmsmhyEpg",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-28": {
       "items": [
@@ -59702,7 +59764,8 @@
           ],
           "image_id": "wm_403ec027ab4b",
           "image_ext": "jpg",
-          "drive_file_id": "1pHJPE9xRLn90NCUjIvULQb7Iz9Qx2UAH"
+          "drive_file_id": "1pHJPE9xRLn90NCUjIvULQb7Iz9Qx2UAH",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f71b3237cc0a",
@@ -59715,7 +59778,8 @@
           ],
           "image_id": "wm_04e98f5118be",
           "image_ext": "jpg",
-          "drive_file_id": "196NYqLGYQLyDNG-Qh8H-hX0GhzeSiYDn"
+          "drive_file_id": "196NYqLGYQLyDNG-Qh8H-hX0GhzeSiYDn",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1ebe429aa5af",
@@ -59726,9 +59790,11 @@
           ],
           "image_id": "wm_52bd797adb18",
           "image_ext": "jpg",
-          "drive_file_id": "1pkTWalERrVANTxPOUwWE_MzFWXSMOmmF"
+          "drive_file_id": "1pkTWalERrVANTxPOUwWE_MzFWXSMOmmF",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-27": {
       "items": [
@@ -59747,7 +59813,8 @@
           ],
           "image_id": "wm_da90e65bbbeb",
           "image_ext": "jpg",
-          "drive_file_id": "1cw9OxMpzz0XAiCpedXpAcbEEIW8R3w-e"
+          "drive_file_id": "1cw9OxMpzz0XAiCpedXpAcbEEIW8R3w-e",
+          "quantity": "ふつう"
         },
         {
           "id": "item_cda2f65df6ac",
@@ -59767,7 +59834,8 @@
           ],
           "image_id": "wm_2e70f68e4439",
           "image_ext": "jpg",
-          "drive_file_id": "1AFzslvLo0oLWhuHI-GXWyzUNWBLJtnJx"
+          "drive_file_id": "1AFzslvLo0oLWhuHI-GXWyzUNWBLJtnJx",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1320744b2d24",
@@ -59777,9 +59845,11 @@
           ],
           "image_id": "wm_d0301fbcf6ba",
           "image_ext": "jpg",
-          "drive_file_id": "1a2HY12RsGBHzlUYH9_kauCPcrGFdTXrK"
+          "drive_file_id": "1a2HY12RsGBHzlUYH9_kauCPcrGFdTXrK",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-26": {
       "items": [
@@ -59797,7 +59867,8 @@
           ],
           "image_id": "wm_67cfbff9fcbf",
           "image_ext": "jpg",
-          "drive_file_id": "1Z9rjIx-V85ZhPh46sFVbHQDPxXQjpNgr"
+          "drive_file_id": "1Z9rjIx-V85ZhPh46sFVbHQDPxXQjpNgr",
+          "quantity": "ふつう"
         },
         {
           "id": "item_ece178c9b5f5",
@@ -59811,7 +59882,8 @@
           ],
           "image_id": "wm_c1aec0dafa13",
           "image_ext": "jpg",
-          "drive_file_id": "1_PzFbF0Npn5igkInGFQT_41DzXquy4OI"
+          "drive_file_id": "1_PzFbF0Npn5igkInGFQT_41DzXquy4OI",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f5727af5bf97",
@@ -59826,7 +59898,8 @@
           ],
           "image_id": "wm_57c4fb94c0b1",
           "image_ext": "jpg",
-          "drive_file_id": "1fxEXR7tgq6RjmZMrY4nNBPxnw7fRAfp8"
+          "drive_file_id": "1fxEXR7tgq6RjmZMrY4nNBPxnw7fRAfp8",
+          "quantity": "ふつう"
         },
         {
           "id": "item_86ea7721b4e9",
@@ -59841,7 +59914,8 @@
           ],
           "image_id": "wm_389c03850d1a",
           "image_ext": "jpg",
-          "drive_file_id": "1SabMYsSIn9DZ3QPYW9stjLebLlzHd9YI"
+          "drive_file_id": "1SabMYsSIn9DZ3QPYW9stjLebLlzHd9YI",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1401382a2b8e",
@@ -59871,9 +59945,11 @@
           ],
           "image_id": "wm_6c884ca4f56d",
           "image_ext": "jpg",
-          "drive_file_id": "1uRh4lMetEA4cQuu-B_ZPQ-7nn0iJzkTO"
+          "drive_file_id": "1uRh4lMetEA4cQuu-B_ZPQ-7nn0iJzkTO",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-25": {
       "items": [
@@ -59889,7 +59965,8 @@
           ],
           "image_id": "wm_645510432f57",
           "image_ext": "jpg",
-          "drive_file_id": "1WexuiN7CStLX_rBxLwxVeLXLCOELvcn1"
+          "drive_file_id": "1WexuiN7CStLX_rBxLwxVeLXLCOELvcn1",
+          "quantity": "ふつう"
         },
         {
           "id": "item_171a1f9fcf27",
@@ -59901,7 +59978,8 @@
           ],
           "image_id": "wm_397bb272bd4e",
           "image_ext": "jpg",
-          "drive_file_id": "1f8P4pAsP3GDpq4v-0_1Qb4iUTHklpjtL"
+          "drive_file_id": "1f8P4pAsP3GDpq4v-0_1Qb4iUTHklpjtL",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1a56ca1939b8",
@@ -59922,7 +60000,8 @@
           ],
           "image_id": "wm_b616a5a2002f",
           "image_ext": "jpg",
-          "drive_file_id": "1L0tVjWvifHIhw6oPVRSDpPk4Q89aeDEJ"
+          "drive_file_id": "1L0tVjWvifHIhw6oPVRSDpPk4Q89aeDEJ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_16d79ebcdcd6",
@@ -59940,7 +60019,8 @@
           ],
           "image_id": "wm_c7d2a34fc22e",
           "image_ext": "jpg",
-          "drive_file_id": "1iEkVnr2S0WdHShT-gwNxQuSbtH-G23Q7"
+          "drive_file_id": "1iEkVnr2S0WdHShT-gwNxQuSbtH-G23Q7",
+          "quantity": "ふつう"
         },
         {
           "id": "item_19ca82bdaa82",
@@ -59960,7 +60040,8 @@
           ],
           "image_id": "wm_bce239ea857a",
           "image_ext": "jpg",
-          "drive_file_id": "1xwIhUifY9vVdb6YogiGaWON4ypNtw2Ge"
+          "drive_file_id": "1xwIhUifY9vVdb6YogiGaWON4ypNtw2Ge",
+          "quantity": "ふつう"
         },
         {
           "id": "item_cb2daec71344",
@@ -59973,9 +60054,11 @@
           ],
           "image_id": "wm_2208a2868288",
           "image_ext": "jpg",
-          "drive_file_id": "19uwAEVfHePHZDrPVgpsiamaxlUquqHOb"
+          "drive_file_id": "19uwAEVfHePHZDrPVgpsiamaxlUquqHOb",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-24": {
       "items": [
@@ -59997,9 +60080,11 @@
           ],
           "image_id": "wm_083c90ab210f",
           "image_ext": "jpg",
-          "drive_file_id": "1R9TNc_SX7FBVz80PsFcE95fMuhMq-aCm"
+          "drive_file_id": "1R9TNc_SX7FBVz80PsFcE95fMuhMq-aCm",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-23": {
       "items": [
@@ -60020,7 +60105,8 @@
           ],
           "image_id": "wm_1947f17aa5ab",
           "image_ext": "jpg",
-          "drive_file_id": "1kYMmfYboQGCPXldt4V6OkribTVgMrQvT"
+          "drive_file_id": "1kYMmfYboQGCPXldt4V6OkribTVgMrQvT",
+          "quantity": "ふつう"
         },
         {
           "id": "item_ef0826cb120e",
@@ -60033,9 +60119,11 @@
           ],
           "image_id": "wm_f3d1a15cce78",
           "image_ext": "jpg",
-          "drive_file_id": "1esjIx5ubnEnp5jlBTULT9iCYlu7tBwuX"
+          "drive_file_id": "1esjIx5ubnEnp5jlBTULT9iCYlu7tBwuX",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-03": {
       "items": [
@@ -60049,7 +60137,8 @@
           ],
           "image_id": "wm_06114f3daeef",
           "image_ext": "jpg",
-          "drive_file_id": "1QhTmmp2kbxtP8s7PYpSXHLcan9aZA-L-"
+          "drive_file_id": "1QhTmmp2kbxtP8s7PYpSXHLcan9aZA-L-",
+          "quantity": "ふつう"
         },
         {
           "id": "item_33ee96e10d19",
@@ -60060,7 +60149,8 @@
           ],
           "image_id": "wm_37edc18f9f9f",
           "image_ext": "jpg",
-          "drive_file_id": "1fmW4789dpBm67L8d03MyTC0j51gtCaOX"
+          "drive_file_id": "1fmW4789dpBm67L8d03MyTC0j51gtCaOX",
+          "quantity": "ふつう"
         },
         {
           "id": "item_af311cf7672c",
@@ -60077,7 +60167,8 @@
           ],
           "image_id": "wm_581b6e451e77",
           "image_ext": "jpg",
-          "drive_file_id": "1IHQ3ZHKZN60fxzL20IYigPfwDfplDnfB"
+          "drive_file_id": "1IHQ3ZHKZN60fxzL20IYigPfwDfplDnfB",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d7edaaa0002b",
@@ -60089,9 +60180,11 @@
           ],
           "image_id": "wm_862cd40bb597",
           "image_ext": "jpg",
-          "drive_file_id": "1Wpwt0SlXuNTPAiir5TpeBk-p22_wUBrX"
+          "drive_file_id": "1Wpwt0SlXuNTPAiir5TpeBk-p22_wUBrX",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-02": {
       "items": [
@@ -60107,7 +60200,8 @@
           ],
           "image_id": "wm_fff3e4f61c46",
           "image_ext": "jpg",
-          "drive_file_id": "1aiLxG9hNzc4RlHUgBWsy7LyEkovZ_yng"
+          "drive_file_id": "1aiLxG9hNzc4RlHUgBWsy7LyEkovZ_yng",
+          "quantity": "ふつう"
         },
         {
           "id": "item_70bddf5f8ed4",
@@ -60125,9 +60219,11 @@
           ],
           "image_id": "wm_d5009e1cfa41",
           "image_ext": "jpg",
-          "drive_file_id": "1O-s3r-nuynUxPdqkix5IIZ82-jxIBJGc"
+          "drive_file_id": "1O-s3r-nuynUxPdqkix5IIZ82-jxIBJGc",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-01": {
       "items": [
@@ -60148,7 +60244,8 @@
           ],
           "image_id": "wm_11e3167dfd9c",
           "image_ext": "jpg",
-          "drive_file_id": "1JmcSqi5yz3qBs0G_MTguTah2EZSjG-Cd"
+          "drive_file_id": "1JmcSqi5yz3qBs0G_MTguTah2EZSjG-Cd",
+          "quantity": "ふつう"
         },
         {
           "id": "item_0384fe07aa93",
@@ -60165,9 +60262,11 @@
           ],
           "image_id": "wm_641f18d13cb2",
           "image_ext": "jpg",
-          "drive_file_id": "18J8jQEOLP0DbWs6QG4aly_3vCKePl2fr"
+          "drive_file_id": "18J8jQEOLP0DbWs6QG4aly_3vCKePl2fr",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-07-31": {
       "items": [
@@ -60183,7 +60282,8 @@
           ],
           "image_id": "wm_35a2038023ad",
           "image_ext": "jpg",
-          "drive_file_id": "1Utfoq63PchpOElf8xbN191qQeNEjkRCH"
+          "drive_file_id": "1Utfoq63PchpOElf8xbN191qQeNEjkRCH",
+          "quantity": "ふつう"
         },
         {
           "id": "item_337ee58defba",
@@ -60195,9 +60295,11 @@
           ],
           "image_id": "wm_4828b885f28f",
           "image_ext": "jpg",
-          "drive_file_id": "1Ls2gBW0T6tmO0PAZkU294ON3iP0Efjc1"
+          "drive_file_id": "1Ls2gBW0T6tmO0PAZkU294ON3iP0Efjc1",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-10": {
       "items": [
@@ -60217,7 +60319,8 @@
           ],
           "image_id": "wm_dd63272cfd02",
           "image_ext": "jpg",
-          "drive_file_id": "1nQxe5WlqOWkFhgvf2aBHrNCJacPPeE_n"
+          "drive_file_id": "1nQxe5WlqOWkFhgvf2aBHrNCJacPPeE_n",
+          "quantity": "ふつう"
         },
         {
           "id": "item_9430d1f10f72",
@@ -60233,9 +60336,11 @@
           ],
           "image_id": "wm_6ee9d37b83a1",
           "image_ext": "jpg",
-          "drive_file_id": "12cBN0F_OtZ6vMhVdz73jxOUojtkOvBk-"
+          "drive_file_id": "12cBN0F_OtZ6vMhVdz73jxOUojtkOvBk-",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-09": {
       "items": [
@@ -60249,7 +60354,8 @@
           ],
           "image_id": "wm_9de19c277658",
           "image_ext": "jpg",
-          "drive_file_id": "1VlZHOJwVQ48QJqLIoxPxYpUeejNZP3j3"
+          "drive_file_id": "1VlZHOJwVQ48QJqLIoxPxYpUeejNZP3j3",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a82febeb6c96",
@@ -60266,7 +60372,8 @@
           ],
           "image_id": "wm_cc3a6f5a33d1",
           "image_ext": "jpg",
-          "drive_file_id": "1DxOORGYyhsayXHqQeNZSbHnof5_nEHxn"
+          "drive_file_id": "1DxOORGYyhsayXHqQeNZSbHnof5_nEHxn",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5fc085e40629",
@@ -60278,7 +60385,8 @@
           ],
           "image_id": "wm_1873d5f81eea",
           "image_ext": "jpg",
-          "drive_file_id": "1hQKQozI5dds5GsMP5HZWSYKJA-U6__Dj"
+          "drive_file_id": "1hQKQozI5dds5GsMP5HZWSYKJA-U6__Dj",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d43a525eb409",
@@ -60291,9 +60399,11 @@
           ],
           "image_id": "wm_93f8c648b92f",
           "image_ext": "jpg",
-          "drive_file_id": "1t9ZFmlYZwJw1SpzFWw2rbwkTc93LCwbB"
+          "drive_file_id": "1t9ZFmlYZwJw1SpzFWw2rbwkTc93LCwbB",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-08": {
       "items": [
@@ -60308,7 +60418,8 @@
           ],
           "image_id": "wm_7f9c08aab0a2",
           "image_ext": "jpg",
-          "drive_file_id": "1Vf7D2fIo8ZU9Ptp4aCoqoUmBKG2If_KP"
+          "drive_file_id": "1Vf7D2fIo8ZU9Ptp4aCoqoUmBKG2If_KP",
+          "quantity": "ふつう"
         },
         {
           "id": "item_81d59691c44e",
@@ -60322,7 +60433,8 @@
           ],
           "image_id": "wm_20e1e3c410f4",
           "image_ext": "jpg",
-          "drive_file_id": "1FrqgdRkWrnRG8p6SWkp05-QcAv8Jxrxa"
+          "drive_file_id": "1FrqgdRkWrnRG8p6SWkp05-QcAv8Jxrxa",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5831b3665fb0",
@@ -60332,7 +60444,8 @@
           ],
           "image_id": "wm_0ddb7170f89f",
           "image_ext": "jpg",
-          "drive_file_id": "1Ze_HgQuvzushQ4BhnjfJ5h0M8g9cx7mc"
+          "drive_file_id": "1Ze_HgQuvzushQ4BhnjfJ5h0M8g9cx7mc",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f2eac610aa1b",
@@ -60344,9 +60457,11 @@
           ],
           "image_id": "wm_3b411c767b3f",
           "image_ext": "jpg",
-          "drive_file_id": "1Tszs6C9_0Xprn9-x-9tyNQ7sfiFJI3X5"
+          "drive_file_id": "1Tszs6C9_0Xprn9-x-9tyNQ7sfiFJI3X5",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-07": {
       "items": [
@@ -60360,7 +60475,8 @@
           ],
           "image_id": "wm_ace2ba803e93",
           "image_ext": "jpg",
-          "drive_file_id": "1ABxI0zy11wzzWlQ8fbWc7b-afmSdeFfy"
+          "drive_file_id": "1ABxI0zy11wzzWlQ8fbWc7b-afmSdeFfy",
+          "quantity": "ふつう"
         },
         {
           "id": "item_3b5776df26a6",
@@ -60376,7 +60492,8 @@
           ],
           "image_id": "wm_737a8c9ac5aa",
           "image_ext": "jpg",
-          "drive_file_id": "1mIrgJLYY7sNeTTqoSdZFJxvbJGfUH5cM"
+          "drive_file_id": "1mIrgJLYY7sNeTTqoSdZFJxvbJGfUH5cM",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e01702517a00",
@@ -60390,7 +60507,8 @@
           ],
           "image_id": "wm_31b5b233eae3",
           "image_ext": "jpg",
-          "drive_file_id": "1B-w_I-kAZ9vNlrCJ2t8OxWQLI---fphW"
+          "drive_file_id": "1B-w_I-kAZ9vNlrCJ2t8OxWQLI---fphW",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8f18f2cbb9e3",
@@ -60402,7 +60520,8 @@
           ],
           "image_id": "wm_ac7f6bb22823",
           "image_ext": "jpg",
-          "drive_file_id": "1ZNfsEPu8T6zlc0OR38S--MNPyDbs4YpT"
+          "drive_file_id": "1ZNfsEPu8T6zlc0OR38S--MNPyDbs4YpT",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a6a32e6fcc60",
@@ -60419,9 +60538,11 @@
           ],
           "image_id": "wm_4a34383d02f8",
           "image_ext": "jpg",
-          "drive_file_id": "18TofV7vdY7ligqjQKXwKIBU1mmpQWk3E"
+          "drive_file_id": "18TofV7vdY7ligqjQKXwKIBU1mmpQWk3E",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-06": {
       "items": [
@@ -60436,7 +60557,8 @@
           ],
           "image_id": "wm_b796e2b8a9f6",
           "image_ext": "jpg",
-          "drive_file_id": "13a2RGG8w8IBdm2VtzM8cBzGx4XwtBLJv"
+          "drive_file_id": "13a2RGG8w8IBdm2VtzM8cBzGx4XwtBLJv",
+          "quantity": "ふつう"
         },
         {
           "id": "item_b86a711e2d17",
@@ -60447,9 +60569,11 @@
           ],
           "image_id": "wm_035d1ed5ac19",
           "image_ext": "jpg",
-          "drive_file_id": "1lQsEVNCawYjo916Szc9r1qO0-T5bi2Tv"
+          "drive_file_id": "1lQsEVNCawYjo916Szc9r1qO0-T5bi2Tv",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-05": {
       "items": [
@@ -60463,7 +60587,8 @@
           ],
           "image_id": "wm_e559acaccd52",
           "image_ext": "jpg",
-          "drive_file_id": "1RQS8z-JMlNZTwwmf5t0CgyHSJHbkb95T"
+          "drive_file_id": "1RQS8z-JMlNZTwwmf5t0CgyHSJHbkb95T",
+          "quantity": "ふつう"
         },
         {
           "id": "item_3e4e773ffdf2",
@@ -60476,9 +60601,11 @@
           ],
           "image_id": "wm_f6d6b3b54b97",
           "image_ext": "jpg",
-          "drive_file_id": "1n6lc3oliaGZg9Wf71zXzBbWf8BEcDdgF"
+          "drive_file_id": "1n6lc3oliaGZg9Wf71zXzBbWf8BEcDdgF",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-04": {
       "items": [
@@ -60494,7 +60621,8 @@
           ],
           "image_id": "wm_1f6efa5446be",
           "image_ext": "jpg",
-          "drive_file_id": "1sHsF-nNEceMZDFY7h4_jMFFGpRpMOfFP"
+          "drive_file_id": "1sHsF-nNEceMZDFY7h4_jMFFGpRpMOfFP",
+          "quantity": "ふつう"
         },
         {
           "id": "item_f1989babb37b",
@@ -60514,7 +60642,8 @@
           ],
           "image_id": "wm_c9b5aaea3ddf",
           "image_ext": "jpg",
-          "drive_file_id": "1FH2Lzcwylv_U5T1U-Y07lr_pvhNHldri"
+          "drive_file_id": "1FH2Lzcwylv_U5T1U-Y07lr_pvhNHldri",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1a26f348e76b",
@@ -60529,9 +60658,11 @@
           ],
           "image_id": "wm_eaa9d19c8bbe",
           "image_ext": "jpg",
-          "drive_file_id": "14wRCncuYljWw3cHoEAuUpP_6mvIKuDrq"
+          "drive_file_id": "14wRCncuYljWw3cHoEAuUpP_6mvIKuDrq",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-13": {
       "items": [
@@ -60545,7 +60676,8 @@
           ],
           "image_id": "wm_d043bb08e31a",
           "image_ext": "jpg",
-          "drive_file_id": "18FHSQG5KeXVHyOP3WZq4YntUp18bE_M4"
+          "drive_file_id": "18FHSQG5KeXVHyOP3WZq4YntUp18bE_M4",
+          "quantity": "ふつう"
         },
         {
           "id": "item_036045538742",
@@ -60557,7 +60689,8 @@
           ],
           "image_id": "wm_2c511c40a615",
           "image_ext": "jpg",
-          "drive_file_id": "1s4JR2AaqBG0YdKpngFAYBtesmu8zrOmb"
+          "drive_file_id": "1s4JR2AaqBG0YdKpngFAYBtesmu8zrOmb",
+          "quantity": "ふつう"
         },
         {
           "id": "item_752601c14478",
@@ -60583,7 +60716,8 @@
           ],
           "image_id": "wm_851975a0f228",
           "image_ext": "jpg",
-          "drive_file_id": "12levxzDSE8oYEwYrYrLi8mqScx9LuewZ"
+          "drive_file_id": "12levxzDSE8oYEwYrYrLi8mqScx9LuewZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_3f2aab8605f9",
@@ -60603,9 +60737,11 @@
           ],
           "image_id": "wm_6cd067411a56",
           "image_ext": "jpg",
-          "drive_file_id": "1DjgZnRb_KgHS5aGRRaSUIMFNCiH3w8ag"
+          "drive_file_id": "1DjgZnRb_KgHS5aGRRaSUIMFNCiH3w8ag",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-12": {
       "items": [
@@ -60622,9 +60758,11 @@
           ],
           "image_id": "wm_96e7dcb68653",
           "image_ext": "jpg",
-          "drive_file_id": "10vOh1PZCDNPRUVTkiyHNkRGHCmvt7non"
+          "drive_file_id": "10vOh1PZCDNPRUVTkiyHNkRGHCmvt7non",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-11": {
       "items": [
@@ -60639,7 +60777,8 @@
           ],
           "image_id": "wm_805230dc4d0a",
           "image_ext": "jpg",
-          "drive_file_id": "1K2zeROExGCDSafVdusCrDxoGGnNihWGP"
+          "drive_file_id": "1K2zeROExGCDSafVdusCrDxoGGnNihWGP",
+          "quantity": "ふつう"
         },
         {
           "id": "item_c42f79345934",
@@ -60659,7 +60798,8 @@
           ],
           "image_id": "wm_2e3b55ecf855",
           "image_ext": "jpg",
-          "drive_file_id": "1FSCMEZ5vsKOzINCEvFD44wmcBrMu8fgT"
+          "drive_file_id": "1FSCMEZ5vsKOzINCEvFD44wmcBrMu8fgT",
+          "quantity": "ふつう"
         },
         {
           "id": "item_04f89af8fdd2",
@@ -60671,7 +60811,8 @@
           ],
           "image_id": "wm_164cab1444ff",
           "image_ext": "jpg",
-          "drive_file_id": "1ZIU4HDbO2cT6f8S3QkesCNaohfMhIvFb"
+          "drive_file_id": "1ZIU4HDbO2cT6f8S3QkesCNaohfMhIvFb",
+          "quantity": "ふつう"
         },
         {
           "id": "item_be51cb11db62",
@@ -60683,7 +60824,8 @@
           ],
           "image_id": "wm_894bfd389c1e",
           "image_ext": "jpg",
-          "drive_file_id": "1SJwsG7zH-PYjcRCaurxZ8CnYhEi_HR_L"
+          "drive_file_id": "1SJwsG7zH-PYjcRCaurxZ8CnYhEi_HR_L",
+          "quantity": "ふつう"
         },
         {
           "id": "item_580e5caad54f",
@@ -60698,7 +60840,8 @@
           ],
           "image_id": "wm_ad4ed1a08b52",
           "image_ext": "jpg",
-          "drive_file_id": "1pqEKVcVcFgBkUBIRL8LyqWOA63yaOo8i"
+          "drive_file_id": "1pqEKVcVcFgBkUBIRL8LyqWOA63yaOo8i",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d6bb96af02a0",
@@ -60713,9 +60856,11 @@
           ],
           "image_id": "wm_f4cbaea90091",
           "image_ext": "jpg",
-          "drive_file_id": "1CkxgvxewBfUBfvgmnhjmfFvorYnr6mvB"
+          "drive_file_id": "1CkxgvxewBfUBfvgmnhjmfFvorYnr6mvB",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-18": {
       "items": [
@@ -60728,7 +60873,8 @@
           ],
           "image_id": "wm_4c58e9d02687",
           "image_ext": "jpg",
-          "drive_file_id": "1xrnzqmuEXztPCnahElqEx-eLTwLnrQWF"
+          "drive_file_id": "1xrnzqmuEXztPCnahElqEx-eLTwLnrQWF",
+          "quantity": "ふつう"
         },
         {
           "id": "item_eb311faa3895",
@@ -60747,9 +60893,11 @@
           ],
           "image_id": "wm_91b0825915c1",
           "image_ext": "jpg",
-          "drive_file_id": "1gbhRgSWiJbChskSDhhfPaUm4Wnr-uCrU"
+          "drive_file_id": "1gbhRgSWiJbChskSDhhfPaUm4Wnr-uCrU",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-17": {
       "items": [
@@ -60765,7 +60913,8 @@
           ],
           "image_id": "wm_5fc804ad7d9c",
           "image_ext": "jpg",
-          "drive_file_id": "1nBaKApbwtTkfEJGxvLbxScugf6vaIBgO"
+          "drive_file_id": "1nBaKApbwtTkfEJGxvLbxScugf6vaIBgO",
+          "quantity": "ふつう"
         },
         {
           "id": "item_52998b8a3fca",
@@ -60776,7 +60925,8 @@
           ],
           "image_id": "wm_281dd96a254d",
           "image_ext": "jpg",
-          "drive_file_id": "1xy8IThIU59Xd5swST6shBT1WT1bcxiS1"
+          "drive_file_id": "1xy8IThIU59Xd5swST6shBT1WT1bcxiS1",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2a1cb1660328",
@@ -60787,9 +60937,11 @@
           ],
           "image_id": "wm_373a5320d541",
           "image_ext": "jpg",
-          "drive_file_id": "1NAV2f1B9nAJi2Z5SQnXEOCOk33CaQ2f1"
+          "drive_file_id": "1NAV2f1B9nAJi2Z5SQnXEOCOk33CaQ2f1",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-16": {
       "items": [
@@ -60806,7 +60958,8 @@
           ],
           "image_id": "wm_449b9ea24842",
           "image_ext": "jpg",
-          "drive_file_id": "144VT68kLOupysQTjK4DwVF28WppRYKEk"
+          "drive_file_id": "144VT68kLOupysQTjK4DwVF28WppRYKEk",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8714ed4c59d6",
@@ -60821,7 +60974,8 @@
           ],
           "image_id": "wm_f57d1298aacc",
           "image_ext": "jpg",
-          "drive_file_id": "1d7nvTqLvIS-Ql7q03zYSyaywAGi4KtJs"
+          "drive_file_id": "1d7nvTqLvIS-Ql7q03zYSyaywAGi4KtJs",
+          "quantity": "ふつう"
         },
         {
           "id": "item_41a90b9563d2",
@@ -60833,9 +60987,11 @@
           ],
           "image_id": "wm_77a4d6634958",
           "image_ext": "jpg",
-          "drive_file_id": "1-UbEx1fI84XImn5vC7UAGnEKh9fOWZvL"
+          "drive_file_id": "1-UbEx1fI84XImn5vC7UAGnEKh9fOWZvL",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-15": {
       "items": [
@@ -60849,7 +61005,8 @@
           ],
           "image_id": "wm_d5a694e2922b",
           "image_ext": "jpg",
-          "drive_file_id": "1FAWwqVnB5-IcYDaPB-PtJhbdQwpT4Vvc"
+          "drive_file_id": "1FAWwqVnB5-IcYDaPB-PtJhbdQwpT4Vvc",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5253b3102d6a",
@@ -60863,7 +61020,8 @@
           ],
           "image_id": "wm_a0ccee24f5a1",
           "image_ext": "jpg",
-          "drive_file_id": "15u4zdYM5gjSnAoZiP66V-9Ll9JynskVi"
+          "drive_file_id": "15u4zdYM5gjSnAoZiP66V-9Ll9JynskVi",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e654569ea897",
@@ -60874,7 +61032,8 @@
           ],
           "image_id": "wm_250c92001109",
           "image_ext": "jpg",
-          "drive_file_id": "1lojIHRqQaR1U_RH0R7Y0iFr93NcahA3u"
+          "drive_file_id": "1lojIHRqQaR1U_RH0R7Y0iFr93NcahA3u",
+          "quantity": "ふつう"
         },
         {
           "id": "item_bc9c47e6b4d6",
@@ -60887,9 +61046,11 @@
           ],
           "image_id": "wm_d7639eabbecf",
           "image_ext": "jpg",
-          "drive_file_id": "1hN-v1qCUZJ8psRI260cNnkY6f-kvxiEY"
+          "drive_file_id": "1hN-v1qCUZJ8psRI260cNnkY6f-kvxiEY",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-14": {
       "items": [
@@ -60907,7 +61068,8 @@
           ],
           "image_id": "wm_4d0076ce135d",
           "image_ext": "jpg",
-          "drive_file_id": "1N26yFePLbarDXSVyPDSsKqbNIvte3IEJ"
+          "drive_file_id": "1N26yFePLbarDXSVyPDSsKqbNIvte3IEJ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_4ff0ace905fc",
@@ -60919,9 +61081,11 @@
           ],
           "image_id": "wm_6af465f5880f",
           "image_ext": "jpg",
-          "drive_file_id": "111sHoS6sqUehgLZorVdq-fi5BI-BRX4f"
+          "drive_file_id": "111sHoS6sqUehgLZorVdq-fi5BI-BRX4f",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-20": {
       "items": [
@@ -60933,7 +61097,8 @@
           ],
           "image_id": "wm_78dbe028e94b",
           "image_ext": "jpg",
-          "drive_file_id": "1bx4hFkP0umiCcoZURg0L0tqnIQqvX8fw"
+          "drive_file_id": "1bx4hFkP0umiCcoZURg0L0tqnIQqvX8fw",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a2a432a91ad8",
@@ -60944,7 +61109,8 @@
           ],
           "image_id": "wm_c18cada598af",
           "image_ext": "jpg",
-          "drive_file_id": "1bkftBAcXlZ6BtZM-h-emZireCVP2DBDm"
+          "drive_file_id": "1bkftBAcXlZ6BtZM-h-emZireCVP2DBDm",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2cb580d78ef2",
@@ -60960,9 +61126,11 @@
           ],
           "image_id": "wm_e774fa46b911",
           "image_ext": "jpg",
-          "drive_file_id": "1zEQWW_Psfrc2b5O_G-BoohWLAeTJhdsd"
+          "drive_file_id": "1zEQWW_Psfrc2b5O_G-BoohWLAeTJhdsd",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-19": {
       "items": [
@@ -60979,7 +61147,8 @@
           ],
           "image_id": "wm_2011e3282dad",
           "image_ext": "jpg",
-          "drive_file_id": "1_fyedAEWZNah1NvDaz-T5CQzGHz9Niwq"
+          "drive_file_id": "1_fyedAEWZNah1NvDaz-T5CQzGHz9Niwq",
+          "quantity": "ふつう"
         },
         {
           "id": "item_56c2fbf24d0d",
@@ -60993,9 +61162,11 @@
           ],
           "image_id": "wm_236c883c58ce",
           "image_ext": "jpg",
-          "drive_file_id": "1sQuk61VZ0WRCAkMgwM-eYdV-U-e6QO8H"
+          "drive_file_id": "1sQuk61VZ0WRCAkMgwM-eYdV-U-e6QO8H",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-24": {
       "items": [
@@ -61009,7 +61180,8 @@
           ],
           "image_id": "wm_0a145327bcfd",
           "image_ext": "jpg",
-          "drive_file_id": "1xu_ecsLFnNJOmiVUe8wvYqKRpb0frZ70"
+          "drive_file_id": "1xu_ecsLFnNJOmiVUe8wvYqKRpb0frZ70",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5f36449de6ec",
@@ -61026,7 +61198,8 @@
           ],
           "image_id": "wm_99ce4ed43c7f",
           "image_ext": "jpg",
-          "drive_file_id": "1fToZdt3WjYhd7y_30pw96iSPY4S2AXv7"
+          "drive_file_id": "1fToZdt3WjYhd7y_30pw96iSPY4S2AXv7",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8a3848257e88",
@@ -61042,7 +61215,8 @@
           ],
           "image_id": "wm_eae9c99a8a9a",
           "image_ext": "jpg",
-          "drive_file_id": "1-CzVcPKGWSEMRbOOQjMEkP7PN_3qOefM"
+          "drive_file_id": "1-CzVcPKGWSEMRbOOQjMEkP7PN_3qOefM",
+          "quantity": "ふつう"
         },
         {
           "id": "item_eb4f254bcdf5",
@@ -61053,9 +61227,11 @@
           ],
           "image_id": "wm_b184e7b9445e",
           "image_ext": "jpg",
-          "drive_file_id": "1v9Vti5yTqljGpeeaSpiDcTDrlcrzvZXh"
+          "drive_file_id": "1v9Vti5yTqljGpeeaSpiDcTDrlcrzvZXh",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-23": {
       "items": [
@@ -61071,7 +61247,8 @@
           ],
           "image_id": "wm_b1e45fbee31c",
           "image_ext": "jpg",
-          "drive_file_id": "1BC18JalrdOM5sXdCy1BQcHC9HhrUsHDG"
+          "drive_file_id": "1BC18JalrdOM5sXdCy1BQcHC9HhrUsHDG",
+          "quantity": "ふつう"
         },
         {
           "id": "item_64f16ef5e5fb",
@@ -61085,7 +61262,8 @@
           ],
           "image_id": "wm_393886f1fef5",
           "image_ext": "jpg",
-          "drive_file_id": "1mtoCayhT-b05m9YjbGpwkstaF2M3yr4r"
+          "drive_file_id": "1mtoCayhT-b05m9YjbGpwkstaF2M3yr4r",
+          "quantity": "ふつう"
         },
         {
           "id": "item_64ecd4d22f95",
@@ -61100,9 +61278,11 @@
           ],
           "image_id": "wm_69021ff9720b",
           "image_ext": "jpg",
-          "drive_file_id": "1yf6tmAY7qe98OiDlhfLYb1n9ETJf4g5P"
+          "drive_file_id": "1yf6tmAY7qe98OiDlhfLYb1n9ETJf4g5P",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-22": {
       "items": [
@@ -61118,7 +61298,8 @@
           ],
           "image_id": "wm_2b2a5c04e81c",
           "image_ext": "jpg",
-          "drive_file_id": "1_h-UQxakBH86NLILs4hU8s6m6fTh7xjv"
+          "drive_file_id": "1_h-UQxakBH86NLILs4hU8s6m6fTh7xjv",
+          "quantity": "ふつう"
         },
         {
           "id": "item_969915090267",
@@ -61136,9 +61317,11 @@
           ],
           "image_id": "wm_5c6c444bc74d",
           "image_ext": "jpg",
-          "drive_file_id": "1OFqBIHKLX0nujjz4D0w0NOqZ0oN5WGnJ"
+          "drive_file_id": "1OFqBIHKLX0nujjz4D0w0NOqZ0oN5WGnJ",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-21": {
       "items": [
@@ -61154,7 +61337,8 @@
           ],
           "image_id": "wm_3cbcdcc8016e",
           "image_ext": "jpg",
-          "drive_file_id": "1NTCO8ESOw7iRVOwyrd0Bp49IrCrsXWDC"
+          "drive_file_id": "1NTCO8ESOw7iRVOwyrd0Bp49IrCrsXWDC",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d5d21e66a8e9",
@@ -61166,7 +61350,8 @@
           ],
           "image_id": "wm_9f1ba99fa0fb",
           "image_ext": "jpg",
-          "drive_file_id": "1W-JHrztKx9rSqbSdxFMUDEWUpS34pFrf"
+          "drive_file_id": "1W-JHrztKx9rSqbSdxFMUDEWUpS34pFrf",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d02bebed1d15",
@@ -61184,9 +61369,11 @@
           ],
           "image_id": "wm_018dad540f2f",
           "image_ext": "jpg",
-          "drive_file_id": "1BmKI-gw-s0S2THazizUIkIwRwzGIVsIP"
+          "drive_file_id": "1BmKI-gw-s0S2THazizUIkIwRwzGIVsIP",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-31": {
       "items": [
@@ -61200,7 +61387,8 @@
           ],
           "image_id": "wm_8c431c2e7a8b",
           "image_ext": "jpg",
-          "drive_file_id": "14n8ATPJN2lGTY8rcqwbVTIYm5zgWKXbi"
+          "drive_file_id": "14n8ATPJN2lGTY8rcqwbVTIYm5zgWKXbi",
+          "quantity": "ふつう"
         },
         {
           "id": "item_4c765edbdb5c",
@@ -61214,9 +61402,11 @@
           ],
           "image_id": "wm_abc6170e0060",
           "image_ext": "jpg",
-          "drive_file_id": "16FbXiVEyBgrK8J1omQMXYWuUPYhykBXe"
+          "drive_file_id": "16FbXiVEyBgrK8J1omQMXYWuUPYhykBXe",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-28": {
       "items": [
@@ -61234,7 +61424,8 @@
           ],
           "image_id": "wm_aa948e0fdb92",
           "image_ext": "jpg",
-          "drive_file_id": "16wi3Y738dFSLbHjbcj_VB82l-_2BtcYZ"
+          "drive_file_id": "16wi3Y738dFSLbHjbcj_VB82l-_2BtcYZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_446208ad2cac",
@@ -61250,7 +61441,8 @@
           ],
           "image_id": "wm_e0804a35b35b",
           "image_ext": "jpg",
-          "drive_file_id": "1yIipOluRW292KSTK671llV5gFYMlzLwe"
+          "drive_file_id": "1yIipOluRW292KSTK671llV5gFYMlzLwe",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2d9054377fe2",
@@ -61261,9 +61453,11 @@
           ],
           "image_id": "wm_ec2748b05d9e",
           "image_ext": "jpg",
-          "drive_file_id": "1gKhPyrhU-r6As2hQz32TQ8joZILqtNk0"
+          "drive_file_id": "1gKhPyrhU-r6As2hQz32TQ8joZILqtNk0",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-29": {
       "items": [
@@ -61284,7 +61478,8 @@
           ],
           "image_id": "wm_ee8deb1f79ae",
           "image_ext": "jpg",
-          "drive_file_id": "1NBQX8sTD6pJF2FkbqFhb_AyF1shC5UGf"
+          "drive_file_id": "1NBQX8sTD6pJF2FkbqFhb_AyF1shC5UGf",
+          "quantity": "ふつう"
         },
         {
           "id": "item_76ca300651d1",
@@ -61294,7 +61489,8 @@
           ],
           "image_id": "wm_7a8dfbc1615d",
           "image_ext": "jpg",
-          "drive_file_id": "11FYeuceE39LvZySU2Ih8-wzV9zi85Aw8"
+          "drive_file_id": "11FYeuceE39LvZySU2Ih8-wzV9zi85Aw8",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a775cb0a1d66",
@@ -61305,7 +61501,8 @@
           ],
           "image_id": "wm_0fbe6357893f",
           "image_ext": "jpg",
-          "drive_file_id": "1-BR9l_1H7wJDLkb1gpGmCUiTzexfP0GZ"
+          "drive_file_id": "1-BR9l_1H7wJDLkb1gpGmCUiTzexfP0GZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_ac7e16b77172",
@@ -61319,7 +61516,8 @@
           ],
           "image_id": "wm_67216e7cc281",
           "image_ext": "jpg",
-          "drive_file_id": "1rr7vKBWk1v7F7WH4vLhwR7GKbuJRPIOw"
+          "drive_file_id": "1rr7vKBWk1v7F7WH4vLhwR7GKbuJRPIOw",
+          "quantity": "ふつう"
         },
         {
           "id": "item_6c3b516258fa",
@@ -61333,7 +61531,8 @@
           ],
           "image_id": "wm_993a3c8ab92d",
           "image_ext": "jpg",
-          "drive_file_id": "1WenR7X4-YE3g94xX6yTAJUbT-31ZyX7b"
+          "drive_file_id": "1WenR7X4-YE3g94xX6yTAJUbT-31ZyX7b",
+          "quantity": "ふつう"
         },
         {
           "id": "item_7edde1854e5b",
@@ -61346,7 +61545,8 @@
           ],
           "image_id": "wm_09a4fd8e4599",
           "image_ext": "jpg",
-          "drive_file_id": "19D2qEVzKbZ-iJROZHiM8OGMRlCalqNnw"
+          "drive_file_id": "19D2qEVzKbZ-iJROZHiM8OGMRlCalqNnw",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1b4fc9fd8598",
@@ -61363,7 +61563,8 @@
           ],
           "image_id": "wm_5adfd7ecde2b",
           "image_ext": "jpg",
-          "drive_file_id": "1siP5AhWxZzfAn9OilplNVqHmBg6Z3KGE"
+          "drive_file_id": "1siP5AhWxZzfAn9OilplNVqHmBg6Z3KGE",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1cb362f2f576",
@@ -61380,7 +61581,8 @@
           ],
           "image_id": "wm_05f06ebcfea3",
           "image_ext": "jpg",
-          "drive_file_id": "1saU6kwwcQkkjQWma9WPxloIOMgfZMqQB"
+          "drive_file_id": "1saU6kwwcQkkjQWma9WPxloIOMgfZMqQB",
+          "quantity": "ふつう"
         },
         {
           "id": "item_70e65e96ed32",
@@ -61394,7 +61596,8 @@
           ],
           "image_id": "wm_9cb1e73b9350",
           "image_ext": "jpg",
-          "drive_file_id": "1ZBcqtRic0pwywY_tWJnePvc47dWrdWkT"
+          "drive_file_id": "1ZBcqtRic0pwywY_tWJnePvc47dWrdWkT",
+          "quantity": "ふつう"
         },
         {
           "id": "item_1ee20207ff66",
@@ -61408,7 +61611,8 @@
           ],
           "image_id": "wm_c784aead8c8d",
           "image_ext": "jpg",
-          "drive_file_id": "1QTMSdvDj__YV0z0hS2Xbu_Z0fkRfLkoJ"
+          "drive_file_id": "1QTMSdvDj__YV0z0hS2Xbu_Z0fkRfLkoJ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_11950bf4f3ea",
@@ -61426,7 +61630,8 @@
           ],
           "image_id": "wm_445ad0ab6875",
           "image_ext": "jpg",
-          "drive_file_id": "1Leaz9lqsta1kFHwa7qxBcR6wjP434i1a"
+          "drive_file_id": "1Leaz9lqsta1kFHwa7qxBcR6wjP434i1a",
+          "quantity": "ふつう"
         },
         {
           "id": "item_6ca420019515",
@@ -61441,9 +61646,11 @@
           ],
           "image_id": "wm_d299dc6b4053",
           "image_ext": "jpg",
-          "drive_file_id": "1r1jdxi5FyPPqiyEVON-ZonmwgtQfmA75"
+          "drive_file_id": "1r1jdxi5FyPPqiyEVON-ZonmwgtQfmA75",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-30": {
       "items": [
@@ -61456,7 +61663,8 @@
           ],
           "image_id": "wm_baaa4f20b2b1",
           "image_ext": "jpg",
-          "drive_file_id": "1UMxA05mrpzNN5TBDHaToSiiT7elgnt0H"
+          "drive_file_id": "1UMxA05mrpzNN5TBDHaToSiiT7elgnt0H",
+          "quantity": "ふつう"
         },
         {
           "id": "item_69603f915d45",
@@ -61478,7 +61686,8 @@
           ],
           "image_id": "wm_bd89bf1cb556",
           "image_ext": "jpg",
-          "drive_file_id": "1xxBaGljfs_PrmGSpSfsDvnV-snIjhSL-"
+          "drive_file_id": "1xxBaGljfs_PrmGSpSfsDvnV-snIjhSL-",
+          "quantity": "ふつう"
         },
         {
           "id": "item_97adb5d41154",
@@ -61497,9 +61706,11 @@
           ],
           "image_id": "wm_497e9b605ac4",
           "image_ext": "jpg",
-          "drive_file_id": "1yD0vCQ3nwADuZGyJbbKbqILBUuBWfJW0"
+          "drive_file_id": "1yD0vCQ3nwADuZGyJbbKbqILBUuBWfJW0",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-27": {
       "items": [
@@ -61515,7 +61726,8 @@
           ],
           "image_id": "wm_73b84eefa426",
           "image_ext": "jpg",
-          "drive_file_id": "173HIIbdpdjJyKu3F41Dxz7EZZmj1tyXu"
+          "drive_file_id": "173HIIbdpdjJyKu3F41Dxz7EZZmj1tyXu",
+          "quantity": "ふつう"
         },
         {
           "id": "item_25b70db4e048",
@@ -61528,7 +61740,8 @@
           ],
           "image_id": "wm_b3981ba1bd65",
           "image_ext": "jpg",
-          "drive_file_id": "1FETxf1cjfRb7-a0W1T-bAheke_JJ1eYa"
+          "drive_file_id": "1FETxf1cjfRb7-a0W1T-bAheke_JJ1eYa",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5babf9b4beb6",
@@ -61540,9 +61753,11 @@
           ],
           "image_id": "wm_d26da2716aaa",
           "image_ext": "jpg",
-          "drive_file_id": "1hSZzXWqD81IWUZh0QY-uKezkZnK3EKtB"
+          "drive_file_id": "1hSZzXWqD81IWUZh0QY-uKezkZnK3EKtB",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-26": {
       "items": [
@@ -61559,7 +61774,8 @@
           ],
           "image_id": "wm_e37cc3279d1d",
           "image_ext": "jpg",
-          "drive_file_id": "1ojafw7s9WitqXEgVlm3shPzlaFouGzVg"
+          "drive_file_id": "1ojafw7s9WitqXEgVlm3shPzlaFouGzVg",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2fecf7aa6889",
@@ -61574,7 +61790,8 @@
           ],
           "image_id": "wm_ff947290c27e",
           "image_ext": "jpg",
-          "drive_file_id": "17cqQQ-J_2sLUt5sLJIyykIpKonQpgaag"
+          "drive_file_id": "17cqQQ-J_2sLUt5sLJIyykIpKonQpgaag",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a29b77b6efdb",
@@ -61587,9 +61804,11 @@
           ],
           "image_id": "wm_5ce047f3cce4",
           "image_ext": "jpg",
-          "drive_file_id": "1y3rwbZXUztJ9CXg1zwN8ImNLtBM8ruAE"
+          "drive_file_id": "1y3rwbZXUztJ9CXg1zwN8ImNLtBM8ruAE",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-08-25": {
       "items": [
@@ -61614,7 +61833,8 @@
           ],
           "image_id": "wm_ab8e84193f56",
           "image_ext": "jpg",
-          "drive_file_id": "1vjZS2hvyzoVXjHjgEoYDzCIoIcFGRIhJ"
+          "drive_file_id": "1vjZS2hvyzoVXjHjgEoYDzCIoIcFGRIhJ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_74f13dcd3b56",
@@ -61627,7 +61847,8 @@
           ],
           "image_id": "wm_f730f125ffeb",
           "image_ext": "jpg",
-          "drive_file_id": "1708iUJNSGjF1KDxOfMKlL6kz7evaNUSS"
+          "drive_file_id": "1708iUJNSGjF1KDxOfMKlL6kz7evaNUSS",
+          "quantity": "ふつう"
         },
         {
           "id": "item_7c9c727546d9",
@@ -61641,9 +61862,11 @@
           ],
           "image_id": "wm_0e9a37c22a49",
           "image_ext": "jpg",
-          "drive_file_id": "18Z1A3_C_B_N1eH_S9eBzHYi0pzLz8au0"
+          "drive_file_id": "18Z1A3_C_B_N1eH_S9eBzHYi0pzLz8au0",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-03": {
       "items": [
@@ -61656,7 +61879,8 @@
           ],
           "image_id": "wm_450ba58680d0",
           "image_ext": "jpg",
-          "drive_file_id": "1KC0usMfZXkPMIkOIS0C7NDbcGgC3LT-u"
+          "drive_file_id": "1KC0usMfZXkPMIkOIS0C7NDbcGgC3LT-u",
+          "quantity": "ふつう"
         },
         {
           "id": "item_39f43c8b2bb9",
@@ -61673,7 +61897,8 @@
           ],
           "image_id": "wm_6c1ce420e5ef",
           "image_ext": "jpg",
-          "drive_file_id": "1s5pxmcs5NEUNCTK4ntLErHi4N5wCrvuz"
+          "drive_file_id": "1s5pxmcs5NEUNCTK4ntLErHi4N5wCrvuz",
+          "quantity": "ふつう"
         },
         {
           "id": "item_571c19faecdf",
@@ -61684,7 +61909,8 @@
           ],
           "image_id": "wm_a2cd1334a0e7",
           "image_ext": "jpg",
-          "drive_file_id": "13Pqs2IKyjiWMi_HZp7qIbza_3V4kGyw0"
+          "drive_file_id": "13Pqs2IKyjiWMi_HZp7qIbza_3V4kGyw0",
+          "quantity": "ふつう"
         },
         {
           "id": "item_a895583323b1",
@@ -61695,9 +61921,11 @@
           ],
           "image_id": "wm_e22e76766b9d",
           "image_ext": "jpg",
-          "drive_file_id": "1IGuM7H9MfY-oyEsPymkYOEeK06TpZr_c"
+          "drive_file_id": "1IGuM7H9MfY-oyEsPymkYOEeK06TpZr_c",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-02": {
       "items": [
@@ -61713,7 +61941,8 @@
           ],
           "image_id": "wm_5f805cbeb2b4",
           "image_ext": "jpg",
-          "drive_file_id": "1iwBJjA-z0RNixIluu2_sLsz3aD0A_A_n"
+          "drive_file_id": "1iwBJjA-z0RNixIluu2_sLsz3aD0A_A_n",
+          "quantity": "ふつう"
         },
         {
           "id": "item_db3875b2d6df",
@@ -61728,7 +61957,8 @@
           ],
           "image_id": "wm_caba997051d5",
           "image_ext": "jpg",
-          "drive_file_id": "1JKnB9_P_dY2otQJVTwZ5GUvkGoUUFQLL"
+          "drive_file_id": "1JKnB9_P_dY2otQJVTwZ5GUvkGoUUFQLL",
+          "quantity": "ふつう"
         },
         {
           "id": "item_fc702477bd9a",
@@ -61738,7 +61968,8 @@
           ],
           "image_id": "wm_973851e463b3",
           "image_ext": "jpg",
-          "drive_file_id": "1fGYeXpHoZXSMdZ7icJnzL1-378-epoqt"
+          "drive_file_id": "1fGYeXpHoZXSMdZ7icJnzL1-378-epoqt",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2b835a32bfad",
@@ -61756,7 +61987,8 @@
           ],
           "image_id": "wm_1645488ee881",
           "image_ext": "jpg",
-          "drive_file_id": "1n_MdaMvdKjlt8zdbY0whnQ4TvMRY7Wid"
+          "drive_file_id": "1n_MdaMvdKjlt8zdbY0whnQ4TvMRY7Wid",
+          "quantity": "ふつう"
         },
         {
           "id": "item_449ef6e03e64",
@@ -61768,9 +62000,11 @@
           ],
           "image_id": "wm_98e4cdc21f70",
           "image_ext": "jpg",
-          "drive_file_id": "1PDS43bHVduogPgMOyYepJhGwUAyQuI3F"
+          "drive_file_id": "1PDS43bHVduogPgMOyYepJhGwUAyQuI3F",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-01": {
       "items": [
@@ -61782,7 +62016,8 @@
           ],
           "image_id": "wm_eb65bd015b38",
           "image_ext": "jpg",
-          "drive_file_id": "1AyuHfoADwOCih6ifQCMy7wqMr3mq2K-L"
+          "drive_file_id": "1AyuHfoADwOCih6ifQCMy7wqMr3mq2K-L",
+          "quantity": "ふつう"
         },
         {
           "id": "item_0b2b11ba69c1",
@@ -61794,7 +62029,8 @@
           ],
           "image_id": "wm_51b101f23a3a",
           "image_ext": "jpg",
-          "drive_file_id": "1zdrOefyhXKsKO3xKFRmFxdNu84x7Ht-p"
+          "drive_file_id": "1zdrOefyhXKsKO3xKFRmFxdNu84x7Ht-p",
+          "quantity": "ふつう"
         },
         {
           "id": "item_9654895c4aca",
@@ -61806,7 +62042,8 @@
           ],
           "image_id": "wm_1e4e9055f80f",
           "image_ext": "jpg",
-          "drive_file_id": "1kS8ge2fXApCL98DGFDmo0Yr5ZzV6_lcK"
+          "drive_file_id": "1kS8ge2fXApCL98DGFDmo0Yr5ZzV6_lcK",
+          "quantity": "ふつう"
         },
         {
           "id": "item_7bcc7fda1372",
@@ -61816,9 +62053,11 @@
           ],
           "image_id": "wm_9fa4935d254a",
           "image_ext": "jpg",
-          "drive_file_id": "1hV6mmnn5V7YKn8dxWWGtfUDeQUlB6jsu"
+          "drive_file_id": "1hV6mmnn5V7YKn8dxWWGtfUDeQUlB6jsu",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-14": {
       "items": [
@@ -61836,9 +62075,11 @@
           ],
           "image_id": "wm_e2d3768aed91",
           "image_ext": "jpg",
-          "drive_file_id": "1rC1hjgshBJ5T3ySRUoy2q2wk-V6GP1qE"
+          "drive_file_id": "1rC1hjgshBJ5T3ySRUoy2q2wk-V6GP1qE",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-13": {
       "items": [
@@ -61852,7 +62093,8 @@
           ],
           "image_id": "wm_f829ebeb53b6",
           "image_ext": "jpg",
-          "drive_file_id": "1VwrgSy1gHOfDI88U-PLmWNbCxiy0IaO2"
+          "drive_file_id": "1VwrgSy1gHOfDI88U-PLmWNbCxiy0IaO2",
+          "quantity": "ふつう"
         },
         {
           "id": "item_dbb68f116b98",
@@ -61864,7 +62106,8 @@
           ],
           "image_id": "wm_8801bb2e44be",
           "image_ext": "jpg",
-          "drive_file_id": "1thdzXRaH91kjXi1EEFXOy-_SL05pxlg5"
+          "drive_file_id": "1thdzXRaH91kjXi1EEFXOy-_SL05pxlg5",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d50151e9415a",
@@ -61880,9 +62123,11 @@
           ],
           "image_id": "wm_fbe7947b3810",
           "image_ext": "jpg",
-          "drive_file_id": "1PIxFR6BS5fwuQteWioeSkOKATDFwoVKS"
+          "drive_file_id": "1PIxFR6BS5fwuQteWioeSkOKATDFwoVKS",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-12": {
       "items": [
@@ -61903,7 +62148,8 @@
           ],
           "image_id": "wm_df436b71740a",
           "image_ext": "jpg",
-          "drive_file_id": "1w60IMFKgftk3c5GtE-avHmhZ_7AimO2v"
+          "drive_file_id": "1w60IMFKgftk3c5GtE-avHmhZ_7AimO2v",
+          "quantity": "ふつう"
         },
         {
           "id": "item_c467cc457778",
@@ -61916,7 +62162,8 @@
           ],
           "image_id": "wm_57499fd7fd31",
           "image_ext": "jpg",
-          "drive_file_id": "1bF8WnqwOZlZb3FYVScvUg3Xzk_E-zlJA"
+          "drive_file_id": "1bF8WnqwOZlZb3FYVScvUg3Xzk_E-zlJA",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5022847f6a8c",
@@ -61931,9 +62178,11 @@
           ],
           "image_id": "wm_7be333abb68c",
           "image_ext": "jpg",
-          "drive_file_id": "1E5k3w8MfSssFvTgUGnZESKmLIRTl1iFj"
+          "drive_file_id": "1E5k3w8MfSssFvTgUGnZESKmLIRTl1iFj",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-11": {
       "items": [
@@ -61960,7 +62209,8 @@
           ],
           "image_id": "wm_462e2043be01",
           "image_ext": "jpg",
-          "drive_file_id": "1dFFeqORrM8stED63d9HzIKsHx6QRNMHj"
+          "drive_file_id": "1dFFeqORrM8stED63d9HzIKsHx6QRNMHj",
+          "quantity": "ふつう"
         },
         {
           "id": "item_16a21c34778f",
@@ -61979,7 +62229,8 @@
           ],
           "image_id": "wm_682a95ebdb50",
           "image_ext": "jpg",
-          "drive_file_id": "1KaaNRpFf2dWemzp5vEj0TnE7rzr4KsZk"
+          "drive_file_id": "1KaaNRpFf2dWemzp5vEj0TnE7rzr4KsZk",
+          "quantity": "ふつう"
         },
         {
           "id": "item_e79211625b73",
@@ -61992,9 +62243,11 @@
           ],
           "image_id": "wm_53cf3720997c",
           "image_ext": "jpg",
-          "drive_file_id": "1JPcuqhnJOheGVym65PlaNIIKceKmvlzp"
+          "drive_file_id": "1JPcuqhnJOheGVym65PlaNIIKceKmvlzp",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-10": {
       "items": [
@@ -62011,7 +62264,8 @@
           ],
           "image_id": "wm_0f6189554dde",
           "image_ext": "jpg",
-          "drive_file_id": "1TaiigJH4ivldKJIQ3kDtoTwUdfbEMX9q"
+          "drive_file_id": "1TaiigJH4ivldKJIQ3kDtoTwUdfbEMX9q",
+          "quantity": "ふつう"
         },
         {
           "id": "item_bada89eba5ef",
@@ -62028,7 +62282,8 @@
           ],
           "image_id": "wm_af9ce3b1baa7",
           "image_ext": "jpg",
-          "drive_file_id": "1Y-9O9-yFIcVdcM1AD7uEib3WYEalG1f2"
+          "drive_file_id": "1Y-9O9-yFIcVdcM1AD7uEib3WYEalG1f2",
+          "quantity": "ふつう"
         },
         {
           "id": "item_4e1d211aefce",
@@ -62041,9 +62296,11 @@
           ],
           "image_id": "wm_c77670c35869",
           "image_ext": "jpg",
-          "drive_file_id": "1RPiRXz5i7pO2MIypDHBZNFkpQWsfPjpc"
+          "drive_file_id": "1RPiRXz5i7pO2MIypDHBZNFkpQWsfPjpc",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-09": {
       "items": [
@@ -62062,7 +62319,8 @@
           ],
           "image_id": "wm_e5e2f4b4ab4f",
           "image_ext": "jpg",
-          "drive_file_id": "1Zl_SFteO7JrpQeJVwQTvXZBCK0xWWZiD"
+          "drive_file_id": "1Zl_SFteO7JrpQeJVwQTvXZBCK0xWWZiD",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d9186dd4397a",
@@ -62072,7 +62330,8 @@
           ],
           "image_id": "wm_fda8ea16966b",
           "image_ext": "jpg",
-          "drive_file_id": "1nAsHNSTr3uJePWHTydrQgO0CRGHQJP0o"
+          "drive_file_id": "1nAsHNSTr3uJePWHTydrQgO0CRGHQJP0o",
+          "quantity": "ふつう"
         },
         {
           "id": "item_b32400d875a8",
@@ -62085,7 +62344,8 @@
           ],
           "image_id": "wm_fbebe9712d80",
           "image_ext": "jpg",
-          "drive_file_id": "1pdPcHYEYAbswQXIBjdSXZ6bMHhW_PU-I"
+          "drive_file_id": "1pdPcHYEYAbswQXIBjdSXZ6bMHhW_PU-I",
+          "quantity": "ふつう"
         },
         {
           "id": "item_9cad6c9046cf",
@@ -62097,9 +62357,11 @@
           ],
           "image_id": "wm_f754338850d1",
           "image_ext": "jpg",
-          "drive_file_id": "1m2nlmmXeaEcNd0qli0nPsmD3D0AjCzHs"
+          "drive_file_id": "1m2nlmmXeaEcNd0qli0nPsmD3D0AjCzHs",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-08": {
       "items": [
@@ -62118,7 +62380,8 @@
           ],
           "image_id": "wm_0915db0841a3",
           "image_ext": "jpg",
-          "drive_file_id": "1Na_ecDuH9nm-NPAPm_pcbqVJB5XCaweU"
+          "drive_file_id": "1Na_ecDuH9nm-NPAPm_pcbqVJB5XCaweU",
+          "quantity": "ふつう"
         },
         {
           "id": "item_03b8a9a3c882",
@@ -62134,7 +62397,8 @@
           ],
           "image_id": "wm_27901bc241f1",
           "image_ext": "jpg",
-          "drive_file_id": "17glg5IgtxGnWdBzGNp8vdQ_vgz2qWGwU"
+          "drive_file_id": "17glg5IgtxGnWdBzGNp8vdQ_vgz2qWGwU",
+          "quantity": "ふつう"
         },
         {
           "id": "item_407d80ec255e",
@@ -62146,9 +62410,11 @@
           ],
           "image_id": "wm_85059d7a8c89",
           "image_ext": "jpg",
-          "drive_file_id": "1Dq87snTlNJLreEsS9xgJEkBsbe9tJS0Z"
+          "drive_file_id": "1Dq87snTlNJLreEsS9xgJEkBsbe9tJS0Z",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-07": {
       "items": [
@@ -62167,7 +62433,8 @@
           ],
           "image_id": "wm_98c3ef8d5fa8",
           "image_ext": "jpg",
-          "drive_file_id": "1LH4LNjTrrVRvnlWNgAIUP09LFlzi4Geb"
+          "drive_file_id": "1LH4LNjTrrVRvnlWNgAIUP09LFlzi4Geb",
+          "quantity": "ふつう"
         },
         {
           "id": "item_2da768a4a71e",
@@ -62179,7 +62446,8 @@
           ],
           "image_id": "wm_611071942c2a",
           "image_ext": "jpg",
-          "drive_file_id": "1exzI95Lxv5OrYsbXCjrCwQJEnKD4uaME"
+          "drive_file_id": "1exzI95Lxv5OrYsbXCjrCwQJEnKD4uaME",
+          "quantity": "ふつう"
         },
         {
           "id": "item_80548c7e90d1",
@@ -62192,7 +62460,8 @@
           ],
           "image_id": "wm_a35a23999fb2",
           "image_ext": "jpg",
-          "drive_file_id": "1X_BqnJWqy_oRRGz697PnZ0274ACSwfc9"
+          "drive_file_id": "1X_BqnJWqy_oRRGz697PnZ0274ACSwfc9",
+          "quantity": "ふつう"
         },
         {
           "id": "item_dba173131bac",
@@ -62202,9 +62471,11 @@
           ],
           "image_id": "wm_2b58bba94295",
           "image_ext": "jpg",
-          "drive_file_id": "1ofzdjnGF1kzGKuq4nl-2cLsLR5be5iOm"
+          "drive_file_id": "1ofzdjnGF1kzGKuq4nl-2cLsLR5be5iOm",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-06": {
       "items": [
@@ -62222,7 +62493,8 @@
           ],
           "image_id": "wm_928116c8e45f",
           "image_ext": "jpg",
-          "drive_file_id": "1TLbxHNJitwmpVzctlGP4Q5EbbkEXO3O1"
+          "drive_file_id": "1TLbxHNJitwmpVzctlGP4Q5EbbkEXO3O1",
+          "quantity": "ふつう"
         },
         {
           "id": "item_5444aa31e740",
@@ -62232,7 +62504,8 @@
           ],
           "image_id": "wm_29188e52dac5",
           "image_ext": "jpg",
-          "drive_file_id": "1H6evx4sI_XmcarvzMuDX7CR9vw8UBkSn"
+          "drive_file_id": "1H6evx4sI_XmcarvzMuDX7CR9vw8UBkSn",
+          "quantity": "ふつう"
         },
         {
           "id": "item_8ec86a34da18",
@@ -62245,7 +62518,8 @@
           ],
           "image_id": "wm_0aea2329212a",
           "image_ext": "jpg",
-          "drive_file_id": "1alUpZzOLj6_mq6Wi9FM7P3M45VeoDWie"
+          "drive_file_id": "1alUpZzOLj6_mq6Wi9FM7P3M45VeoDWie",
+          "quantity": "ふつう"
         },
         {
           "id": "item_cf2ac1e6a3a9",
@@ -62260,9 +62534,11 @@
           ],
           "image_id": "wm_a11da0f2aa23",
           "image_ext": "jpg",
-          "drive_file_id": "1szlIE5_5zhoVHAC4J8BmKH019rNBwvhz"
+          "drive_file_id": "1szlIE5_5zhoVHAC4J8BmKH019rNBwvhz",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-05": {
       "items": [
@@ -62276,7 +62552,8 @@
           ],
           "image_id": "wm_4c7a48151741",
           "image_ext": "jpg",
-          "drive_file_id": "1btExBKmJ-7F49HPEhrNtY4ywNxkl7Oej"
+          "drive_file_id": "1btExBKmJ-7F49HPEhrNtY4ywNxkl7Oej",
+          "quantity": "ふつう"
         },
         {
           "id": "item_740908c2c2bc",
@@ -62288,7 +62565,8 @@
           ],
           "image_id": "wm_eb76e8a1f88e",
           "image_ext": "jpg",
-          "drive_file_id": "1_eRpjD0rb1gLmO6rgJL5Z9z271ioGux3"
+          "drive_file_id": "1_eRpjD0rb1gLmO6rgJL5Z9z271ioGux3",
+          "quantity": "ふつう"
         },
         {
           "id": "item_40834a7def67",
@@ -62301,7 +62579,8 @@
           ],
           "image_id": "wm_1fa68c599bcd",
           "image_ext": "jpg",
-          "drive_file_id": "1hA-ZL6G9Qp6SP3Qj_7Tj0HM1EZvxC1J8"
+          "drive_file_id": "1hA-ZL6G9Qp6SP3Qj_7Tj0HM1EZvxC1J8",
+          "quantity": "ふつう"
         },
         {
           "id": "item_da4c0121f5b6",
@@ -62317,9 +62596,11 @@
           ],
           "image_id": "wm_3911b223b0a8",
           "image_ext": "jpg",
-          "drive_file_id": "17O9eCNFVwT68Plgxc6zfVKoNK1U-uwQj"
+          "drive_file_id": "17O9eCNFVwT68Plgxc6zfVKoNK1U-uwQj",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     },
     "2026-09-04": {
       "items": [
@@ -62337,7 +62618,8 @@
           ],
           "image_id": "wm_ed69787bd26e",
           "image_ext": "jpg",
-          "drive_file_id": "1QHAjgQTBqu6hPcJXJ8TLUKTY6VxyxPD5"
+          "drive_file_id": "1QHAjgQTBqu6hPcJXJ8TLUKTY6VxyxPD5",
+          "quantity": "ふつう"
         },
         {
           "id": "item_7c9c08f13302",
@@ -62348,7 +62630,8 @@
           ],
           "image_id": "wm_8bd8b65749f8",
           "image_ext": "jpg",
-          "drive_file_id": "137GxmRQRiDJEKYag-MnuHwP7tgT6hyuL"
+          "drive_file_id": "137GxmRQRiDJEKYag-MnuHwP7tgT6hyuL",
+          "quantity": "ふつう"
         },
         {
           "id": "item_9ce13350f572",
@@ -62382,7 +62665,8 @@
           ],
           "image_id": "wm_b10578b8963f",
           "image_ext": "jpg",
-          "drive_file_id": "10GW-ztt6oeq1ZzWauwdbkUxv97AbZ5uZ"
+          "drive_file_id": "10GW-ztt6oeq1ZzWauwdbkUxv97AbZ5uZ",
+          "quantity": "ふつう"
         },
         {
           "id": "item_d815dacdfdb5",
@@ -62395,9 +62679,11 @@
           ],
           "image_id": "wm_30ec631751a5",
           "image_ext": "jpg",
-          "drive_file_id": "18EYt-99UaDaTpJiBmFsmGgbsxTi-7JMx"
+          "drive_file_id": "18EYt-99UaDaTpJiBmFsmGgbsxTi-7JMx",
+          "quantity": "ふつう"
         }
-      ]
+      ],
+      "total_calories": 0
     }
   }
 }
