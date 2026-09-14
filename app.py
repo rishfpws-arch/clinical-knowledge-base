@@ -432,12 +432,37 @@ def download_image(_service, file_id: str) -> bytes:
 
 
 def get_food_folder_id() -> str | None:
-    """secrets.toml の food_images_folder_id。"""
+    """食事画像フォルダの Drive ID。
+
+    secrets.toml のトップレベル → [gcp_service_account] 内（旧版が末尾に追記したため
+    このセクションに入っている）→ folder_id 配下の「食事画像」フォルダ検索、の順で解決。
+    """
+    cached = st.session_state.get("_food_folder_id_cache")
+    if cached:
+        return cached
+    fid = ""
     try:
-        fid = st.secrets.get("food_images_folder_id", "")
-        return fid or None
+        fid = st.secrets.get("food_images_folder_id", "") or ""
+        if not fid:
+            fid = dict(st.secrets.get("gcp_service_account", {})).get("food_images_folder_id", "") or ""
     except (KeyError, FileNotFoundError):
-        return None
+        fid = ""
+    if not fid:
+        try:
+            parent = st.secrets.get("folder_id", "")
+            if parent:
+                service = get_drive_service()
+                q = (f"'{parent}' in parents and name='食事画像' "
+                     f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
+                res = service.files().list(q=q, fields="files(id)", pageSize=5).execute()
+                files = res.get("files", [])
+                if files:
+                    fid = files[0]["id"]
+        except Exception as e:
+            _log.warning(f"食事画像フォルダ検索失敗: {e}")
+    if fid:
+        st.session_state["_food_folder_id_cache"] = fid
+    return fid or None
 
 
 def get_gemini_api_key() -> str | None:

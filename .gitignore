@@ -24,3 +24,4 @@ build_food_search_index.log
 .build_food_search_index.lock
 .scan_food_images.lock
 *.bak-*
+backups/
