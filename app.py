@@ -901,7 +901,8 @@ def _inject_gallery_css():
         display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
         word-break: break-word;
     }
-    .g-caption .g-chip-date { opacity: 0.7; }
+    .g-caption-top { margin-top: 4px; }
+    .g-caption .g-chip-date { background: rgba(255,255,255,0.10); color: #e0e0e0; }
     .g-caption .g-chip-hit { background: rgba(72,199,116,0.18); color: #7ee2a1; font-weight: 600; }
     .g-caption .g-chip-rel { background: rgba(80,160,255,0.18); color: #9cc7ff; font-weight: 600; }
     .g-caption .g-chip {
@@ -1041,16 +1042,17 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
 
                 items_ext = [x for x in (e.get("items_extracted") or [])
                              if not _FILENAME_RE.search(str(x))]
-                # 検索中: 一致した語 / 関連 のラベル
-                if e.get("matched"):
-                    st.markdown(
-                        '<div class="g-caption"><span class="g-chip g-chip-hit">✅ 一致: '
-                        + html.escape(" ".join(e["matched"])) + "</span></div>",
-                        unsafe_allow_html=True)
-                elif "score" in e:
-                    st.markdown(
-                        '<div class="g-caption"><span class="g-chip g-chip-rel">🔎 関連（説明文が近い）</span></div>',
-                        unsafe_allow_html=True)
+                # 検索中: 全カードに「日付 + 一致した語 / 関連」の 1 行目を必ず出す
+                if e.get("matched") or "score" in e:
+                    date_chip = (f'<span class="g-chip g-chip-date">📅 {html.escape(e["ts"][:10])}</span>'
+                                 if e.get("ts") else "")
+                    if e.get("matched"):
+                        label = ('<span class="g-chip g-chip-hit">✅ 一致: '
+                                 + html.escape(" ".join(e["matched"])) + "</span>")
+                    else:
+                        label = '<span class="g-chip g-chip-rel">🔎 関連（説明文が近い）</span>'
+                    st.markdown(f'<div class="g-caption g-caption-top">{date_chip}{label}</div>',
+                                unsafe_allow_html=True)
                 if e.get("desc") and (not items_ext or e.get("no_items")):
                     # 索引が「品目なし」と判定した写真は旧タグより説明文を優先
                     st.markdown(f'<div class="g-caption">🧠 {html.escape(str(e["desc"])[:60])}</div>',
@@ -1058,9 +1060,6 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
                 elif items_ext:
                     chips = "".join(f'<span class="g-chip">{html.escape(str(x))}</span>'
                                     for x in items_ext)
-                    if not group_by_date and e.get("ts"):
-                        chips = (f'<span class="g-chip g-chip-date">{html.escape(e["ts"][:10])}</span>'
-                                 + chips)
                     st.markdown(f'<div class="g-caption">{chips}</div>', unsafe_allow_html=True)
                 elif e.get("title"):
                     st.markdown(f'<div class="g-caption">{html.escape(e["title"])}</div>',
