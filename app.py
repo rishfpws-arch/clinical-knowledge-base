@@ -3496,8 +3496,21 @@ def _build_food_entries(weight_data: dict, index: dict | None = None) -> list[di
         for iid in order:
             g = grouped[iid]
             items_extracted = g["names"] + [x for x in g["extras"] if x not in g["names"]]
-            title = items_extracted[0] if items_extracted else ""
             ix = index.get(iid) or {}
+            # 品目が取れていない（空、またはファイル名のまま）画像は、索引の品目や
+            # 説明文を代わりに使う。検索対象にも表示にも困らないようにする。
+            def _looks_like_filename(x: str) -> bool:
+                return bool(re.search(r"\.(jpe?g|png|heic)$", x, re.IGNORECASE))
+            real_names = [x for x in items_extracted if not _looks_like_filename(x)]
+            if not real_names and ix.get("items"):
+                real_names = [str(x) for x in ix["items"] if x]
+                items_extracted = real_names + [x for x in items_extracted if x not in real_names]
+            if real_names:
+                title = real_names[0]
+            elif ix.get("description"):
+                title = str(ix["description"])[:40]
+            else:
+                title = items_extracted[0] if items_extracted else ""
             search_text = _fs.normalize_text(" ".join(items_extracted))
             if ix.get("search_text"):
                 search_text = f"{ix['search_text']} {search_text}"
@@ -3795,8 +3808,14 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                         unsafe_allow_html=True,
                     )
                 if e.get("kind") == "food":
-                    items_ext = e.get("items_extracted") or []
-                    if items_ext:
+                    items_ext = [x for x in (e.get("items_extracted") or [])
+                                 if not re.search(r"\.(jpe?g|png|heic)$", str(x), re.IGNORECASE)]
+                    if not items_ext and e.get("desc"):
+                        st.markdown(
+                            f'<div class="g-caption">🧠 {html.escape(str(e["desc"])[:60])}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    elif items_ext:
                         chips = "".join(
                             f'<span class="g-chip">{html.escape(str(x))}</span>'
                             for x in items_ext
