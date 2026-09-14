@@ -102,15 +102,30 @@ def normalize_text(s: str) -> str:
     return t
 
 
+_HIRAGANA_ONLY = re.compile(r"^[ぁ-ゖ゛-ゞー\s]+$")
+
+
 def build_search_text(desc: dict, extra_names: list[str] | None = None) -> str:
-    """索引エントリ（describe 結果）から正規化済みの検索対象文字列を作る。"""
+    """索引エントリ（describe 結果）から正規化済みの検索対象文字列を作る。
+
+    aliases のうち「ひらがなだけの読み」（例: 牛丼→ぎゅうどん）は含めない。
+    部分一致で「うどん」が「ぎゅうどん」に当たるような誤ヒットの元になるため。
+    カタカナの言い換え（鮭→サーモン）や漢字の別名（牛めし）は残す。
+    """
     parts: list[str] = []
     for key in ("items", "categories", "cooking", "ingredients", "context", "aliases"):
         v = desc.get(key)
-        if isinstance(v, list):
-            parts.extend(str(x) for x in v if x)
-        elif isinstance(v, str) and v:
-            parts.append(v)
+        if isinstance(v, str) and v:
+            v = [v]
+        if not isinstance(v, list):
+            continue
+        for x in v:
+            sx = str(x).strip()
+            if not sx:
+                continue
+            if key == "aliases" and _HIRAGANA_ONLY.match(unicodedata.normalize("NFKC", sx)):
+                continue
+            parts.append(sx)
     d = desc.get("description")
     if isinstance(d, str) and d:
         parts.append(d)
