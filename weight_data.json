@@ -61780,6 +61780,478 @@
           "drive_file_id": "1hV6mmnn5V7YKn8dxWWGtfUDeQUlB6jsu"
         }
       ]
+    },
+    "2026-09-14": {
+      "items": [
+        {
+          "id": "item_d999bf7deb32",
+          "name": "ご飯・たくあん・煮物・パスタ・青菜のおひたし・いなり寿司・バナナアーモンドスムージー",
+          "items_extracted": [
+            "ご飯",
+            "たくあん",
+            "煮物",
+            "パスタ",
+            "青菜のおひたし",
+            "いなり寿司",
+            "バナナアーモンドスムージー"
+          ],
+          "image_id": "wm_e2d3768aed91",
+          "image_ext": "jpg",
+          "drive_file_id": "1rC1hjgshBJ5T3ySRUoy2q2wk-V6GP1qE"
+        }
+      ]
+    },
+    "2026-09-13": {
+      "items": [
+        {
+          "id": "item_c6777c50924d",
+          "name": "蕎麦・お茶・しそのり",
+          "items_extracted": [
+            "蕎麦",
+            "お茶",
+            "しそのり"
+          ],
+          "image_id": "wm_f829ebeb53b6",
+          "image_ext": "jpg",
+          "drive_file_id": "1VwrgSy1gHOfDI88U-PLmWNbCxiy0IaO2"
+        },
+        {
+          "id": "item_dbb68f116b98",
+          "name": "ホットケーキ・メープルシロップ・バター",
+          "items_extracted": [
+            "ホットケーキ",
+            "メープルシロップ",
+            "バター"
+          ],
+          "image_id": "wm_8801bb2e44be",
+          "image_ext": "jpg",
+          "drive_file_id": "1thdzXRaH91kjXi1EEFXOy-_SL05pxlg5"
+        },
+        {
+          "id": "item_d50151e9415a",
+          "name": "コーヒー・お茶・水・メガマフィン・ハッシュポテト・月見バーガー・月見パイ",
+          "items_extracted": [
+            "コーヒー",
+            "お茶",
+            "水",
+            "メガマフィン",
+            "ハッシュポテト",
+            "月見バーガー",
+            "月見パイ"
+          ],
+          "image_id": "wm_fbe7947b3810",
+          "image_ext": "jpg",
+          "drive_file_id": "1PIxFR6BS5fwuQteWioeSkOKATDFwoVKS"
+        }
+      ]
+    },
+    "2026-09-12": {
+      "items": [
+        {
+          "id": "item_b0233b6cfe10",
+          "name": "ステーキ肉・ごはん・味噌汁・かぼちゃの煮物・緑茶・ミネラルウォーター・カフェラテ・醤油・あんこ餅・そら豆スナック",
+          "items_extracted": [
+            "ステーキ肉",
+            "ごはん",
+            "味噌汁",
+            "かぼちゃの煮物",
+            "緑茶",
+            "ミネラルウォーター",
+            "カフェラテ",
+            "醤油",
+            "あんこ餅",
+            "そら豆スナック"
+          ],
+          "image_id": "wm_df436b71740a",
+          "image_ext": "jpg",
+          "drive_file_id": "1w60IMFKgftk3c5GtE-avHmhZ_7AimO2v"
+        },
+        {
+          "id": "item_c467cc457778",
+          "name": "ピザ・チキンナゲット・フライドポテト・水",
+          "items_extracted": [
+            "ピザ",
+            "チキンナゲット",
+            "フライドポテト",
+            "水"
+          ],
+          "image_id": "wm_57499fd7fd31",
+          "image_ext": "jpg",
+          "drive_file_id": "1bF8WnqwOZlZb3FYVScvUg3Xzk_E-zlJA"
+        },
+        {
+          "id": "item_5022847f6a8c",
+          "name": "プロテインドリンク・飲み物・カフェラテ・ミニトマト・バナナ・コーヒー",
+          "items_extracted": [
+            "プロテインドリンク",
+            "飲み物",
+            "カフェラテ",
+            "ミニトマト",
+            "バナナ",
+            "コーヒー"
+          ],
+          "image_id": "wm_7be333abb68c",
+          "image_ext": "jpg",
+          "drive_file_id": "1E5k3w8MfSssFvTgUGnZESKmLIRTl1iFj"
+        }
+      ]
+    },
+    "2026-09-11": {
+      "items": [
+        {
+          "id": "item_e7ddc631d5b3",
+          "name": "ざるうどん・刻み海苔・天ぷら・天つゆ・鶏の唐揚げ・レモン・キャベツの千切りサラダ・ミニトマト・冷奴・昆布の佃煮・細切り野菜の和え物・きんぴらごぼう・炊き込みご飯のおにぎり・かけうどん・かまぼこ・ねぎ",
+          "items_extracted": [
+            "ざるうどん",
+            "刻み海苔",
+            "天ぷら",
+            "天つゆ",
+            "鶏の唐揚げ",
+            "レモン",
+            "キャベツの千切りサラダ",
+            "ミニトマト",
+            "冷奴",
+            "昆布の佃煮",
+            "細切り野菜の和え物",
+            "きんぴらごぼう",
+            "炊き込みご飯のおにぎり",
+            "かけうどん",
+            "かまぼこ",
+            "ねぎ"
+          ],
+          "image_id": "wm_462e2043be01",
+          "image_ext": "jpg",
+          "drive_file_id": "1dFFeqORrM8stED63d9HzIKsHx6QRNMHj"
+        },
+        {
+          "id": "item_16a21c34778f",
+          "name": "唐揚げ・鶏めし・沢庵・れんこんの煮物・ひじきの煮物・スパゲッティ・ブロッコリー・緑茶・スムージー・カフェラテ",
+          "items_extracted": [
+            "唐揚げ",
+            "鶏めし",
+            "沢庵",
+            "れんこんの煮物",
+            "ひじきの煮物",
+            "スパゲッティ",
+            "ブロッコリー",
+            "緑茶",
+            "スムージー",
+            "カフェラテ"
+          ],
+          "image_id": "wm_682a95ebdb50",
+          "image_ext": "jpg",
+          "drive_file_id": "1KaaNRpFf2dWemzp5vEj0TnE7rzr4KsZk"
+        },
+        {
+          "id": "item_e79211625b73",
+          "name": "グラノーラ・シリアル・牛乳・ヤクルト",
+          "items_extracted": [
+            "グラノーラ",
+            "シリアル",
+            "牛乳",
+            "ヤクルト"
+          ],
+          "image_id": "wm_53cf3720997c",
+          "image_ext": "jpg",
+          "drive_file_id": "1JPcuqhnJOheGVym65PlaNIIKceKmvlzp"
+        }
+      ]
+    },
+    "2026-09-10": {
+      "items": [
+        {
+          "id": "item_59b0e3ebc39c",
+          "name": "そうめん・かぼちゃの煮物・卵焼き・お茶・強炭酸水・そらまめスナック",
+          "items_extracted": [
+            "そうめん",
+            "かぼちゃの煮物",
+            "卵焼き",
+            "お茶",
+            "強炭酸水",
+            "そらまめスナック"
+          ],
+          "image_id": "wm_0f6189554dde",
+          "image_ext": "jpg",
+          "drive_file_id": "1TaiigJH4ivldKJIQ3kDtoTwUdfbEMX9q"
+        },
+        {
+          "id": "item_bada89eba5ef",
+          "name": "ご飯・メンチカツ・マカロニサラダ・たくあん・ソース・醤油・カゴメ スムージー バナナMix・シャキコリ食感ブロッコリーの和サラダ",
+          "items_extracted": [
+            "ご飯",
+            "メンチカツ",
+            "マカロニサラダ",
+            "たくあん",
+            "ソース",
+            "醤油",
+            "カゴメ スムージー バナナMix",
+            "シャキコリ食感ブロッコリーの和サラダ"
+          ],
+          "image_id": "wm_af9ce3b1baa7",
+          "image_ext": "jpg",
+          "drive_file_id": "1Y-9O9-yFIcVdcM1AD7uEib3WYEalG1f2"
+        },
+        {
+          "id": "item_4e1d211aefce",
+          "name": "グラノーラ・牛乳・ヤクルト1000・そらまめっチ (のり塩)",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "ヤクルト1000",
+            "そらまめっチ (のり塩)"
+          ],
+          "image_id": "wm_c77670c35869",
+          "image_ext": "jpg",
+          "drive_file_id": "1RPiRXz5i7pO2MIypDHBZNFkpQWsfPjpc"
+        }
+      ]
+    },
+    "2026-09-09": {
+      "items": [
+        {
+          "id": "item_ca550b7a7552",
+          "name": "まぜそば・チャーシュー・もやし・キャベツ・肉味噌・緑茶・水・そらまめっくす",
+          "items_extracted": [
+            "まぜそば",
+            "チャーシュー",
+            "もやし",
+            "キャベツ",
+            "肉味噌",
+            "緑茶",
+            "水",
+            "そらまめっくす"
+          ],
+          "image_id": "wm_e5e2f4b4ab4f",
+          "image_ext": "jpg",
+          "drive_file_id": "1Zl_SFteO7JrpQeJVwQTvXZBCK0xWWZiD"
+        },
+        {
+          "id": "item_d9186dd4397a",
+          "name": "レモンケーキ",
+          "items_extracted": [
+            "レモンケーキ"
+          ],
+          "image_id": "wm_fda8ea16966b",
+          "image_ext": "jpg",
+          "drive_file_id": "1nAsHNSTr3uJePWHTydrQgO0CRGHQJP0o"
+        },
+        {
+          "id": "item_b32400d875a8",
+          "name": "ちゃんぽん・おにぎり・水餃子・漬物",
+          "items_extracted": [
+            "ちゃんぽん",
+            "おにぎり",
+            "水餃子",
+            "漬物"
+          ],
+          "image_id": "wm_fbebe9712d80",
+          "image_ext": "jpg",
+          "drive_file_id": "1pdPcHYEYAbswQXIBjdSXZ6bMHhW_PU-I"
+        },
+        {
+          "id": "item_9cad6c9046cf",
+          "name": "グラノーラ・牛乳・ヤクルト1000",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "ヤクルト1000"
+          ],
+          "image_id": "wm_f754338850d1",
+          "image_ext": "jpg",
+          "drive_file_id": "1m2nlmmXeaEcNd0qli0nPsmD3D0AjCzHs"
+        }
+      ]
+    },
+    "2026-09-08": {
+      "items": [
+        {
+          "id": "item_20ca67ea46ca",
+          "name": "釜揚げうどん・肉ぶっかけうどん・かけうどん・ごまだれ・だし・かしわ天・さつまいも天・ちくわ天",
+          "items_extracted": [
+            "釜揚げうどん",
+            "肉ぶっかけうどん",
+            "かけうどん",
+            "ごまだれ",
+            "だし",
+            "かしわ天",
+            "さつまいも天",
+            "ちくわ天"
+          ],
+          "image_id": "wm_0915db0841a3",
+          "image_ext": "jpg",
+          "drive_file_id": "1Na_ecDuH9nm-NPAPm_pcbqVJB5XCaweU"
+        },
+        {
+          "id": "item_03b8a9a3c882",
+          "name": "ご飯・玉子焼き・春雨の和え物・鶏の唐揚げ・蓮根の煮物・たくあん・かぼちゃサラダ",
+          "items_extracted": [
+            "ご飯",
+            "玉子焼き",
+            "春雨の和え物",
+            "鶏の唐揚げ",
+            "蓮根の煮物",
+            "たくあん",
+            "かぼちゃサラダ"
+          ],
+          "image_id": "wm_27901bc241f1",
+          "image_ext": "jpg",
+          "drive_file_id": "17glg5IgtxGnWdBzGNp8vdQ_vgz2qWGwU"
+        },
+        {
+          "id": "item_407d80ec255e",
+          "name": "グラノーラ・牛乳・お茶",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "お茶"
+          ],
+          "image_id": "wm_85059d7a8c89",
+          "image_ext": "jpg",
+          "drive_file_id": "1Dq87snTlNJLreEsS9xgJEkBsbe9tJS0Z"
+        }
+      ]
+    },
+    "2026-09-07": {
+      "items": [
+        {
+          "id": "item_d46669dd94e9",
+          "name": "焼きそば・お好み焼き・フライドチキン・千切りキャベツ・レモン・茶・水・フルーツジュース",
+          "items_extracted": [
+            "焼きそば",
+            "お好み焼き",
+            "フライドチキン",
+            "千切りキャベツ",
+            "レモン",
+            "茶",
+            "水",
+            "フルーツジュース"
+          ],
+          "image_id": "wm_98c3ef8d5fa8",
+          "image_ext": "jpg",
+          "drive_file_id": "1LH4LNjTrrVRvnlWNgAIUP09LFlzi4Geb"
+        },
+        {
+          "id": "item_2da768a4a71e",
+          "name": "伊右衛門・コカ・コーラ・プロテインバー",
+          "items_extracted": [
+            "伊右衛門",
+            "コカ・コーラ",
+            "プロテインバー"
+          ],
+          "image_id": "wm_611071942c2a",
+          "image_ext": "jpg",
+          "drive_file_id": "1exzI95Lxv5OrYsbXCjrCwQJEnKD4uaME"
+        },
+        {
+          "id": "item_80548c7e90d1",
+          "name": "緑茶・カフェラテ・チョコレート菓子・焼きそばパン",
+          "items_extracted": [
+            "緑茶",
+            "カフェラテ",
+            "チョコレート菓子",
+            "焼きそばパン"
+          ],
+          "image_id": "wm_a35a23999fb2",
+          "image_ext": "jpg",
+          "drive_file_id": "1X_BqnJWqy_oRRGz697PnZ0274ACSwfc9"
+        },
+        {
+          "id": "item_dba173131bac",
+          "name": "in プロテインバー ベイクドチョコ",
+          "items_extracted": [
+            "in プロテインバー ベイクドチョコ"
+          ],
+          "image_id": "wm_2b58bba94295",
+          "image_ext": "jpg",
+          "drive_file_id": "1ofzdjnGF1kzGKuq4nl-2cLsLR5be5iOm"
+        }
+      ]
+    },
+    "2026-09-06": {
+      "items": [
+        {
+          "id": "item_282f3e582ee7",
+          "name": "ミニトマト・シリアル・牛乳・じゃがりこサラダbits・カップ入り飲料・モロコッチ・ピザ",
+          "items_extracted": [
+            "ミニトマト",
+            "シリアル",
+            "牛乳",
+            "じゃがりこサラダbits",
+            "カップ入り飲料",
+            "モロコッチ",
+            "ピザ"
+          ],
+          "image_id": "wm_928116c8e45f",
+          "image_ext": "jpg",
+          "drive_file_id": "1TLbxHNJitwmpVzctlGP4Q5EbbkEXO3O1"
+        },
+        {
+          "id": "item_5444aa31e740",
+          "name": "アイスクリーム",
+          "items_extracted": [
+            "アイスクリーム"
+          ],
+          "image_id": "wm_29188e52dac5",
+          "image_ext": "jpg",
+          "drive_file_id": "1H6evx4sI_XmcarvzMuDX7CR9vw8UBkSn"
+        },
+        {
+          "id": "item_8ec86a34da18",
+          "name": "チキンナゲット・フライドポテト・ピザ・ピザ",
+          "items_extracted": [
+            "チキンナゲット",
+            "フライドポテト",
+            "ピザ",
+            "ピザ"
+          ],
+          "image_id": "wm_0aea2329212a",
+          "image_ext": "jpg",
+          "drive_file_id": "1alUpZzOLj6_mq6Wi9FM7P3M45VeoDWie"
+        },
+        {
+          "id": "item_cf2ac1e6a3a9",
+          "name": "ご飯・ふりかけ・煮物・味噌汁・緑茶・マスカット風味乳酸菌飲料",
+          "items_extracted": [
+            "ご飯",
+            "ふりかけ",
+            "煮物",
+            "味噌汁",
+            "緑茶",
+            "マスカット風味乳酸菌飲料"
+          ],
+          "image_id": "wm_a11da0f2aa23",
+          "image_ext": "jpg",
+          "drive_file_id": "1szlIE5_5zhoVHAC4J8BmKH019rNBwvhz"
+        }
+      ]
+    },
+    "2026-09-05": {
+      "items": [
+        {
+          "id": "item_8523f6f7a564",
+          "name": "汁なし麺・お茶・カフェラテ",
+          "items_extracted": [
+            "汁なし麺",
+            "お茶",
+            "カフェラテ"
+          ],
+          "image_id": "wm_4c7a48151741",
+          "image_ext": "jpg",
+          "drive_file_id": "1btExBKmJ-7F49HPEhrNtY4ywNxkl7Oej"
+        },
+        {
+          "id": "item_740908c2c2bc",
+          "name": "無糖ラテ・緑茶・ふわもちちぎりパン",
+          "items_extracted": [
+            "無糖ラテ",
+            "緑茶",
+            "ふわもちちぎりパン"
+          ],
+          "image_id": "wm_eb76e8a1f88e",
+          "image_ext": "jpg",
+          "drive_file_id": "1_eRpjD0rb1gLmO6rgJL5Z9z271ioGux3"
+        }
+      ]
     }
   }
 }
