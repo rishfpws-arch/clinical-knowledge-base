@@ -15,3 +15,12 @@ nul
 app_debug.log
 .auth_state
 .ocr_backfill_pending.json
+
+# 食事検索インデックスの派生ファイル（food_search.py）: 再生成可能なものだけ除外
+food_search_embeddings.npz
+food_query_cache.json
+food_synonyms_cache.json
+build_food_search_index.log
+.build_food_search_index.lock
+.scan_food_images.lock
+*.bak-*
