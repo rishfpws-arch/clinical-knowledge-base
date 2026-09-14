@@ -133,7 +133,9 @@ def download_image(service, file_id: str) -> bytes:
 
 def resolve_food_folder_id(secrets: dict, service, log: logging.Logger) -> str | None:
     """トップレベル → [gcp_service_account] 内（旧版が末尾に追記）→ Drive 検索の順。"""
-    fid = secrets.get("food_images_folder_id") or         (secrets.get("gcp_service_account") or {}).get("food_images_folder_id") or ""
+    fid = (secrets.get("food_images_folder_id")
+           or (secrets.get("gcp_service_account") or {}).get("food_images_folder_id")
+           or "")
     if fid:
         return fid
     parent = secrets.get("folder_id", "")
