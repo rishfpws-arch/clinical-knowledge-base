@@ -801,7 +801,14 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
     query = rest
 
     groups = _fs.keyword_groups(query, api_key, expand=False)
-    kw = [e for e in entries if _fs.keyword_match(e.get("search_text", ""), groups)]
+    kw: list[dict] = []
+    for e in entries:
+        text = e.get("search_text", "")
+        if _fs.keyword_match(text, groups):
+            e2 = dict(e)
+            # どの語で一致したかをカードに出す（グループごとに最初に当たった語）
+            e2["matched"] = [next(t for t in sorted(g) if t in text) for g in groups]
+            kw.append(e2)
     kw_ids = {e["fid"] for e in kw}
 
     sem: list[dict] = []
@@ -895,6 +902,8 @@ def _inject_gallery_css():
         word-break: break-word;
     }
     .g-caption .g-chip-date { opacity: 0.7; }
+    .g-caption .g-chip-hit { background: rgba(72,199,116,0.18); color: #7ee2a1; font-weight: 600; }
+    .g-caption .g-chip-rel { background: rgba(80,160,255,0.18); color: #9cc7ff; font-weight: 600; }
     .g-caption .g-chip {
         display: inline-block; margin: 1px 3px 1px 0; padding: 1px 6px;
         border-radius: 8px; background: rgba(255,122,60,0.15);
@@ -1032,6 +1041,16 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
 
                 items_ext = [x for x in (e.get("items_extracted") or [])
                              if not _FILENAME_RE.search(str(x))]
+                # 検索中: 一致した語 / 関連 のラベル
+                if e.get("matched"):
+                    st.markdown(
+                        '<div class="g-caption"><span class="g-chip g-chip-hit">✅ 一致: '
+                        + html.escape(" ".join(e["matched"])) + "</span></div>",
+                        unsafe_allow_html=True)
+                elif "score" in e:
+                    st.markdown(
+                        '<div class="g-caption"><span class="g-chip g-chip-rel">🔎 関連（説明文が近い）</span></div>',
+                        unsafe_allow_html=True)
                 if e.get("desc") and (not items_ext or e.get("no_items")):
                     # 索引が「品目なし」と判定した写真は旧タグより説明文を優先
                     st.markdown(f'<div class="g-caption">🧠 {html.escape(str(e["desc"])[:60])}</div>',
@@ -1107,11 +1126,15 @@ def page_food_gallery():
     st.caption(cap)
 
     if kw:
+        st.markdown(f'<div class="g-month">✅ 一致した画像（{len(kw)} 件・日付順）</div>',
+                    unsafe_allow_html=True)
         _render_photo_gallery(kw, "food_gal", _fetch)
     elif not sem:
         st.markdown('<div class="g-empty">一致する画像がありません。</div>', unsafe_allow_html=True)
     if sem:
-        st.markdown(f'<div class="g-month">🔎 関連しそうな画像（{len(sem)} 件・類似度順）</div>',
+        st.markdown(f'<div class="g-month">🔎 関連しそうな画像（{len(sem)} 件・類似度順）'
+                    f'<span style="font-size:12px;font-weight:400;color:#9cc7ff;margin-left:8px">'
+                    f'キーワードは含まないが説明文の意味が近い写真</span></div>',
                     unsafe_allow_html=True)
         _render_photo_gallery(sem, "food_gal_rel", _fetch, group_by_date=False)
 
