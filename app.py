@@ -902,6 +902,8 @@ def _inject_gallery_css():
         word-break: break-word;
     }
     .g-caption-top { margin-top: 4px; }
+    .g-day-card { padding: 4px 4px 2px; font-size: 13px; font-weight: 600; color: #e0e0e0; }
+    .g-day-card .g-day-year { font-size: 11px; font-weight: 400; color: #999; margin-left: 6px; }
     .g-caption .g-chip-date { background: rgba(255,255,255,0.10); color: #e0e0e0; }
     .g-caption .g-chip-hit { background: rgba(72,199,116,0.18); color: #7ee2a1; font-weight: 600; }
     .g-caption .g-chip-rel { background: rgba(80,160,255,0.18); color: #9cc7ff; font-weight: 600; }
@@ -1017,20 +1019,42 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
     loaded = min(st.session_state.get(state_key, GALLERY_PAGE_SIZE), len(entries))
     visible = entries[:loaded]
 
+    # 検索結果（一致 / 関連）は日付が飛び飛びなので、行見出しではなく各カードの上に日付を出す
+    search_mode = any(("matched" in e) or ("score" in e) for e in visible[:1])
+
+    if search_mode or not group_by_date:
+        rows = [visible[i:i + GALLERY_COLS] for i in range(0, len(visible), GALLERY_COLS)]
+    else:
+        # 通常表示: 日付が変わるところで行を折り返し、行見出しが常に全画像に当てはまるようにする
+        rows = []
+        cur: list[dict] = []
+        for e in visible:
+            if cur and ((e.get("ts") or "")[:10] != (cur[0].get("ts") or "")[:10]
+                        or len(cur) >= GALLERY_COLS):
+                rows.append(cur)
+                cur = []
+            cur.append(e)
+        if cur:
+            rows.append(cur)
+
     cur_month = cur_day = None
-    for row_start in range(0, len(visible), GALLERY_COLS):
-        row = visible[row_start:row_start + GALLERY_COLS]
-        ts = row[0].get("ts") or ""
-        m, d = (ts[:7], ts[:10]) if group_by_date else (cur_month, cur_day)
-        if m != cur_month:
-            cur_month = m
-            st.markdown(f'<div class="g-month">{_fmt_month(m)}</div>', unsafe_allow_html=True)
-        if d != cur_day:
-            cur_day = d
-            st.markdown(f'<div class="g-day">{_fmt_day(d)}</div>', unsafe_allow_html=True)
+    for row in rows:
+        if group_by_date and not search_mode:
+            ts = row[0].get("ts") or ""
+            m, d = ts[:7], ts[:10]
+            if m != cur_month:
+                cur_month = m
+                st.markdown(f'<div class="g-month">{_fmt_month(m)}</div>', unsafe_allow_html=True)
+            if d != cur_day:
+                cur_day = d
+                st.markdown(f'<div class="g-day">{_fmt_day(d)}</div>', unsafe_allow_html=True)
         cols = st.columns(GALLERY_COLS)
         for ci, e in enumerate(row):
             with cols[ci]:
+                if search_mode and e.get("ts"):
+                    st.markdown(f'<div class="g-day g-day-card">{_fmt_day(e["ts"][:10])}'
+                                f'<span class="g-day-year">{html.escape(e["ts"][:4])}年</span></div>',
+                                unsafe_allow_html=True)
                 try:
                     thumb = fetch_thumb_fn(e)
                 except Exception:
@@ -1044,8 +1068,7 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
                              if not _FILENAME_RE.search(str(x))]
                 # 検索中: 全カードに「日付 + 一致した語 / 関連」の 1 行目を必ず出す
                 if e.get("matched") or "score" in e:
-                    date_chip = (f'<span class="g-chip g-chip-date">📅 {html.escape(e["ts"][:10])}</span>'
-                                 if e.get("ts") else "")
+                    date_chip = ""
                     if e.get("matched"):
                         label = ('<span class="g-chip g-chip-hit">✅ 一致: '
                                  + html.escape(" ".join(e["matched"])) + "</span>")
