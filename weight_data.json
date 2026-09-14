@@ -61657,6 +61657,45 @@
           "image_id": "wm_450ba58680d0",
           "image_ext": "jpg",
           "drive_file_id": "1KC0usMfZXkPMIkOIS0C7NDbcGgC3LT-u"
+        },
+        {
+          "id": "item_39f43c8b2bb9",
+          "name": "台湾ラーメン・豚挽肉・もやし・キャベツ・ニンジン・魚肉練り製品・コーン・キクラゲ",
+          "items_extracted": [
+            "台湾ラーメン",
+            "豚挽肉",
+            "もやし",
+            "キャベツ",
+            "ニンジン",
+            "魚肉練り製品",
+            "コーン",
+            "キクラゲ"
+          ],
+          "image_id": "wm_6c1ce420e5ef",
+          "image_ext": "jpg",
+          "drive_file_id": "1s5pxmcs5NEUNCTK4ntLErHi4N5wCrvuz"
+        },
+        {
+          "id": "item_571c19faecdf",
+          "name": "あんかけ焼きそば・チョコボール",
+          "items_extracted": [
+            "あんかけ焼きそば",
+            "チョコボール"
+          ],
+          "image_id": "wm_a2cd1334a0e7",
+          "image_ext": "jpg",
+          "drive_file_id": "13Pqs2IKyjiWMi_HZp7qIbza_3V4kGyw0"
+        },
+        {
+          "id": "item_a895583323b1",
+          "name": "チャーハン・チョコボール",
+          "items_extracted": [
+            "チャーハン",
+            "チョコボール"
+          ],
+          "image_id": "wm_e22e76766b9d",
+          "image_ext": "jpg",
+          "drive_file_id": "1IGuM7H9MfY-oyEsPymkYOEeK06TpZr_c"
         }
       ]
     },
@@ -62250,6 +62289,113 @@
           "image_id": "wm_eb76e8a1f88e",
           "image_ext": "jpg",
           "drive_file_id": "1_eRpjD0rb1gLmO6rgJL5Z9z271ioGux3"
+        },
+        {
+          "id": "item_40834a7def67",
+          "name": "ご飯・味噌汁・肉じゃが・温野菜",
+          "items_extracted": [
+            "ご飯",
+            "味噌汁",
+            "肉じゃが",
+            "温野菜"
+          ],
+          "image_id": "wm_1fa68c599bcd",
+          "image_ext": "jpg",
+          "drive_file_id": "1hA-ZL6G9Qp6SP3Qj_7Tj0HM1EZvxC1J8"
+        },
+        {
+          "id": "item_da4c0121f5b6",
+          "name": "麻婆豆腐・雑穀米・卵とキャベツのスープ・ミニトマト・乳酸菌飲料・緑茶・水",
+          "items_extracted": [
+            "麻婆豆腐",
+            "雑穀米",
+            "卵とキャベツのスープ",
+            "ミニトマト",
+            "乳酸菌飲料",
+            "緑茶",
+            "水"
+          ],
+          "image_id": "wm_3911b223b0a8",
+          "image_ext": "jpg",
+          "drive_file_id": "17O9eCNFVwT68Plgxc6zfVKoNK1U-uwQj"
+        }
+      ]
+    },
+    "2026-09-04": {
+      "items": [
+        {
+          "id": "item_c761882137ab",
+          "name": "ご飯（雑穀入り）・カレー・きゅうりの和え物・ナスの炒め物・ほうじ茶・緑茶・水",
+          "items_extracted": [
+            "ご飯（雑穀入り）",
+            "カレー",
+            "きゅうりの和え物",
+            "ナスの炒め物",
+            "ほうじ茶",
+            "緑茶",
+            "水"
+          ],
+          "image_id": "wm_ed69787bd26e",
+          "image_ext": "jpg",
+          "drive_file_id": "1QHAjgQTBqu6hPcJXJ8TLUKTY6VxyxPD5"
+        },
+        {
+          "id": "item_7c9c08f13302",
+          "name": "チョコレート菓子・カフェラテ",
+          "items_extracted": [
+            "チョコレート菓子",
+            "カフェラテ"
+          ],
+          "image_id": "wm_8bd8b65749f8",
+          "image_ext": "jpg",
+          "drive_file_id": "137GxmRQRiDJEKYag-MnuHwP7tgT6hyuL"
+        },
+        {
+          "id": "item_9ce13350f572",
+          "name": "ローストビーフ・パプリカ・きゅうり・ソース・ゴーヤの和え物・紅しょうが・巻きいなり寿司・ご飯・ふりかけ・青菜のおひたし・かぼちゃの煮物・なすの煮物・にんじんの煮物・里芋の煮物・しいたけの煮物・オクラ・鮭・鶏肉・ポテト・レモン・ひじき煮・みたらし団子・あんこ団子・ほうじ茶・緑茶",
+          "items_extracted": [
+            "ローストビーフ",
+            "パプリカ",
+            "きゅうり",
+            "ソース",
+            "ゴーヤの和え物",
+            "紅しょうが",
+            "巻きいなり寿司",
+            "ご飯",
+            "ふりかけ",
+            "青菜のおひたし",
+            "かぼちゃの煮物",
+            "なすの煮物",
+            "にんじんの煮物",
+            "里芋の煮物",
+            "しいたけの煮物",
+            "オクラ",
+            "鮭",
+            "鶏肉",
+            "ポテト",
+            "レモン",
+            "ひじき煮",
+            "みたらし団子",
+            "あんこ団子",
+            "ほうじ茶",
+            "緑茶"
+          ],
+          "image_id": "wm_b10578b8963f",
+          "image_ext": "jpg",
+          "drive_file_id": "10GW-ztt6oeq1ZzWauwdbkUxv97AbZ5uZ"
+        },
+        {
+          "id": "item_d815dacdfdb5",
+          "name": "牛乳・チョコレートシリアル・グラノーラ・アーモンド",
+          "items_extracted": [
+            "牛乳",
+            "チョコレートシリアル",
+            "グラノーラ",
+            "アーモンド"
+          ],
+          "image_id": "wm_30ec631751a5",
+          "image_ext": "jpg",
+          "drive_file_id": "18EYt-99UaDaTpJiBmFsmGgbsxTi-7JMx"
         }
       ]
     }
