@@ -62738,6 +62738,22 @@
         }
       ],
       "total_calories": 0
+    },
+    "2026-09-15": {
+      "items": [
+        {
+          "id": "item_d7ddd5f84e9d",
+          "name": "シリアル・牛乳・コカ・コーラ",
+          "items_extracted": [
+            "シリアル",
+            "牛乳",
+            "コカ・コーラ"
+          ],
+          "image_id": "wm_c8b5953cf09b",
+          "image_ext": "jpg",
+          "drive_file_id": "1aDi3ZdXzuDieu2WI-NJJWpUyFRn2absW"
+        }
+      ]
     }
   }
 }
