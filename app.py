@@ -40,6 +40,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 import gspread
 
+import food_search as _fs
+
 # デバッグログ設定
 _LOG_PATH = Path(__file__).parent / "app_debug.log"
 logging.basicConfig(
@@ -2469,7 +2471,16 @@ def _scan_food_images_inner(service, food_folder_id: str,
             if file_id not in existing_fids:
                 item_names: list[str] = []
                 if api_key:
-                    item_names = extract_food_item_names(img_bytes, api_key)
+                    # 検索索引（説明文 + 埋め込み）を同時に作る。品目名もそこから取る。
+                    try:
+                        ix_entry = _fs.index_image(img_id, img_bytes, api_key)
+                    except Exception as ix_err:
+                        _log.warning(f"[food index] {img_id} 失敗: {ix_err}")
+                        ix_entry = None
+                    if ix_entry and ix_entry.get("items"):
+                        item_names = list(ix_entry["items"])
+                    else:
+                        item_names = extract_food_item_names(img_bytes, api_key)
                 display_name = "・".join(item_names) if item_names else file_name
                 day_data.setdefault("items", []).append({
                     "id": f"item_{uuid.uuid4().hex[:12]}",
@@ -2980,6 +2991,7 @@ def _inject_gallery_css():
         -webkit-box-orient: vertical;
         word-break: break-word;
     }
+    .g-caption .g-chip-date { opacity: 0.7; }
     .g-caption .g-chip {
         display: inline-block; margin: 1px 3px 1px 0;
         padding: 1px 6px; border-radius: 8px;
@@ -3425,12 +3437,27 @@ def _build_screenshot_entries(metadata: dict, drive_files: list[dict]) -> list[d
     return entries
 
 
-def _build_food_entries(weight_data: dict) -> list[dict]:
+@st.cache_data(show_spinner=False)
+def _load_food_index_cached(_mtimes: tuple[float, float]):
+    """食事検索インデックス（説明文 + 埋め込み）をファイル更新時刻をキーに読み込む。"""
+    index = _fs.load_index()
+    ids, mat = _fs.load_embeddings()
+    return index, ids, mat
+
+
+def _get_food_index():
+    return _load_food_index_cached(_fs.file_mtimes())
+
+
+def _build_food_entries(weight_data: dict, index: dict | None = None) -> list[dict]:
     """食事画像のエントリを日付降順で返す。
 
     同じ image_id を持つ複数の item 行は 1 つの画像エントリにまとめ、
     各 name を items_extracted（品目リスト）として表示する。
+    index（food_search_index.json）があれば、説明文・カテゴリ・別名も
+    search_text に含める（正規化済み: NFKC・小文字・カタカナ→ひらがな）。
     """
+    index = index or {}
     entries: list[dict] = []
     records = weight_data.get("records", {}) or {}
     for date_key in sorted(records.keys(), reverse=True):
@@ -3466,7 +3493,10 @@ def _build_food_entries(weight_data: dict) -> list[dict]:
             g = grouped[iid]
             items_extracted = g["names"] + [x for x in g["extras"] if x not in g["names"]]
             title = items_extracted[0] if items_extracted else ""
-            search_text = " ".join(s.lower() for s in items_extracted)
+            ix = index.get(iid) or {}
+            search_text = _fs.normalize_text(" ".join(items_extracted))
+            if ix.get("search_text"):
+                search_text = f"{ix['search_text']} {search_text}"
             entries.append({
                 "fid": iid,
                 "ext": g["ext"],
@@ -3476,8 +3506,46 @@ def _build_food_entries(weight_data: dict) -> list[dict]:
                 "items_extracted": items_extracted,
                 "kind": "food",
                 "search_text": search_text,
+                "desc": ix.get("description", ""),
+                "indexed": bool(ix.get("search_text")),
             })
     return entries
+
+
+def _food_hybrid_search(entries: list[dict], query: str,
+                        api_key: str | None) -> dict:
+    """キーワード一致（類義語展開・AND）+ 意味検索（埋め込み）のハイブリッド。
+
+    戻り値:
+        keyword:  一致したエントリ（日付降順）
+        semantic: キーワードでは外れたが埋め込み類似度が高いエントリ（類似度降順）
+        groups:   展開後のトークン群
+        semantic_ok: 意味検索が動いたか（インデックス・API キーがあるか）
+    """
+    groups = _fs.keyword_groups(query, api_key, expand=True)
+    kw = [e for e in entries if _fs.keyword_match(e.get("search_text", ""), groups)]
+    kw_ids = {e["fid"] for e in kw}
+
+    sem: list[dict] = []
+    semantic_ok = False
+    _, ids, mat = _get_food_index()
+    if api_key and len(ids) and query.strip():
+        qv = _fs.cached_query_embedding(query, api_key)
+        if qv is not None:
+            semantic_ok = True
+            scores = _fs.semantic_scores(qv, ids, mat)
+            by_id = {e["fid"]: e for e in entries}
+            ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+            for iid, sc in ranked[: _fs.SEMANTIC_TOP_K]:
+                if sc < _fs.SEMANTIC_THRESHOLD:
+                    break
+                e = by_id.get(iid)
+                if e is None or iid in kw_ids:
+                    continue
+                e2 = dict(e)
+                e2["score"] = sc
+                sem.append(e2)
+    return {"keyword": kw, "semantic": sem, "groups": groups, "semantic_ok": semantic_ok}
 
 
 def _fuzzy_filter_entries(entries: list[dict], query: str) -> list[dict]:
@@ -3510,14 +3578,16 @@ def _get_synonyms_cached(token: str, kind: str = "food") -> set[str]:
     if cached is not None:
         return cached
 
-    api_key = ""
-    try:
-        api_key = st.secrets.get("gemini_api_key", "") or ""
-    except Exception:
-        api_key = ""
+    api_key = get_gemini_api_key() or ""
     if not api_key:
         st.session_state[cache_key] = set()
         return set()
+
+    if kind == "food":
+        # 料理系は food_search のディスクキャッシュ付き実装に委譲
+        synonyms = _fs.get_synonyms(token, api_key)
+        st.session_state[cache_key] = synonyms
+        return synonyms
 
     if kind == "food":
         prompt = (
@@ -3604,6 +3674,8 @@ def _open_photo_dialog(entry: dict):
         st.warning("画像の読み込みに失敗しました。")
     if entry.get("ts"):
         st.caption(entry["ts"][:10])
+    if entry.get("kind") == "food" and entry.get("desc"):
+        st.markdown(f"🧠 {html.escape(str(entry['desc']))}")
 
     if not is_knowledge:
         return
@@ -3657,8 +3729,12 @@ def _open_photo_dialog(entry: dict):
 
 
 def _render_photo_gallery(entries: list[dict], key_prefix: str,
-                          fetch_thumb_fn) -> None:
-    """日付グループ化された写真グリッドを描画する。"""
+                          fetch_thumb_fn, group_by_date: bool = True) -> None:
+    """日付グループ化された写真グリッドを描画する。
+
+    group_by_date=False の場合は月/日の見出しを出さず、渡された順に並べる
+    （類似度順の「関連」結果用）。
+    """
     if not entries:
         st.markdown(
             '<div class="g-empty">画像がまだありません。</div>',
@@ -3679,6 +3755,8 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
         first = row[0]
         ts = first.get("ts") or ""
         m, d = ts[:7], ts[:10]
+        if not group_by_date:
+            m, d = cur_month, cur_day
         if m != cur_month:
             cur_month = m
             st.markdown(
@@ -3712,6 +3790,9 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str,
                             f'<span class="g-chip">{html.escape(str(x))}</span>'
                             for x in items_ext
                         )
+                        if not group_by_date and e.get("ts"):
+                            chips = (f'<span class="g-chip g-chip-date">{html.escape(e["ts"][:10])}</span>'
+                                     + chips)
                         st.markdown(
                             f'<div class="g-caption">{chips}</div>',
                             unsafe_allow_html=True,
@@ -3749,44 +3830,115 @@ def page_food_gallery():
     st.markdown("## 🍽️ 食事")
 
     weight_data = load_weight_data()
-    entries = _build_food_entries(weight_data)
+    index, _ids, _mat = _get_food_index()
+    entries = _build_food_entries(weight_data, index)
+    api_key = get_gemini_api_key()
 
-    query = st.text_input(
-        "🔍 品目で検索（関連語も自動でヒット: パスタ → ナポリタン等）",
-        key="food_gal_search",
-        placeholder="例: 肉 野菜  ← スペース区切りで複数キーワード絞り込み",
-        help="スペースで区切ると複数キーワードの AND 検索になります（例: 「肉 野菜」で両方を含む画像）。各語は関連語にも自動展開されます。",
-        label_visibility="collapsed",
-    )
-
-    if query:
-        with st.spinner("関連語を展開中..."):
-            filtered, expanded = _fuzzy_filter_entries_semantic(entries, query, kind="food")
-        # 展開された語を表示（デバッグ・透明性のため）
-        if expanded:
-            term_strs = []
-            for group in expanded:
-                terms = sorted(group)
-                if len(terms) > 6:
-                    term_strs.append(" / ".join(terms[:6]) + f" 他{len(terms)-6}語")
-                else:
-                    term_strs.append(" / ".join(terms))
-            st.caption(
-                f"🔍 「{query}」→ {' & '.join(term_strs)}: "
-                f"{len(filtered)} / {len(entries)} 件"
-            )
-        else:
-            st.caption(f"🔍 「{query}」: {len(filtered)} / {len(entries)} 件")
-    else:
-        filtered = entries
-        st.caption(f"全 {len(entries)} 件")
+    q_left, q_right = st.columns([5, 1])
+    with q_left:
+        query = st.text_input(
+            "🔍 品目・カテゴリ・雰囲気で検索",
+            key="food_gal_search",
+            placeholder="例: 揚げ物 / 麺 野菜 / コンビニの夜食 / さっぱりしたもの",
+            help=(
+                "スペース区切りは AND 検索（例: 「肉 野菜」）。各語は関連語にも展開されます。"
+                "キーワードで外れても、説明文の意味が近い画像は「関連」として下に表示されます。"
+            ),
+            label_visibility="collapsed",
+        )
+    n_unindexed = sum(1 for e in entries if not e.get("indexed"))
+    with q_right:
+        if n_unindexed and api_key:
+            if st.button(f"🧠 索引 +{min(n_unindexed, FOOD_INDEX_BATCH)}",
+                         key="food_gal_index",
+                         help=f"未索引 {n_unindexed} 枚のうち {FOOD_INDEX_BATCH} 枚を説明文化して検索精度を上げる",
+                         use_container_width=True):
+                _run_food_index_batch(entries, api_key)
+                st.rerun()
 
     def _fetch(e):
         return _load_food_thumbnail_bytes(
             e["fid"], e.get("ext", "jpg"), e.get("drive_file_id", "")
         )
 
-    _render_photo_gallery(filtered, "food_gal", _fetch)
+    if not query:
+        cap = f"全 {len(entries)} 件"
+        if n_unindexed:
+            cap += f"（説明文つき索引: {len(entries) - n_unindexed} / {len(entries)}）"
+        st.caption(cap)
+        _render_photo_gallery(entries, "food_gal", _fetch)
+        return
+
+    with st.spinner("検索中..."):
+        res = _food_hybrid_search(entries, query, api_key)
+    kw, sem, groups = res["keyword"], res["semantic"], res["groups"]
+
+    term_strs = []
+    for group in groups:
+        terms = sorted(group)
+        term_strs.append(" / ".join(terms[:6]) + (f" 他{len(terms)-6}語" if len(terms) > 6 else ""))
+    cap = f"🔍 「{query}」→ {' & '.join(term_strs)}: 一致 {len(kw)} 件"
+    if res["semantic_ok"]:
+        cap += f" ＋ 関連 {len(sem)} 件"
+    elif not len(_ids):
+        cap += "（意味検索は索引作成後に有効）"
+    st.caption(cap)
+
+    if kw:
+        _render_photo_gallery(kw, "food_gal", _fetch)
+    elif not sem:
+        st.markdown('<div class="g-empty">一致する画像がありません。</div>',
+                    unsafe_allow_html=True)
+    if sem:
+        st.markdown(
+            f'<div class="g-month">🔎 関連しそうな画像（{len(sem)} 件・類似度順）</div>',
+            unsafe_allow_html=True,
+        )
+        _render_photo_gallery(sem, "food_gal_rel", _fetch, group_by_date=False)
+
+
+FOOD_INDEX_BATCH = 20
+
+
+def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
+    """未索引の食事画像を FOOD_INDEX_BATCH 枚まで説明文化・埋め込みする（UI から）。"""
+    targets = [e for e in entries if not e.get("indexed")][:FOOD_INDEX_BATCH]
+    if not targets:
+        return 0
+    index = _fs.load_index()
+    prog_text = st.empty()
+    prog = st.progress(0.0)
+    done = 0
+    for i, e in enumerate(targets):
+        prog.progress(i / len(targets))
+        prog_text.caption(f"🧠 {i + 1} / {len(targets)} 枚を説明文化中…")
+        raw = _load_food_full_bytes(e["fid"], e.get("ext", "jpg"), e.get("drive_file_id", ""))
+        if not raw:
+            raw = _load_food_thumbnail_bytes(e["fid"], e.get("ext", "jpg"), e.get("drive_file_id", ""))
+        if not raw:
+            continue
+        try:
+            entry = _fs.index_image(e["fid"], raw, api_key,
+                                    extra_names=e.get("items_extracted") or [],
+                                    index=index, embed=False)
+            if entry:
+                done += 1
+        except _fs.GeminiRateLimited:
+            st.warning("⚠️ Gemini のレート制限に達しました。しばらくしてから再実行してください。")
+            break
+        except Exception as ex:
+            _log.warning(f"[food index] {e['fid']} 失敗: {ex}")
+        time.sleep(0.5)
+    _fs.save_index(index)
+    try:
+        _fs.embed_pending(index, api_key)
+    except Exception as ex:
+        _log.warning(f"[food index] 埋め込み失敗: {ex}")
+    prog.empty()
+    prog_text.empty()
+    if done:
+        st.toast(f"🧠 {done} 枚を索引に追加しました", icon="🧠")
+    return done
 
 
 def page_screenshot_gallery():
