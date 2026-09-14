@@ -3717,8 +3717,8 @@ def _open_photo_dialog(entry: dict):
         st.warning("画像の読み込みに失敗しました。")
     if entry.get("ts"):
         st.caption(entry["ts"][:10])
-    if entry.get("kind") == "food" and entry.get("desc"):
-        st.markdown(f"🧠 {html.escape(str(entry['desc']))}")
+    if entry.get("kind") == "food":
+        _render_food_reanalyze(entry, img_bytes)
 
     if not is_knowledge:
         return
@@ -3769,6 +3769,61 @@ def _open_photo_dialog(entry: dict):
         else:
             st.toast("⚠️ ローカルには保存されました（Sheetsは後で再試行）", icon="⚠️")
         st.rerun()
+
+
+def _render_food_reanalyze(entry: dict, img_bytes: bytes | None) -> None:
+    """食事写真の拡大画面: 索引の品目・説明文を表示し、ヒント付きで再解析できる。"""
+    fid = entry["fid"]
+    index, _, _ = _get_food_index()
+    ix = index.get(fid) or {}
+    if ix.get("items"):
+        chips = "".join(f'<span class="g-chip">{html.escape(str(x))}</span>' for x in ix["items"])
+        st.markdown(f'<div class="g-caption">🧠 {chips}</div>', unsafe_allow_html=True)
+    if ix.get("description"):
+        st.markdown(f"🧠 {html.escape(str(ix['description']))}")
+    if ix.get("hint"):
+        st.caption(f"補足として「{ix['hint']}」を使って解析")
+    elif not ix:
+        st.caption("この写真はまだ説明文の索引がありません。")
+
+    with st.expander("🔁 再解析（読み取れなかったときはヒントを添えて）", expanded=not ix.get("items")):
+        with st.form(f"reanalyze_{fid}", clear_on_submit=False):
+            hint = st.text_input(
+                "ヒント（任意）",
+                value=ix.get("hint", ""),
+                key=f"dlg_hint_{fid}",
+                placeholder="例: ビニール袋に入った食べ物です / 手前は自作の弁当",
+            )
+            go = st.form_submit_button("🔁 この写真を再解析", type="primary",
+                                       use_container_width=True)
+        if go:
+            api_key = get_gemini_api_key()
+            if not api_key:
+                st.warning("Gemini API キーが設定されていません。")
+                return
+            raw = img_bytes or _load_food_thumbnail_bytes(
+                fid, entry.get("ext", "jpg"), entry.get("drive_file_id", ""))
+            if not raw:
+                st.warning("画像を読み込めませんでした。")
+                return
+            with st.spinner("再解析中…"):
+                try:
+                    new = _fs.index_image(fid, raw, api_key,
+                                          extra_names=entry.get("items_extracted") or [],
+                                          hint=hint)
+                except Exception as e:
+                    _log.warning(f"[reanalyze] {fid} 失敗: {e}")
+                    new = None
+            if new is None:
+                st.error("再解析に失敗しました。時間をおいて再試行してください。")
+                return
+            try:
+                _load_food_index_cached.clear()
+            except Exception:
+                pass
+            items = "、".join(new.get("items") or []) or "（品目なし）"
+            st.toast(f"🧠 再解析しました: {items}", icon="🧠")
+            st.rerun()
 
 
 def _render_photo_gallery(entries: list[dict], key_prefix: str,
