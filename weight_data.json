@@ -62077,6 +62077,60 @@
           "image_ext": "jpg",
           "drive_file_id": "1rC1hjgshBJ5T3ySRUoy2q2wk-V6GP1qE",
           "quantity": "ふつう"
+        },
+        {
+          "id": "item_5da04e4878be",
+          "name": "サラダ・レタス・ブロッコリー・トマト・コーン・ミックスビーンズ・キュウリ・にんじん",
+          "items_extracted": [
+            "サラダ",
+            "レタス",
+            "ブロッコリー",
+            "トマト",
+            "コーン",
+            "ミックスビーンズ",
+            "キュウリ",
+            "にんじん"
+          ],
+          "image_id": "wm_22e604e3bb48",
+          "image_ext": "jpg",
+          "drive_file_id": "1bGafmzVkEG1keVsDSTCxOSj6YPcmZuM4"
+        },
+        {
+          "id": "item_3d98511d693c",
+          "name": "フライドポテト・サラダ・オレンジジュース",
+          "items_extracted": [
+            "フライドポテト",
+            "サラダ",
+            "オレンジジュース"
+          ],
+          "image_id": "wm_dab4adf0f073",
+          "image_ext": "jpg",
+          "drive_file_id": "1DnmYD3E0NyIUzewUIUfnnY7-wvctRzyW"
+        },
+        {
+          "id": "item_c50746d11d62",
+          "name": "ピザ・水",
+          "items_extracted": [
+            "ピザ",
+            "水"
+          ],
+          "image_id": "wm_a63db499d33d",
+          "image_ext": "jpg",
+          "drive_file_id": "1vVptCD6jJA3v4_Ab38KjqXvRx8xnHBsz"
+        },
+        {
+          "id": "item_187ddd129e2c",
+          "name": "ミートソースパスタ・揚げナス・ひき肉・青ネギ・ピザ",
+          "items_extracted": [
+            "ミートソースパスタ",
+            "揚げナス",
+            "ひき肉",
+            "青ネギ",
+            "ピザ"
+          ],
+          "image_id": "wm_68b3ecf476b2",
+          "image_ext": "jpg",
+          "drive_file_id": "1G6vrLwFqcf-f9skI2YUMKhWAKj6otoHn"
         }
       ],
       "total_calories": 0
