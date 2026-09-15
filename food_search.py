@@ -40,6 +40,7 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/"
 GEMINI_429_BACKOFF = (5, 10, 20)
 DESCRIBE_MAX_PX = 800  # 解析に送る画像の長辺（トークン節約）
 INDEX_VERSION = 1
+MODULE_VERSION = 3  # app.py が要求する版。上げると古いモジュールを掴んだ Streamlit が再読込する
 
 # 意味検索のデフォルト（gemini-embedding-001 / 768 次元での経験値）
 # 無関係な語でも全件 0.55〜0.59 程度になるため、絶対値の下限に加えて
