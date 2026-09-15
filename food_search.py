@@ -551,6 +551,32 @@ def keyword_groups(query: str, api_key: str | None,
     return groups
 
 
+# 検索語の「飾り」: 末尾から繰り返し剥がして核になる語を取り出す
+# 例: バランスのいい食事 → バランス / ガッツリ系 → ガッツリ / あっさりしたもの → あっさり
+_QUERY_SUFFIXES = ("系", "っぽい", "っぽいもの", "的", "的な", "の", "食事", "ご飯", "ごはん", "料理",
+                   "もの", "やつ", "めにゅー", "メニュー", "いい", "よい", "良い", "した", "する", "な")
+_QUERY_SUFFIX_RE = re.compile("(" + "|".join(sorted(map(re.escape, _QUERY_SUFFIXES), key=len, reverse=True)) + ")$")
+
+
+def relax_token(token: str) -> str:
+    """検索トークンから飾り語を剥がす（2 文字未満になるなら剥がさない）。正規化済み前提。"""
+    t = token
+    for _ in range(4):
+        m = _QUERY_SUFFIX_RE.search(t)
+        if not m:
+            break
+        core = t[: m.start()]
+        if len(core) < 2:
+            break
+        t = core
+    return t or token
+
+
+def relax_query(query: str) -> str:
+    """空白区切りの各トークンに relax_token を適用した文字列を返す（正規化済み）。"""
+    return " ".join(relax_token(t) for t in normalize_text(query).split(" ") if t)
+
+
 def keyword_match(search_text: str, groups: list[set[str]]) -> bool:
     """グループ間 AND・グループ内 OR の部分一致。search_text は正規化済み前提。"""
     return all(any(s in search_text for s in g) for g in groups)

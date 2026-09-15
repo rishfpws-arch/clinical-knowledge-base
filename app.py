@@ -827,15 +827,24 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
         return {"keyword": entries, "semantic": [], "semantic_ok": False}
     query = rest
 
-    groups = _fs.keyword_groups(query, api_key, expand=False)
-    kw: list[dict] = []
-    for e in entries:
-        text = e.get("search_text", "")
-        if _fs.keyword_match(text, groups):
-            e2 = dict(e)
-            # どの語で一致したかをカードに出す（グループごとに最初に当たった語）
-            e2["matched"] = [next(t for t in sorted(g) if t in text) for g in groups]
-            kw.append(e2)
+    def _keyword_hits(q: str) -> list[dict]:
+        groups = _fs.keyword_groups(q, api_key, expand=False)
+        out: list[dict] = []
+        for e in entries:
+            text = e.get("search_text", "")
+            if _fs.keyword_match(text, groups):
+                e2 = dict(e)
+                # どの語で一致したかをカードに出す（グループごとに最初に当たった語）
+                e2["matched"] = [next(t for t in sorted(g) if t in text) for g in groups]
+                out.append(e2)
+        return out
+
+    kw = _keyword_hits(query)
+    # そのままで 0 件なら「系」「いい」「食事」などの飾り語を落とした核の語で再検索
+    # （例: バランスのいい食事 → バランス）。意味検索が使えないときの保険にもなる。
+    relaxed = _fs.relax_query(query)
+    if not kw and relaxed and relaxed != _fs.normalize_text(query):
+        kw = _keyword_hits(relaxed)
     kw_ids = {e["fid"] for e in kw}
 
     sem: list[dict] = []
