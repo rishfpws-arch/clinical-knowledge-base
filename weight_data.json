@@ -62752,6 +62752,23 @@
           "image_id": "wm_c8b5953cf09b",
           "image_ext": "jpg",
           "drive_file_id": "1aDi3ZdXzuDieu2WI-NJJWpUyFRn2absW"
+        },
+        {
+          "id": "item_08cd281066ca",
+          "name": "アジフライ弁当・アジフライ・白米・たくあん・スパゲッティサラダ・筍の煮物・インゲン豆の和え物・カフェインレスコーヒー",
+          "items_extracted": [
+            "アジフライ弁当",
+            "アジフライ",
+            "白米",
+            "たくあん",
+            "スパゲッティサラダ",
+            "筍の煮物",
+            "インゲン豆の和え物",
+            "カフェインレスコーヒー"
+          ],
+          "image_id": "wm_f86b63ea8b20",
+          "image_ext": "jpg",
+          "drive_file_id": "1eU0Fp_Hd554vGdM63Z5jFYDrZUUaTCcc"
         }
       ]
     }
