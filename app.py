@@ -90,6 +90,22 @@ _file_write_lock = threading.Lock()
 _auto_push_started = False
 
 
+def _is_read_only() -> bool:
+    """閲覧・検索専用モードか（Streamlit Cloud 上のスマホ版）。
+
+    Cloud 側で行った変更は一時ディスクにしか残らず PC に戻らないため、
+    取り込み・再解析・索引作成のボタンを出さない。正本は Windows の PC 側。
+    secrets の read_only で明示もできる。未指定なら「Windows 以外」を Cloud とみなす。
+    """
+    try:
+        v = st.secrets.get("read_only", None)
+        if v is not None:
+            return bool(v)
+    except (KeyError, FileNotFoundError):
+        pass
+    return os.name != "nt" or Path(__file__).as_posix().startswith("/mount/src")
+
+
 # ---------------------------------------------------------------------------
 # 認証
 # ---------------------------------------------------------------------------
@@ -976,6 +992,8 @@ def _render_food_reanalyze(entry: dict, img_bytes: bytes | None) -> None:
         st.caption(f"補足として「{ix['hint']}」を使って解析")
     elif not ix:
         st.caption("この写真はまだ説明文の索引がありません。")
+    if _is_read_only():
+        return  # スマホ版は閲覧のみ（再解析は PC 側で）
 
     with st.expander("🔁 再解析（読み取れなかったときはヒントを添えて）", expanded=not ix.get("items")):
         with st.form(f"reanalyze_{fid}", clear_on_submit=False):
@@ -1133,8 +1151,9 @@ def page_food_gallery():
             label_visibility="collapsed",
         )
     n_unindexed = sum(1 for e in entries if not e.get("indexed"))
+    read_only = _is_read_only()
     with q_right:
-        if n_unindexed and api_key:
+        if n_unindexed and api_key and not read_only:
             if st.button(f"🧠 索引 +{min(n_unindexed, FOOD_INDEX_BATCH)}", key="food_gal_index",
                          help=f"未索引 {n_unindexed} 枚のうち {FOOD_INDEX_BATCH} 枚を説明文化する",
                          use_container_width=True):
@@ -1148,6 +1167,8 @@ def page_food_gallery():
         cap = f"全 {len(entries)} 件"
         if n_unindexed:
             cap += f"（説明文つき索引: {len(entries) - n_unindexed} / {len(entries)}）"
+        if read_only:
+            cap += " ・ 閲覧・検索専用（更新は PC 側から数分遅れて反映）"
         st.caption(cap)
         _render_photo_gallery(entries, "food_gal", _fetch)
         return
@@ -1183,11 +1204,16 @@ def page_food_gallery():
 # ---------------------------------------------------------------------------
 def page_settings():
     st.markdown("## ⚙️ 設定")
+    read_only = _is_read_only()
 
-    auto_val = st.toggle("自動取り込み（開いている間、5 分ごとに Drive の新着写真を取り込む）",
-                         value=st.session_state.get("auto_scan_enabled", True),
-                         key="auto_scan_toggle_settings")
-    st.session_state["auto_scan_enabled"] = auto_val
+    if read_only:
+        st.info("📱 この画面は閲覧・検索専用です。写真の取り込み・再解析・索引作成は PC 側の pomken で行い、"
+                "その結果が数分遅れでここに反映されます。ここで行った変更は保存されません。")
+    else:
+        auto_val = st.toggle("自動取り込み（開いている間、5 分ごとに Drive の新着写真を取り込む）",
+                             value=st.session_state.get("auto_scan_enabled", True),
+                             key="auto_scan_toggle_settings")
+        st.session_state["auto_scan_enabled"] = auto_val
 
     weight_data = load_weight_data()
     index, ids, _ = _get_food_index()
@@ -1206,10 +1232,11 @@ def page_settings():
         st.caption(f"👤 {auth_user}")
 
     st.markdown("---")
-    if st.button("🔄 今すぐ取り込み（手動）", key="manual_scan_settings", width="stretch"):
-        st.session_state["manual_scan_running"] = True
-        st.rerun()
-    st.caption("PC を閉じている間は、Windows のタスク pomken_food_scan が同じ取り込みを定期実行します。")
+    if not read_only:
+        if st.button("🔄 今すぐ取り込み（手動）", key="manual_scan_settings", width="stretch"):
+            st.session_state["manual_scan_running"] = True
+            st.rerun()
+        st.caption("PC を閉じている間は、Windows のタスク pomken_food_scan が同じ取り込みを定期実行します。")
 
     with st.expander("🔧 詳細"):
         st.caption("データはすべてローカル JSON（weight_data.json / food_search_index.json）。"
@@ -1234,7 +1261,9 @@ def main():
                        initial_sidebar_state="collapsed")
     if not _check_auth():
         return
-    start_auto_push()
+    read_only = _is_read_only()
+    if not read_only:
+        start_auto_push()
 
     st.markdown(
         "<link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>",
@@ -1299,8 +1328,10 @@ __SCOPE__ button[kind="primary"]:hover { background: linear-gradient(135deg, #FF
     if "auto_scan_enabled" not in st.session_state:
         st.session_state["auto_scan_enabled"] = True
 
-    # 手動取り込み
-    if st.session_state.pop("manual_scan_running", False):
+    # 手動取り込み（閲覧専用モードでは取り込みを一切走らせない）
+    if read_only:
+        st.session_state.pop("manual_scan_running", None)
+    elif st.session_state.pop("manual_scan_running", False):
         banner = st.empty()
         banner.markdown('<div class="loading-banner">🔄 取り込み中です… しばらくお待ちください</div>',
                         unsafe_allow_html=True)
@@ -1319,7 +1350,7 @@ __SCOPE__ button[kind="primary"]:hover { background: linear-gradient(135deg, #FF
             banner.empty()
         st.session_state["food_scan_last"] = time.time()
     # 自動取り込み（5 分間隔）
-    elif st.session_state.get("auto_scan_enabled", True):
+    elif not read_only and st.session_state.get("auto_scan_enabled", True):
         try:
             fid = get_food_folder_id()
             if fid:
