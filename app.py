@@ -870,8 +870,22 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
                     e2 = dict(by_id[iid])
                     e2["score"] = sc
                     sem.append(e2)
+    # 保険: キーワードでも意味検索でも 0 件なら、雰囲気語の簡易辞書で広めに拾う
+    mood: list[dict] = []
+    if not kw and not sem:
+        tokens = [t for t in relaxed.split(" ") if t] or [_fs.normalize_text(query)]
+        groups = [set(_fs.mood_terms(t)) for t in tokens]
+        groups = [g for g in groups if g]
+        if groups and len(groups) == len(tokens):
+            for e in entries:
+                text = e.get("search_text", "")
+                if _fs.keyword_match(text, groups):
+                    e2 = dict(e)
+                    e2["matched"] = [next(t for t in sorted(g) if t in text) for g in groups]
+                    e2["mood"] = True
+                    mood.append(e2)
     return {"keyword": kw, "semantic": sem, "semantic_ok": semantic_ok,
-            "semantic_error": semantic_error}
+            "semantic_error": semantic_error, "mood": mood}
 
 
 def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
@@ -1050,6 +1064,16 @@ def _open_photo_dialog(entry: dict):
     _render_food_reanalyze(entry, img_bytes)
 
 
+_HIRA_TO_KATA = {c: c + 0x60 for c in range(0x3041, 0x3097)}
+
+
+def _display_term(term: str) -> str:
+    """一致語の表示用。ユーザーがカタカナで打った語は正規化でひらがなになっているので戻す。"""
+    q = st.session_state.get("food_gal_search") or ""
+    kata = term.translate(_HIRA_TO_KATA)
+    return kata if kata and kata in q else term
+
+
 def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
                           group_by_date: bool = True) -> None:
     """日付グループ化された写真グリッド。group_by_date=False は渡された順（類似度順）。"""
@@ -1112,8 +1136,11 @@ def _render_photo_gallery(entries: list[dict], key_prefix: str, fetch_thumb_fn,
                 if e.get("matched") or "score" in e:
                     date_chip = ""
                     if e.get("matched"):
-                        label = ('<span class="g-chip g-chip-hit">✅ 一致: '
-                                 + html.escape(" ".join(e["matched"])) + "</span>")
+                        terms = " ".join(_display_term(t) for t in e["matched"])
+                        if e.get("mood"):
+                            label = f'<span class="g-chip g-chip-hit">🔎 関連語: {html.escape(terms)}</span>'
+                        else:
+                            label = f'<span class="g-chip g-chip-hit">✅ 一致: {html.escape(terms)}</span>'
                     else:
                         label = '<span class="g-chip g-chip-rel">🔎 関連（説明文が近い）</span>'
                     st.markdown(f'<div class="g-caption g-caption-top">{date_chip}{label}</div>',
@@ -1194,10 +1221,17 @@ def page_food_gallery():
     if res.get("semantic_error"):
         st.warning("⚠️ " + res["semantic_error"])
 
+    mood = res.get("mood") or []
     if kw:
         st.markdown(f'<div class="g-month">✅ 一致した画像（{len(kw)} 件・日付順）</div>',
                     unsafe_allow_html=True)
         _render_photo_gallery(kw, "food_gal", _fetch)
+    elif mood:
+        st.markdown(f'<div class="g-month">🔎 関連語で拾った画像（{len(mood)} 件・日付順）'
+                    f'<span style="font-size:12px;font-weight:400;color:#ffb27a;margin-left:8px">'
+                    f'「{html.escape(query)}」に近い語（揚げ物・丼 など）を含む写真</span></div>',
+                    unsafe_allow_html=True)
+        _render_photo_gallery(mood, "food_gal_mood", _fetch)
     elif not sem:
         st.markdown('<div class="g-empty">一致する画像がありません。</div>', unsafe_allow_html=True)
     if sem:
