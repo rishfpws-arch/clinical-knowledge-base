@@ -569,10 +569,15 @@ def cached_query_embedding(query: str, api_key: str) -> np.ndarray | None:
     v = cache.get(key)
     if isinstance(v, list) and len(v) == EMBED_DIM:
         return np.asarray(v, dtype=np.float32)
-    try:
-        vec = embed_query(query, api_key)
-    except Exception as e:
-        _log.warning("[query] 埋め込み失敗 '%s': %s", query, e)
+    vec = None
+    for attempt in range(2):  # 一時的な失敗（レート制限・タイムアウト）は 1 回だけ再試行
+        try:
+            vec = embed_query(query, api_key)
+            break
+        except Exception as e:
+            _log.warning("[query] 埋め込み失敗 (try %d) '%s': %s", attempt + 1, query, e)
+            time.sleep(2)
+    if vec is None:
         return None
     cache[key] = [round(float(x), 6) for x in vec.tolist()]
     if len(cache) > QUERY_CACHE_MAX:
@@ -648,7 +653,11 @@ def rerank_with_llm(query: str, candidates: list[tuple[str, str]],
     prompt = RERANK_PROMPT.format(query=query, candidates=chr(10).join(lines))
     try:
         raw = gemini_generate(api_key, [{"text": prompt}], json_mode=True)
-        parsed = parse_gemini_json(raw) or {}
+        parsed = parse_gemini_json(raw)
+        if not isinstance(parsed, dict) or "match" not in parsed:
+            # 応答が壊れている: 「該当なし」として保存せず、呼び出し側で候補をそのまま使う
+            _log.warning("[rerank] 応答を解析できず '%s': %s", query, (raw or "")[:120])
+            return None
         nums = parsed.get("match") or []
         picked: list[str] = []
         for n in nums:

@@ -42,13 +42,24 @@ import food_search as _fs
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 _LOG_PATH = ROOT / "app_debug.log"
-logging.basicConfig(
-    filename=str(_LOG_PATH),
-    level=logging.INFO,
-    format="%(asctime)s %(message)s",
-    encoding="utf-8",
-)
+# Streamlit が先に root ロガーを設定しているため basicConfig は効かない。
+# 自前の FileHandler を pomken / food_search ロガーに付ける（多重起動時の重複防止つき）。
 _log = logging.getLogger("pomken")
+
+
+def _setup_file_logging() -> None:
+    for name in ("pomken", "food_search"):
+        lg = logging.getLogger(name)
+        lg.setLevel(logging.INFO)
+        if any(getattr(h, "_pomken_file", False) for h in lg.handlers):
+            continue
+        fh = logging.FileHandler(str(_LOG_PATH), encoding="utf-8")
+        fh.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(message)s"))
+        fh._pomken_file = True  # type: ignore[attr-defined]
+        lg.addHandler(fh)
+
+
+_setup_file_logging()
 
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png"]
 SCOPES = ["https://www.googleapis.com/auth/drive"]
@@ -813,10 +824,13 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
 
     sem: list[dict] = []
     semantic_ok = False
+    semantic_error = ""
     index, ids, mat = _get_food_index()
     if api_key and len(ids) and query.strip():
         qv = _fs.cached_query_embedding(query, api_key)
-        if qv is not None:
+        if qv is None:
+            semantic_error = "意味検索が一時的に失敗しました（Gemini に接続できず）。少し待って再検索してください。"
+        else:
             semantic_ok = True
             scores = _fs.semantic_scores(qv, ids, mat)
             by_id = {e["fid"]: e for e in entries}
@@ -831,7 +845,8 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
                     e2 = dict(by_id[iid])
                     e2["score"] = sc
                     sem.append(e2)
-    return {"keyword": kw, "semantic": sem, "semantic_ok": semantic_ok}
+    return {"keyword": kw, "semantic": sem, "semantic_ok": semantic_ok,
+            "semantic_error": semantic_error}
 
 
 def _run_food_index_batch(entries: list[dict], api_key: str) -> int:
@@ -1146,6 +1161,8 @@ def page_food_gallery():
     elif not len(_ids):
         cap += "（意味検索は索引作成後に有効）"
     st.caption(cap)
+    if res.get("semantic_error"):
+        st.warning("⚠️ " + res["semantic_error"])
 
     if kw:
         st.markdown(f'<div class="g-month">✅ 一致した画像（{len(kw)} 件・日付順）</div>',
