@@ -16,8 +16,8 @@ app_debug.log
 .auth_state
 .ocr_backfill_pending.json
 
-# 食事検索インデックスの派生ファイル（food_search.py）: 再生成可能なものだけ除外
-food_search_embeddings.npz
+# 食事検索インデックスの派生ファイル（food_search.py）: キャッシュ・ログだけ除外
+# （food_search_index.json と food_search_embeddings.npz は Streamlit Cloud 側でも使うため git に含める）
 food_query_cache.json
 food_synonyms_cache.json
 build_food_search_index.log

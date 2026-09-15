@@ -369,7 +369,7 @@ def _auto_push_loop():
         "app.py", "food_search.py", "scan_food_images.py", "build_food_search_index.py",
         "requirements.txt", ".gitignore",
         "metadata.json", "weight_data.json", "food_images_processed.json",
-        "food_search_index.json",
+        "food_search_index.json", "food_search_embeddings.npz",
     ]
     while True:
         time.sleep(_AUTO_PUSH_INTERVAL)
