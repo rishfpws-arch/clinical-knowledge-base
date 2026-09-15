@@ -39,7 +39,7 @@ import food_search as _fs
 
 # Streamlit（特に Cloud）は app.py の更新時に import 済みモジュールを再読込しないことがあり、
 # 新しい app.py が古い food_search を掴んで AttributeError になる。版が古ければ再読込する。
-_REQUIRED_FS_VERSION = 4
+_REQUIRED_FS_VERSION = 5
 if getattr(_fs, "MODULE_VERSION", 0) < _REQUIRED_FS_VERSION:
     import importlib
     _fs = importlib.reload(_fs)
@@ -1226,16 +1226,18 @@ def page_food_gallery():
     with st.spinner("検索中..."):
         res = _food_hybrid_search(entries, query, api_key)
     kw, sem = res["keyword"], res["semantic"]
+    mood = res.get("mood") or []
     cap = f"🔍 「{query}」: 一致 {len(kw)} 件"
     if res["semantic_ok"]:
         cap += f" ＋ 関連 {len(sem)} 件"
     elif not len(_ids):
         cap += "（意味検索は索引作成後に有効）"
+    if mood:
+        cap += f" ＋ 関連語 {len(mood)} 件"
     st.caption(cap)
     if res.get("semantic_error"):
         st.warning("⚠️ " + res["semantic_error"])
 
-    mood = res.get("mood") or []
     if kw:
         st.markdown(f'<div class="g-month">✅ 一致した画像（{len(kw)} 件・日付順）</div>',
                     unsafe_allow_html=True)

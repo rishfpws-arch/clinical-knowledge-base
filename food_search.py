@@ -40,7 +40,7 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/"
 GEMINI_429_BACKOFF = (5, 10, 20)
 DESCRIBE_MAX_PX = 800  # 解析に送る画像の長辺（トークン節約）
 INDEX_VERSION = 1
-MODULE_VERSION = 4  # app.py が要求する版。上げると古いモジュールを掴んだ Streamlit が再読込する
+MODULE_VERSION = 5  # app.py が要求する版。上げると古いモジュールを掴んだ Streamlit が再読込する
 
 # 意味検索のデフォルト（gemini-embedding-001 / 768 次元での経験値）
 # 無関係な語でも全件 0.55〜0.59 程度になるため、絶対値の下限に加えて
@@ -699,7 +699,7 @@ def rerank_with_llm(query: str, candidates: list[tuple[str, str]],
     cache = _load_query_cache()
     ckey = _rerank_cache_key(query, [c[0] for c in candidates])
     cached = cache.get(ckey)
-    if isinstance(cached, list):
+    if isinstance(cached, list) and cached:
         return [str(x) for x in cached]
 
     lines = []
@@ -728,6 +728,9 @@ def rerank_with_llm(query: str, candidates: list[tuple[str, str]],
     except Exception as e:
         _log.warning("[rerank] 失敗 '%s': %s", query, e)
         return None
+    if not picked:
+        # 「該当なし」は保存しない。一時的な判定の揺れや壊れた応答で 0 件が固定されるのを防ぐ
+        return picked
     cache[ckey] = picked
     if len(cache) > QUERY_CACHE_MAX:
         for k in list(cache.keys())[: len(cache) - QUERY_CACHE_MAX]:
