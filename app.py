@@ -39,7 +39,7 @@ import food_search as _fs
 
 # Streamlit（特に Cloud）は app.py の更新時に import 済みモジュールを再読込しないことがあり、
 # 新しい app.py が古い food_search を掴んで AttributeError になる。版が古ければ再読込する。
-_REQUIRED_FS_VERSION = 3
+_REQUIRED_FS_VERSION = 4
 if getattr(_fs, "MODULE_VERSION", 0) < _REQUIRED_FS_VERSION:
     import importlib
     _fs = importlib.reload(_fs)
@@ -858,6 +858,10 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
     semantic_ok = False
     semantic_error = ""
     index, ids, mat = _get_food_index()
+    if not api_key:
+        semantic_error = "Gemini API キー（GOOGLE_API_KEY）が設定されていないため、意味検索は使えません。"
+    elif not len(ids):
+        semantic_error = "埋め込みファイル（food_search_embeddings.npz）が無いため、意味検索は使えません。"
     if api_key and len(ids) and query.strip():
         qv = _fs.cached_query_embedding(query, api_key)
         if qv is None:
@@ -871,6 +875,9 @@ def _food_hybrid_search(entries: list[dict], query: str, api_key: str | None) ->
             picked = _fs.rerank_with_llm(
                 query, [(iid, (index.get(iid) or {}).get("embed_text", "")) for iid, _ in cands],
                 api_key)
+            if picked is None:
+                semantic_error = ("Gemini の最終判定が失敗したため、候補をそのまま関連として表示しています"
+                                  "（精度が落ちます）。少し待って再検索してください。")
             keep = set(picked) if picked is not None else {iid for iid, _ in cands}
             for iid, sc in cands:
                 if iid in keep:
