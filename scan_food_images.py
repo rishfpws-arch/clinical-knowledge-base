@@ -7,6 +7,8 @@ Streamlit UI を起動せずに Google Drive の「食事画像」フォルダ�
 
 Windows タスクスケジューラ（pomken_food_scan）から定期実行される。
 app.py の自動取り込みと同じ処理で、データはローカル JSON のみ（Sheets 同期なし）。
+スキャン後にデータファイルを GitHub へ push するので、app.py を開いていなくても
+スマホ版（Streamlit Cloud）が更新される。
 カロリー・栄養素の推定は 2026-09-14 に廃止（旧版は scan_food_images.py.bak-20260914-full）。
 
 実行例:
@@ -22,6 +24,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import time
 import tomllib
@@ -52,6 +55,8 @@ DEFAULT_MAX_IMAGES = 30
 LOCK_STALE_SECONDS = 30 * 60
 INTER_CALL_DELAY = 1.0
 BACKUP_KEEP = 7
+GIT_DATA_FILES = ["weight_data.json", "food_images_processed.json",
+                  "food_search_index.json", "food_search_embeddings.npz"]
 
 
 # ---------------------------------------------------------------------------
@@ -357,6 +362,42 @@ def scan(service, folder_id: str, api_key: str, max_images: int, log: logging.Lo
     return count
 
 
+# ---------------------------------------------------------------------------
+# GitHub へ push（スマホ版 = Streamlit Cloud は GitHub main しか見ない）
+# ---------------------------------------------------------------------------
+def _git(args: list[str], timeout: int = 60) -> subprocess.CompletedProcess:
+    return subprocess.run(["git"] + args, cwd=str(ROOT), capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=timeout,
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+
+
+def push_data(log: logging.Logger) -> None:
+    """データファイルの変更を commit & push する。app.py を開いていなくてもスマホ版が更新される。
+    コードは対象外（app.py 側の自動 push に任せる）。失敗しても次回のスキャンで再試行される。"""
+    if not (ROOT / ".git").exists():
+        return
+    try:
+        files = [f for f in GIT_DATA_FILES if (ROOT / f).exists()]
+        if _git(["status", "--porcelain", "--"] + files).stdout.strip():
+            _git(["add", "--"] + files)
+            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            r = _git(["commit", "-m", f"auto(scan): {ts}", "--"] + files)
+            if r.returncode != 0:
+                log.warning("git commit 失敗: %s", (r.stderr or r.stdout).strip()[:300])
+                return
+        # 前回 push に失敗した分も含め、未送信の commit があれば送る
+        ahead = _git(["rev-list", "--count", "origin/main..HEAD"]).stdout.strip()
+        if ahead in ("", "0"):
+            return
+        r = _git(["push", "origin", "main"], timeout=120)
+        if r.returncode == 0:
+            log.info("GitHub へ push 完了（%s commit）", ahead)
+        else:
+            log.warning("git push 失敗（次回再試行）: %s", (r.stderr or r.stdout).strip()[:300])
+    except Exception as e:
+        log.warning("git push エラー: %s: %s", type(e).__name__, e)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max", type=int, default=DEFAULT_MAX_IMAGES)
@@ -381,6 +422,7 @@ def main() -> int:
             started = time.time()
             n = scan(service, folder_id, api_key, args.max, log)
             log.info("完了: %d 枚取り込み (%.0f 秒)", n, time.time() - started)
+            push_data(log)
             return 0
         except Exception as e:
             log.exception("スキャン失敗: %s", e)
