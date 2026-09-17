@@ -62769,6 +62769,116 @@
           "image_id": "wm_f86b63ea8b20",
           "image_ext": "jpg",
           "drive_file_id": "1eU0Fp_Hd554vGdM63Z5jFYDrZUUaTCcc"
+        },
+        {
+          "id": "item_c674c374f888",
+          "name": "手羽先唐揚げ・かぼちゃの煮物・雑穀米・味噌汁・緑茶・スポーツドリンク",
+          "items_extracted": [
+            "手羽先唐揚げ",
+            "かぼちゃの煮物",
+            "雑穀米",
+            "味噌汁",
+            "緑茶",
+            "スポーツドリンク"
+          ],
+          "image_id": "wm_30b65ba566e4",
+          "image_ext": "jpg",
+          "drive_file_id": "1STbRCPLWunp1ag8vWF07RpJjm0EaOvyz"
+        }
+      ]
+    },
+    "2026-09-17": {
+      "items": [
+        {
+          "id": "item_64b8f724f8b4",
+          "name": "サンドイッチ・THEたまごサンド",
+          "items_extracted": [
+            "サンドイッチ",
+            "THEたまごサンド"
+          ],
+          "image_id": "wm_aec4f1f1fa8c",
+          "image_ext": "jpg",
+          "drive_file_id": "1p0uEUReU9OeRoEBYd6Cp8lE_mXoMlqoY"
+        },
+        {
+          "id": "item_71e93c191f36",
+          "name": "焼きそば・アイスカフェラテ",
+          "items_extracted": [
+            "焼きそば",
+            "アイスカフェラテ"
+          ],
+          "image_id": "wm_faa4eb89b891",
+          "image_ext": "jpg",
+          "drive_file_id": "1t6nuzJD_-tvasmJU3oFW3o40nQHmTw-F"
+        },
+        {
+          "id": "item_ad38468e18a3",
+          "name": "弁当・白米・黒ごま・沢庵・メンチカツ・ポテトサラダ・春雨サラダ・きんぴらごぼう・カフェラテ",
+          "items_extracted": [
+            "弁当",
+            "白米",
+            "黒ごま",
+            "沢庵",
+            "メンチカツ",
+            "ポテトサラダ",
+            "春雨サラダ",
+            "きんぴらごぼう",
+            "カフェラテ"
+          ],
+          "image_id": "wm_453f80669c89",
+          "image_ext": "jpg",
+          "drive_file_id": "1rRVuJg6D4xihCKAcA6IzE7-jCdn5Ltjh"
+        }
+      ]
+    },
+    "2026-09-16": {
+      "items": [
+        {
+          "id": "item_788625f754f7",
+          "name": "鶏むね肉の唐揚げ・ご飯・卵とネギの味噌汁・ブロッコリー・マヨネーズ・きんぴらごぼう・漬物・パイナップル・緑茶",
+          "items_extracted": [
+            "鶏むね肉の唐揚げ",
+            "ご飯",
+            "卵とネギの味噌汁",
+            "ブロッコリー",
+            "マヨネーズ",
+            "きんぴらごぼう",
+            "漬物",
+            "パイナップル",
+            "緑茶"
+          ],
+          "image_id": "wm_dc5998aea86f",
+          "image_ext": "jpg",
+          "drive_file_id": "1YDWhEnrd26RW8IKMJ_Cdibiirrjg9taP"
+        },
+        {
+          "id": "item_07cd1aa24a30",
+          "name": "ご飯・鶏肉の照り焼き・春雨サラダ・味噌汁・漬物・緑茶",
+          "items_extracted": [
+            "ご飯",
+            "鶏肉の照り焼き",
+            "春雨サラダ",
+            "味噌汁",
+            "漬物",
+            "緑茶"
+          ],
+          "image_id": "wm_238400892c7a",
+          "image_ext": "jpg",
+          "drive_file_id": "1M6ZF752mouV6L5igXPr35UMILBU2fF6T"
+        },
+        {
+          "id": "item_184865d3eecc",
+          "name": "グラノーラ・牛乳・ヤクルト・緑茶・タンブラー",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "ヤクルト",
+            "緑茶",
+            "タンブラー"
+          ],
+          "image_id": "wm_b194f8de3ca0",
+          "image_ext": "jpg",
+          "drive_file_id": "1i6_VKQYVQICmcv5P1S2s08WSMU4CVYeU"
         }
       ]
     }
