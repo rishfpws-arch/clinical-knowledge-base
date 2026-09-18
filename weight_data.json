@@ -62926,6 +62926,24 @@
           "image_id": "wm_264e5352a561",
           "image_ext": "jpg",
           "drive_file_id": "1fgIYhZCBLaRRJG5YUz3nE_GIuxcjynP1"
+        },
+        {
+          "id": "item_e96f40455203",
+          "name": "ハンバーグ・ご飯・梅干し・コロッケ・卵焼き・厚揚げ・ブロッコリー・ミニトマト・ポテトサラダ",
+          "items_extracted": [
+            "ハンバーグ",
+            "ご飯",
+            "梅干し",
+            "コロッケ",
+            "卵焼き",
+            "厚揚げ",
+            "ブロッコリー",
+            "ミニトマト",
+            "ポテトサラダ"
+          ],
+          "image_id": "wm_e16fd454d75f",
+          "image_ext": "jpg",
+          "drive_file_id": "1I3TB0Ky5fLoPAIa_3awU5Uovh84frhWb"
         }
       ]
     }
