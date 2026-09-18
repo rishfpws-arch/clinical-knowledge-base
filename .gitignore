@@ -25,3 +25,11 @@ build_food_search_index.log
 .scan_food_images.lock
 *.bak-*
 backups/
+
+# 秘密の別名コピー・作業中の一時ファイル・ログ (2026-09-18 追加)
+secrets*.toml
+*.tmp
+*.log
+=6.0.0
+app_from_git.py
+git_metadata_tmp.json

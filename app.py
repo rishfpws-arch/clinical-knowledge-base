@@ -290,8 +290,11 @@ def _logout() -> None:
 # ローカル JSON（Sheets 同期なし）
 # ---------------------------------------------------------------------------
 def _atomic_json_write(path: Path, data) -> bool:
-    """JSON をアトミックに書き込む（tmp → rename）。"""
-    tmp = path.with_suffix(".tmp")
+    """JSON をアトミックに書き込む（tmp → rename）。
+
+    tmp 名は scan_food_images.py (<name>.tmp) と衝突しないよう別にする。
+    """
+    tmp = path.with_name(path.name + ".app.tmp")
     try:
         with _file_write_lock:
             with open(tmp, "w", encoding="utf-8") as f:
@@ -338,23 +341,72 @@ def _daily_backup(path: Path) -> None:
         _log.warning(f"バックアップ失敗 {path.name}: {e}")
 
 
+def _weight_data_mtime() -> float:
+    try:
+        return WEIGHT_DATA_PATH.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
 def load_weight_data() -> dict:
-    """食事写真の台帳を読む。{"records": {日付: {"items": [...]}}} の形。"""
+    """食事写真の台帳を読む。{"records": {日付: {"items": [...]}}} の形。
+
+    セッション内でキャッシュするが、スケジュールタスク (scan_food_images.py) が
+    ファイルを更新していたら (mtime が進んでいたら) 読み直す。
+    """
     ck = "_cache_weight_data"
-    if ck in st.session_state:
+    mk = "_cache_weight_data_mtime"
+    mtime = _weight_data_mtime()
+    if ck in st.session_state and st.session_state.get(mk) == mtime:
         return st.session_state[ck]
     data = _load_json(WEIGHT_DATA_PATH, {"goals": {}, "records": {}})
     if not isinstance(data, dict):
         data = {"goals": {}, "records": {}}
     data.setdefault("records", {})
     st.session_state[ck] = data
+    st.session_state[mk] = mtime
     return data
 
 
+def _merge_weight_records(latest: dict, mine: dict) -> dict:
+    """ディスク上の最新 (latest) に、こちらが持つ品目のうち無いものだけを足す。
+
+    scan_food_images.py と同じ規則 (id または drive_file_id が一致したら既存扱い)。
+    """
+    lrec = latest.setdefault("records", {})
+    for dk, day in (mine.get("records") or {}).items():
+        if not isinstance(day, dict):
+            continue
+        if dk not in lrec or not isinstance(lrec.get(dk), dict):
+            lrec[dk] = day
+            continue
+        have = lrec[dk].setdefault("items", [])
+        have_ids = {it.get("id") for it in have}
+        have_fids = {it.get("drive_file_id") for it in have if it.get("drive_file_id")}
+        for it in day.get("items", []):
+            if it.get("id") in have_ids or it.get("drive_file_id") in have_fids:
+                continue
+            have.append(it)
+    for k, v in mine.items():
+        if k != "records" and k not in latest:
+            latest[k] = v
+    return latest
+
+
 def save_weight_data(weight_data: dict) -> bool:
-    st.session_state["_cache_weight_data"] = weight_data
+    """台帳を保存する。保存直前にディスクの最新を読み直してマージする
+    (5 分ごとのスケジュールタスクと並走しても、どちらの追加分も消えないように)。"""
+    latest = _load_json(WEIGHT_DATA_PATH, None)
+    if isinstance(latest, dict):
+        merged = _merge_weight_records(latest, weight_data)
+    else:
+        merged = weight_data
+    merged.setdefault("records", {})
     _daily_backup(WEIGHT_DATA_PATH)
-    return _atomic_json_write(WEIGHT_DATA_PATH, weight_data)
+    ok = _atomic_json_write(WEIGHT_DATA_PATH, merged)
+    st.session_state["_cache_weight_data"] = merged
+    st.session_state["_cache_weight_data_mtime"] = _weight_data_mtime()
+    return ok
 
 
 def load_food_processed() -> dict:
