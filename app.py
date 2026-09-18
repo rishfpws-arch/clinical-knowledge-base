@@ -39,7 +39,7 @@ import food_search as _fs
 
 # Streamlit（特に Cloud）は app.py の更新時に import 済みモジュールを再読込しないことがあり、
 # 新しい app.py が古い food_search を掴んで AttributeError になる。版が古ければ再読込する。
-_REQUIRED_FS_VERSION = 5
+_REQUIRED_FS_VERSION = 6
 if getattr(_fs, "MODULE_VERSION", 0) < _REQUIRED_FS_VERSION:
     import importlib
     _fs = importlib.reload(_fs)

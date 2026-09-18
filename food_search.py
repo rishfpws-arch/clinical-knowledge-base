@@ -40,7 +40,7 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/"
 GEMINI_429_BACKOFF = (5, 10, 20)
 DESCRIBE_MAX_PX = 800  # 解析に送る画像の長辺（トークン節約）
 INDEX_VERSION = 1
-MODULE_VERSION = 5  # app.py が要求する版。上げると古いモジュールを掴んだ Streamlit が再読込する
+MODULE_VERSION = 6  # app.py が要求する版。上げると古いモジュールを掴んだ Streamlit が再読込する
 
 # 意味検索のデフォルト（gemini-embedding-001 / 768 次元での経験値）
 # 無関係な語でも全件 0.55〜0.59 程度になるため、絶対値の下限に加えて
@@ -48,7 +48,7 @@ MODULE_VERSION = 5  # app.py が要求する版。上げると古いモジュー
 SEMANTIC_FLOOR = 0.60        # これ未満は候補にしない
 SEMANTIC_Z = 1.0             # median + Z*std 以上を候補にする
 SEMANTIC_TOP_K = 30          # 候補の上限（再ランクに渡す件数）
-QUERY_CACHE_MAX = 500
+QUERY_CACHE_MAX = 5000   # 2026-09-18: 500 → 5000 (再ランク判定を候補 1 枚ごとに持つようになったため)
 
 _log = logging.getLogger("food_search")
 
@@ -682,11 +682,6 @@ RERANK_PROMPT = """あなたは食事写真アルバムの検索アシスタン�
 - JSON のみを出力: {{"match": [番号, ...]}}"""
 
 
-def _rerank_cache_key(query: str, cand_ids: list[str]) -> str:
-    import hashlib
-    h = hashlib.sha1(",".join(cand_ids).encode("utf-8")).hexdigest()[:12]
-    return f"rerank:{normalize_text(query)}:{h}"
-
 
 def rerank_with_llm(query: str, candidates: list[tuple[str, str]],
                     api_key: str) -> list[str] | None:
@@ -697,46 +692,57 @@ def rerank_with_llm(query: str, candidates: list[tuple[str, str]],
     if not candidates:
         return []
     cache = _load_query_cache()
-    ckey = _rerank_cache_key(query, [c[0] for c in candidates])
-    cached = cache.get(ckey)
-    if isinstance(cached, list) and cached:
-        return [str(x) for x in cached]
 
-    lines = []
-    for i, (_, text) in enumerate(candidates, 1):
-        t = re.sub(r"\s+", " ", text or "").strip()[:220]
-        lines.append(f"{i}: {t}")
-    prompt = RERANK_PROMPT.format(query=query, candidates=chr(10).join(lines))
-    try:
-        raw = gemini_generate(api_key, [{"text": prompt}], json_mode=True)
-        parsed = parse_gemini_json(raw)
-        if not isinstance(parsed, dict) or "match" not in parsed:
-            # 応答が壊れている: 「該当なし」として保存せず、呼び出し側で候補をそのまま使う
-            _log.warning("[rerank] 応答を解析できず '%s': %s", query, (raw or "")[:120])
+    # 判定は「検索語 × 候補 1 枚」ごとにキャッシュする (2026-09-18)。
+    # 以前は候補一覧全体のハッシュを鍵にしていたため、写真が 1 枚増えて上位に入るたびに
+    # 同じ検索語でも全候補を Gemini に判定し直していた。今は未判定の候補だけを見せる。
+    qn = normalize_text(query)
+    verdicts: dict[str, bool] = {}
+    unjudged: list[tuple[str, str]] = []
+    for iid, text in candidates:
+        v = cache.get(f"rerank1:{qn}:{iid}")
+        if isinstance(v, bool):
+            verdicts[iid] = v
+        else:
+            unjudged.append((iid, text))
+
+    if unjudged:
+        lines = []
+        for i, (_, text) in enumerate(unjudged, 1):
+            t = re.sub(r"\s+", " ", text or "").strip()[:220]
+            lines.append(f"{i}: {t}")
+        prompt = RERANK_PROMPT.format(query=query, candidates=chr(10).join(lines))
+        try:
+            raw = gemini_generate(api_key, [{"text": prompt}], json_mode=True)
+            parsed = parse_gemini_json(raw)
+            if not isinstance(parsed, dict) or "match" not in parsed:
+                # 応答が壊れている: 保存せず、呼び出し側で候補をそのまま使う
+                _log.warning("[rerank] 応答を解析できず '%s': %s", query, (raw or "")[:120])
+                return None
+            nums = parsed.get("match") or []
+            hit: set[str] = set()
+            for n in nums:
+                try:
+                    k = int(n)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= k <= len(unjudged):
+                    hit.add(unjudged[k - 1][0])
+        except Exception as e:
+            _log.warning("[rerank] 失敗 '%s': %s", query, e)
             return None
-        nums = parsed.get("match") or []
-        picked: list[str] = []
-        for n in nums:
-            try:
-                k = int(n)
-            except (TypeError, ValueError):
-                continue
-            if 1 <= k <= len(candidates):
-                iid = candidates[k - 1][0]
-                if iid not in picked:
-                    picked.append(iid)
-    except Exception as e:
-        _log.warning("[rerank] 失敗 '%s': %s", query, e)
-        return None
-    if not picked:
-        # 「該当なし」は保存しない。一時的な判定の揺れや壊れた応答で 0 件が固定されるのを防ぐ
-        return picked
-    cache[ckey] = picked
-    if len(cache) > QUERY_CACHE_MAX:
-        for k in list(cache.keys())[: len(cache) - QUERY_CACHE_MAX]:
-            cache.pop(k, None)
-    try:
-        _atomic_write_json(QUERY_CACHE_PATH, cache)
-    except Exception as e:
-        _log.warning("[rerank] キャッシュ保存失敗: %s", e)
-    return picked
+        for iid, _ in unjudged:
+            verdicts[iid] = iid in hit
+        # 応答が正しく解析できたときだけ、該当・非該当の両方を保存する
+        # (壊れた応答で 0 件が固定される事故は上の return None で防いでいる)
+        for iid, _ in unjudged:
+            cache[f"rerank1:{qn}:{iid}"] = verdicts[iid]
+        if len(cache) > QUERY_CACHE_MAX:
+            for k in list(cache.keys())[: len(cache) - QUERY_CACHE_MAX]:
+                cache.pop(k, None)
+        try:
+            _atomic_write_json(QUERY_CACHE_PATH, cache)
+        except Exception as e:
+            _log.warning("[rerank] キャッシュ保存失敗: %s", e)
+
+    return [iid for iid, _ in candidates if verdicts.get(iid)]
