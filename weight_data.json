@@ -62828,6 +62828,36 @@
           "image_id": "wm_453f80669c89",
           "image_ext": "jpg",
           "drive_file_id": "1rRVuJg6D4xihCKAcA6IzE7-jCdn5Ltjh"
+        },
+        {
+          "id": "item_349663fe5edc",
+          "name": "もやし・豚肉・キャベツ",
+          "items_extracted": [
+            "もやし",
+            "豚肉",
+            "キャベツ"
+          ],
+          "image_id": "wm_5fd34e3f2b4c",
+          "image_ext": "jpg",
+          "drive_file_id": "1omlDds3YH3wCQF2_8QqzzCkWZW674xNK"
+        },
+        {
+          "id": "item_b92c5b2ccfaf",
+          "name": "オムライス・焼きそば・卵焼き・筑前煮・マカロニサラダ・ポテトサラダ・きんぴらごぼう・きゅうりの和え物・酢豚",
+          "items_extracted": [
+            "オムライス",
+            "焼きそば",
+            "卵焼き",
+            "筑前煮",
+            "マカロニサラダ",
+            "ポテトサラダ",
+            "きんぴらごぼう",
+            "きゅうりの和え物",
+            "酢豚"
+          ],
+          "image_id": "wm_0e603e7d372f",
+          "image_ext": "jpg",
+          "drive_file_id": "1DL4CN6GBaM2kKBNbNFidXJaUCq1Wvnu1"
         }
       ]
     },
@@ -62879,6 +62909,23 @@
           "image_id": "wm_b194f8de3ca0",
           "image_ext": "jpg",
           "drive_file_id": "1i6_VKQYVQICmcv5P1S2s08WSMU4CVYeU"
+        }
+      ]
+    },
+    "2026-09-18": {
+      "items": [
+        {
+          "id": "item_e8134e57bb9f",
+          "name": "ヨーグルト・グラノーラ・ヤクルト1000・杏仁豆腐",
+          "items_extracted": [
+            "ヨーグルト",
+            "グラノーラ",
+            "ヤクルト1000",
+            "杏仁豆腐"
+          ],
+          "image_id": "wm_264e5352a561",
+          "image_ext": "jpg",
+          "drive_file_id": "1fgIYhZCBLaRRJG5YUz3nE_GIuxcjynP1"
         }
       ]
     }
