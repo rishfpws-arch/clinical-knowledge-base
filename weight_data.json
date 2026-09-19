@@ -62946,6 +62946,49 @@
           "drive_file_id": "1I3TB0Ky5fLoPAIa_3awU5Uovh84frhWb"
         }
       ]
+    },
+    "2026-09-19": {
+      "items": [
+        {
+          "id": "item_d97e0b864613",
+          "name": "サラダ・レタス・キュウリ・トマト・ゆで卵・鶏肉・コーン",
+          "items_extracted": [
+            "サラダ",
+            "レタス",
+            "キュウリ",
+            "トマト",
+            "ゆで卵",
+            "鶏肉",
+            "コーン"
+          ],
+          "image_id": "wm_c07f854f87b2",
+          "image_ext": "jpg",
+          "drive_file_id": "1rLYAd9MNUOtZEQ3bPBhbHNWoQaON17he"
+        },
+        {
+          "id": "item_575874dfd380",
+          "name": "ナン・カレー",
+          "items_extracted": [
+            "ナン",
+            "カレー"
+          ],
+          "image_id": "wm_4667ef41ad3c",
+          "image_ext": "jpg",
+          "drive_file_id": "1wI-aggx_tI52cRZRLsGtK6_TSB7W0zrg"
+        },
+        {
+          "id": "item_ac766ae876d1",
+          "name": "バナナ・シリアル・牛乳",
+          "items_extracted": [
+            "バナナ",
+            "シリアル",
+            "牛乳"
+          ],
+          "image_id": "wm_3f4826f1514b",
+          "image_ext": "jpg",
+          "drive_file_id": "1ca8uv_Sh2vycqT7tL811Nin1-FRb_hYv"
+        }
+      ]
     }
   }
 }
