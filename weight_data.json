@@ -62987,6 +62987,20 @@
           "image_id": "wm_3f4826f1514b",
           "image_ext": "jpg",
           "drive_file_id": "1ca8uv_Sh2vycqT7tL811Nin1-FRb_hYv"
+        },
+        {
+          "id": "item_d99ccfc98ce4",
+          "name": "白米・魚の煮付け・筑前煮・和え物・味噌汁",
+          "items_extracted": [
+            "白米",
+            "魚の煮付け",
+            "筑前煮",
+            "和え物",
+            "味噌汁"
+          ],
+          "image_id": "wm_fcd28f30e197",
+          "image_ext": "jpg",
+          "drive_file_id": "1mXZDmiXJLAO4End4Gs5xPKNN7XfxNb3e"
         }
       ]
     }
