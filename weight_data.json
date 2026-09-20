@@ -63001,6 +63001,60 @@
           "image_id": "wm_fcd28f30e197",
           "image_ext": "jpg",
           "drive_file_id": "1mXZDmiXJLAO4End4Gs5xPKNN7XfxNb3e"
+        },
+        {
+          "id": "item_3a20e0b35812",
+          "name": "炒飯・春雨スープ・スターバックスのカップ",
+          "items_extracted": [
+            "炒飯",
+            "春雨スープ",
+            "スターバックスのカップ"
+          ],
+          "image_id": "wm_24fcb0d4e331",
+          "image_ext": "jpg",
+          "drive_file_id": "1bwyHjJc-ZT1GNBX4xGtKqumcVnqNZT4A"
+        }
+      ]
+    },
+    "2026-09-20": {
+      "items": [
+        {
+          "id": "item_fdfb2ed6072d",
+          "name": "ご飯・豚肉と野菜の炒め物・ポテトサラダ・ほうれん草と花麩の味噌汁・スターバックスのカップ",
+          "items_extracted": [
+            "ご飯",
+            "豚肉と野菜の炒め物",
+            "ポテトサラダ",
+            "ほうれん草と花麩の味噌汁",
+            "スターバックスのカップ"
+          ],
+          "image_id": "wm_af71ba9da2d4",
+          "image_ext": "jpg",
+          "drive_file_id": "1U-i-6sw6Fjbshj9wc_Gsv0oL1gDwgNLa"
+        },
+        {
+          "id": "item_0ae516b1a068",
+          "name": "宮崎名物 じゃりぱん",
+          "items_extracted": [
+            "宮崎名物 じゃりぱん"
+          ],
+          "image_id": "wm_0c6f954b1097",
+          "image_ext": "jpg",
+          "drive_file_id": "1zsefqvZrOCHZblVpHHry1102AS-0OU1w"
+        },
+        {
+          "id": "item_c79a81d34ecd",
+          "name": "ご飯・味噌汁・鶏肉と大根の煮物・牛乳・醤油",
+          "items_extracted": [
+            "ご飯",
+            "味噌汁",
+            "鶏肉と大根の煮物",
+            "牛乳",
+            "醤油"
+          ],
+          "image_id": "wm_823a4b2b7b82",
+          "image_ext": "jpg",
+          "drive_file_id": "14rXAU9OAVcj9u6IBvj7sneUCLQj7Q4av"
         }
       ]
     }
