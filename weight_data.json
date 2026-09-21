@@ -63055,6 +63055,74 @@
           "image_id": "wm_823a4b2b7b82",
           "image_ext": "jpg",
           "drive_file_id": "14rXAU9OAVcj9u6IBvj7sneUCLQj7Q4av"
+        },
+        {
+          "id": "item_fd6d85a446eb",
+          "name": "パウンドケーキ・キャベツの漬物",
+          "items_extracted": [
+            "パウンドケーキ",
+            "キャベツの漬物"
+          ],
+          "image_id": "wm_5923b24611a7",
+          "image_ext": "jpg",
+          "drive_file_id": "1s50-hJUynUSHGjptX69jqyJiEM_IHPPV"
+        },
+        {
+          "id": "item_77537f455f68",
+          "name": "ミートソーススパゲッティ・キャベツの和え物・緑茶・炭酸水",
+          "items_extracted": [
+            "ミートソーススパゲッティ",
+            "キャベツの和え物",
+            "緑茶",
+            "炭酸水"
+          ],
+          "image_id": "wm_2f915ffc86f1",
+          "image_ext": "jpg",
+          "drive_file_id": "1BppT5m5Q-0WxXAvWzcfrZe89WImfwyhq"
+        },
+        {
+          "id": "item_2245d4bf7577",
+          "name": "ミートソーススパゲッティ・フォーク・リモコン・タンブラー",
+          "items_extracted": [
+            "ミートソーススパゲッティ",
+            "フォーク",
+            "リモコン",
+            "タンブラー"
+          ],
+          "image_id": "wm_6703133c238a",
+          "image_ext": "jpg",
+          "drive_file_id": "1jEtZSDMY9uZW6WWdSBnZcM5seaUuJ7-5"
+        },
+        {
+          "id": "item_30ced78e847a",
+          "name": "ミニクロワッサン・チョコレートクロワッサン・さつまいもクロワッサン・アイスコーヒー・緑茶",
+          "items_extracted": [
+            "ミニクロワッサン",
+            "チョコレートクロワッサン",
+            "さつまいもクロワッサン",
+            "アイスコーヒー",
+            "緑茶"
+          ],
+          "image_id": "wm_87194fb5073d",
+          "image_ext": "jpg",
+          "drive_file_id": "1KkRi0TMGgxR_KrWlV8gH-ZLmmtq65TaF"
+        }
+      ]
+    },
+    "2026-09-21": {
+      "items": [
+        {
+          "id": "item_6f0dac01748c",
+          "name": "東京カラメリゼ・シャトレーゼ ラスク キャラメルアーモンド・シャトレーゼ ラスク ホワイトチョコ・韓国海苔",
+          "items_extracted": [
+            "東京カラメリゼ",
+            "シャトレーゼ ラスク キャラメルアーモンド",
+            "シャトレーゼ ラスク ホワイトチョコ",
+            "韓国海苔"
+          ],
+          "image_id": "wm_1d228150f69b",
+          "image_ext": "jpg",
+          "drive_file_id": "1vchBnrj_HO4yV96lODpf18XxVPoD1u1J"
         }
       ]
     }
