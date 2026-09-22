@@ -63123,6 +63123,187 @@
           "image_id": "wm_1d228150f69b",
           "image_ext": "jpg",
           "drive_file_id": "1vchBnrj_HO4yV96lODpf18XxVPoD1u1J"
+        },
+        {
+          "id": "item_d46496ffc9c0",
+          "name": "おまんじゅう・いちご味のおまんじゅう",
+          "items_extracted": [
+            "おまんじゅう",
+            "いちご味のおまんじゅう"
+          ],
+          "image_id": "wm_c493d00f0fc1",
+          "image_ext": "jpg",
+          "drive_file_id": "1baJxit8Hw-8Bylzu-SBR0JM4yv06-New"
+        },
+        {
+          "id": "item_62988d1a574d",
+          "name": "刺身・レモン・わさび・醤油・和え物・焼き魚・海老・銀杏・大根の漬物",
+          "items_extracted": [
+            "刺身",
+            "レモン",
+            "わさび",
+            "醤油",
+            "和え物",
+            "焼き魚",
+            "海老",
+            "銀杏",
+            "大根の漬物"
+          ],
+          "image_id": "wm_387d077b59c1",
+          "image_ext": "jpg",
+          "drive_file_id": "1t-4p5LDkXwIs0SDg6pB25ZQ6ZXRRKUNa"
+        },
+        {
+          "id": "item_14876c748fdd",
+          "name": "蓮根チップス・大根・レモン・紅葉麩・魚の切り身",
+          "items_extracted": [
+            "蓮根チップス",
+            "大根",
+            "レモン",
+            "紅葉麩",
+            "魚の切り身"
+          ],
+          "image_id": "wm_6c007a92ae36",
+          "image_ext": "jpg",
+          "drive_file_id": "1w6owDeyS-16zuBLVM0RVEbCFT3SZlJ5n"
+        },
+        {
+          "id": "item_84ea7b4cafcc",
+          "name": "しゃぶしゃぶ・牛肉・豆腐・白菜・きのこ・水菜・わかめ・グラス・飲み物",
+          "items_extracted": [
+            "しゃぶしゃぶ",
+            "牛肉",
+            "豆腐",
+            "白菜",
+            "きのこ",
+            "水菜",
+            "わかめ",
+            "グラス",
+            "飲み物"
+          ],
+          "image_id": "wm_62e3c1d3256e",
+          "image_ext": "jpg",
+          "drive_file_id": "1smrYAu6DhUpq4YALcYK-MMI8G_YU-7zE"
+        },
+        {
+          "id": "item_8b3df6e9259c",
+          "name": "海老天・揚げ物・ししとう・あんかけ・飲み物",
+          "items_extracted": [
+            "海老天",
+            "揚げ物",
+            "ししとう",
+            "あんかけ",
+            "飲み物"
+          ],
+          "image_id": "wm_534e1a567494",
+          "image_ext": "jpg",
+          "drive_file_id": "1F2RdQxqhOXRAe3ybBnJOnNySd_W1Uwzg"
+        },
+        {
+          "id": "item_84312476bf1f",
+          "name": "だし巻き卵・うなぎ・れんこんの甘酢漬け・氷水",
+          "items_extracted": [
+            "だし巻き卵",
+            "うなぎ",
+            "れんこんの甘酢漬け",
+            "氷水"
+          ],
+          "image_id": "wm_ea6d387abe21",
+          "image_ext": "jpg",
+          "drive_file_id": "1k0uhNkJtgEhraW3dnQ62YxCYBBkoj25m"
+        },
+        {
+          "id": "item_be6d3015cd35",
+          "name": "うな重・ご飯・うなぎ・お椀・お皿・箸",
+          "items_extracted": [
+            "うな重",
+            "ご飯",
+            "うなぎ",
+            "お椀",
+            "お皿",
+            "箸"
+          ],
+          "image_id": "wm_38084c45b407",
+          "image_ext": "jpg",
+          "drive_file_id": "1VCLjFXXHliQJykrz-GFq6dUsEb6xpL_A"
+        },
+        {
+          "id": "item_ea4a1890ec3a",
+          "name": "ひつまぶし・うなぎ・ご飯・錦糸卵・お吸い物・漬物・だし巻き卵・水",
+          "items_extracted": [
+            "ひつまぶし",
+            "うなぎ",
+            "ご飯",
+            "錦糸卵",
+            "お吸い物",
+            "漬物",
+            "だし巻き卵",
+            "水"
+          ],
+          "image_id": "wm_ae41316a5ba5",
+          "image_ext": "jpg",
+          "drive_file_id": "1Zl598MI1AuLzVa7Q0ZpPbi8UTBUYsDvz"
+        },
+        {
+          "id": "item_ccfd8e440867",
+          "name": "あまおう苺どら焼",
+          "items_extracted": [
+            "あまおう苺どら焼"
+          ],
+          "image_id": "wm_9a5af3a23136",
+          "image_ext": "jpg",
+          "drive_file_id": "1hLt_R-EuIPXFqKoqrluq6hdgCq5fRcso"
+        }
+      ]
+    },
+    "2026-09-22": {
+      "items": [
+        {
+          "id": "item_d38fc2a19427",
+          "name": "オレンジジュース・ぶどうジュース・食パン・オレンジ・パイナップル・コーヒー",
+          "items_extracted": [
+            "オレンジジュース",
+            "ぶどうジュース",
+            "食パン",
+            "オレンジ",
+            "パイナップル",
+            "コーヒー"
+          ],
+          "image_id": "wm_985abc514983",
+          "image_ext": "jpg",
+          "drive_file_id": "1ZVw5XlYy8FE9YVnyjaa2nocj58uw8UnD"
+        },
+        {
+          "id": "item_261017856854",
+          "name": "鶏ごぼうご飯・お茶漬け・味噌汁・カレー",
+          "items_extracted": [
+            "鶏ごぼうご飯",
+            "お茶漬け",
+            "味噌汁",
+            "カレー"
+          ],
+          "image_id": "wm_8c1a98d33ccf",
+          "image_ext": "jpg",
+          "drive_file_id": "1mLu9R7yco3XoroAQB92NoOGXoFW5YoFC"
+        },
+        {
+          "id": "item_2cfdd2cc55b2",
+          "name": "ご飯・明太子・オレンジジュース・スパゲッティ・スクランブルエッグ・卵焼き・ブロッコリー・ミニトマト・ポテトサラダ・焼き魚",
+          "items_extracted": [
+            "ご飯",
+            "明太子",
+            "オレンジジュース",
+            "スパゲッティ",
+            "スクランブルエッグ",
+            "卵焼き",
+            "ブロッコリー",
+            "ミニトマト",
+            "ポテトサラダ",
+            "焼き魚"
+          ],
+          "image_id": "wm_8bbb776c1a02",
+          "image_ext": "jpg",
+          "drive_file_id": "1yugU670B_0xOPALHRnKLQcKohojwL2B4"
         }
       ]
     }
