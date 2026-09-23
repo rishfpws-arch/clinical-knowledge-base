@@ -63304,6 +63304,122 @@
           "image_id": "wm_8bbb776c1a02",
           "image_ext": "jpg",
           "drive_file_id": "1yugU670B_0xOPALHRnKLQcKohojwL2B4"
+        },
+        {
+          "id": "item_6e0aec349753",
+          "name": "担々麺・水",
+          "items_extracted": [
+            "担々麺",
+            "水"
+          ],
+          "image_id": "wm_ffed902feb67",
+          "image_ext": "jpg",
+          "drive_file_id": "1IX7s_pRR1K7BlqrSCJM-fYGEpY1u0Pdi"
+        },
+        {
+          "id": "item_ec0886c2890f",
+          "name": "うなぎの蒲焼き・サラダ・レモン・ミニトマト・わさび・タレ・お茶",
+          "items_extracted": [
+            "うなぎの蒲焼き",
+            "サラダ",
+            "レモン",
+            "ミニトマト",
+            "わさび",
+            "タレ",
+            "お茶"
+          ],
+          "image_id": "wm_52401912b59a",
+          "image_ext": "jpg",
+          "drive_file_id": "1WNtPIt3AZJMbZsABqh4rNx87aGFNdkMj"
+        },
+        {
+          "id": "item_8e79cda2d0ec",
+          "name": "うなぎの蒲焼き・刺身・サラダ・さつまいも・きのこ・わさび・醤油・お吸い物",
+          "items_extracted": [
+            "うなぎの蒲焼き",
+            "刺身",
+            "サラダ",
+            "さつまいも",
+            "きのこ",
+            "わさび",
+            "醤油",
+            "お吸い物"
+          ],
+          "image_id": "wm_496cd3665340",
+          "image_ext": "jpg",
+          "drive_file_id": "1_F67yZ4C1Wm3y3ctxXLlVoVh5o0nL7T-"
+        },
+        {
+          "id": "item_2a1e5e6babad",
+          "name": "PXL_20260922_085937106.jpg",
+          "items_extracted": [],
+          "image_id": "wm_75fd75c29be7",
+          "image_ext": "jpg",
+          "drive_file_id": "1UaJW99UyAx9wWS-lJECCFjBiCENXLi_F"
+        },
+        {
+          "id": "item_849ca503a097",
+          "name": "真丈・クコの実・椀物",
+          "items_extracted": [
+            "真丈",
+            "クコの実",
+            "椀物"
+          ],
+          "image_id": "wm_a931eef4ab0b",
+          "image_ext": "jpg",
+          "drive_file_id": "15KLwkqRAwP8gOO6S-gqSEdXNhelcDZwU"
+        },
+        {
+          "id": "item_120406a81058",
+          "name": "釜飯・牛肉・しめじ・パプリカ・魚の煮付け・天ぷら・ポテトサラダ・おひたし・水",
+          "items_extracted": [
+            "釜飯",
+            "牛肉",
+            "しめじ",
+            "パプリカ",
+            "魚の煮付け",
+            "天ぷら",
+            "ポテトサラダ",
+            "おひたし",
+            "水"
+          ],
+          "image_id": "wm_7e56af046aae",
+          "image_ext": "jpg",
+          "drive_file_id": "1HRjE_ARl3e1fg809sxj_J5rfRO5oTGXI"
+        },
+        {
+          "id": "item_95fd7650f8c7",
+          "name": "メロン・ガトーショコラ",
+          "items_extracted": [
+            "メロン",
+            "ガトーショコラ"
+          ],
+          "image_id": "wm_186bcd066b78",
+          "image_ext": "jpg",
+          "drive_file_id": "1O3b09WhgWG1b_oeDqG1vzZ52ZrxMCh65"
+        }
+      ]
+    },
+    "2026-09-23": {
+      "items": [
+        {
+          "id": "item_206424898be2",
+          "name": "カレーライス・クロワッサン・パン・オ・ショコラ・パン・レーズンデニッシュ・オレンジ・パイナップル・ゼリー・コーヒー・ジュース",
+          "items_extracted": [
+            "カレーライス",
+            "クロワッサン",
+            "パン・オ・ショコラ",
+            "パン",
+            "レーズンデニッシュ",
+            "オレンジ",
+            "パイナップル",
+            "ゼリー",
+            "コーヒー",
+            "ジュース"
+          ],
+          "image_id": "wm_ab3a7d0ac838",
+          "image_ext": "jpg",
+          "drive_file_id": "1k62nizTlz2M-n0ZNyLWOIdU_irkw0RGS"
         }
       ]
     }
