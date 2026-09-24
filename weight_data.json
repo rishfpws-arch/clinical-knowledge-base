@@ -63463,6 +63463,17 @@
           "image_id": "wm_25db8da488c7",
           "image_ext": "jpg",
           "drive_file_id": "1fCxe5KcrGeNiSNu4U6RzVHRf_0kg9Aiy"
+        },
+        {
+          "id": "item_c0088351d497",
+          "name": "ミートソーススパゲッティ・カゴメ 野菜生活100 Smoothie グリーンスムージー",
+          "items_extracted": [
+            "ミートソーススパゲッティ",
+            "カゴメ 野菜生活100 Smoothie グリーンスムージー"
+          ],
+          "image_id": "wm_55537b71d251",
+          "image_ext": "jpg",
+          "drive_file_id": "1rdd9ss4_OfdBvZoYXPWLEp7aY46rLzZR"
         }
       ]
     }
