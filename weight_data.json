@@ -63474,6 +63474,44 @@
           "image_id": "wm_55537b71d251",
           "image_ext": "jpg",
           "drive_file_id": "1rdd9ss4_OfdBvZoYXPWLEp7aY46rLzZR"
+        },
+        {
+          "id": "item_5e44ac47fa01",
+          "name": "雑穀米・肉じゃが・クリームパン",
+          "items_extracted": [
+            "雑穀米",
+            "肉じゃが",
+            "クリームパン"
+          ],
+          "image_id": "wm_7b50525ee4ce",
+          "image_ext": "jpg",
+          "drive_file_id": "1gUI5TmTt5V_coe1IIDBEO8oqp4iJh-3s"
+        },
+        {
+          "id": "item_90543058b105",
+          "name": "カップ麺・カフェラテ",
+          "items_extracted": [
+            "カップ麺",
+            "カフェラテ"
+          ],
+          "image_id": "wm_87d60e22e754",
+          "image_ext": "jpg",
+          "drive_file_id": "1sTHQ0SiCpwfx1NYh0jCrYYyvmKOrrRCL"
+        }
+      ]
+    },
+    "2026-09-25": {
+      "items": [
+        {
+          "id": "item_0dac2c8011ab",
+          "name": "バナナ・ヤクルト1000",
+          "items_extracted": [
+            "バナナ",
+            "ヤクルト1000"
+          ],
+          "image_id": "wm_284a37f16ccc",
+          "image_ext": "jpg",
+          "drive_file_id": "1OAZvkdA0rOvHVCWy28sYtdWl4aZ50zNQ"
         }
       ]
     }
