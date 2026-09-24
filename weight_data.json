@@ -63420,6 +63420,49 @@
           "image_id": "wm_ab3a7d0ac838",
           "image_ext": "jpg",
           "drive_file_id": "1k62nizTlz2M-n0ZNyLWOIdU_irkw0RGS"
+        },
+        {
+          "id": "item_f11e45c22248",
+          "name": "杏仁豆腐・プリン・水",
+          "items_extracted": [
+            "杏仁豆腐",
+            "プリン",
+            "水"
+          ],
+          "image_id": "wm_ca90f7463d94",
+          "image_ext": "jpg",
+          "drive_file_id": "1bLdNMfJFsvU2XBR2Y4yMAWpZ9k4xB1_0"
+        },
+        {
+          "id": "item_6bac721702a1",
+          "name": "肉じゃが・雑穀米・卵とワカメの味噌汁・きゅうりの和え物・納豆・韓国のり・水",
+          "items_extracted": [
+            "肉じゃが",
+            "雑穀米",
+            "卵とワカメの味噌汁",
+            "きゅうりの和え物",
+            "納豆",
+            "韓国のり",
+            "水"
+          ],
+          "image_id": "wm_7cff244567ce",
+          "image_ext": "jpg",
+          "drive_file_id": "1o_84jQmSsrrNC4Fa7foiJlEoaFfsxUdR"
+        }
+      ]
+    },
+    "2026-09-24": {
+      "items": [
+        {
+          "id": "item_c047d634c860",
+          "name": "バナナ・ヤクルト1000",
+          "items_extracted": [
+            "バナナ",
+            "ヤクルト1000"
+          ],
+          "image_id": "wm_25db8da488c7",
+          "image_ext": "jpg",
+          "drive_file_id": "1fCxe5KcrGeNiSNu4U6RzVHRf_0kg9Aiy"
         }
       ]
     }
