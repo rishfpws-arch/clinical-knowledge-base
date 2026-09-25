@@ -63512,6 +63512,25 @@
           "image_id": "wm_284a37f16ccc",
           "image_ext": "jpg",
           "drive_file_id": "1OAZvkdA0rOvHVCWy28sYtdWl4aZ50zNQ"
+        },
+        {
+          "id": "item_c3980e1ba1a6",
+          "name": "牛肉弁当・ご飯・梅干し・牛肉のしぐれ煮・温泉卵・かぼちゃ・青ネギ・れんこん・人参・カップ麺",
+          "items_extracted": [
+            "牛肉弁当",
+            "ご飯",
+            "梅干し",
+            "牛肉のしぐれ煮",
+            "温泉卵",
+            "かぼちゃ",
+            "青ネギ",
+            "れんこん",
+            "人参",
+            "カップ麺"
+          ],
+          "image_id": "wm_29c4268a3acb",
+          "image_ext": "jpg",
+          "drive_file_id": "107KgTLGH3Wto8bTIPwER8btWFGvCg2lo"
         }
       ]
     }
