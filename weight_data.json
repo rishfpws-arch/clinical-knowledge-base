@@ -63531,6 +63531,21 @@
           "image_id": "wm_29c4268a3acb",
           "image_ext": "jpg",
           "drive_file_id": "107KgTLGH3Wto8bTIPwER8btWFGvCg2lo"
+        },
+        {
+          "id": "item_e634e2e679aa",
+          "name": "炊き込みご飯・キャベツの千切り・ニラ玉・じゃがりこ サラダbits 大盛り・炭酸水・緑茶",
+          "items_extracted": [
+            "炊き込みご飯",
+            "キャベツの千切り",
+            "ニラ玉",
+            "じゃがりこ サラダbits 大盛り",
+            "炭酸水",
+            "緑茶"
+          ],
+          "image_id": "wm_2e492a2259ac",
+          "image_ext": "jpg",
+          "drive_file_id": "1NfnQCKQfekw1TDbj-Q6ZrRdgiWEcCqY5"
         }
       ]
     }
