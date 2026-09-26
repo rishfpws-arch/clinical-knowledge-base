@@ -63548,6 +63548,41 @@
           "drive_file_id": "1NfnQCKQfekw1TDbj-Q6ZrRdgiWEcCqY5"
         }
       ]
+    },
+    "2026-09-26": {
+      "items": [
+        {
+          "id": "item_a7e0c427530f",
+          "name": "焼きそば・手巻き寿司・卵焼き・マカロニサラダ・水",
+          "items_extracted": [
+            "焼きそば",
+            "手巻き寿司",
+            "卵焼き",
+            "マカロニサラダ",
+            "水"
+          ],
+          "image_id": "wm_f0611f3d7e7f",
+          "image_ext": "jpg",
+          "drive_file_id": "1I2IvqesUy9Rzs4pZdmCckiO-1zZIUV20"
+        },
+        {
+          "id": "item_ef4f8f2c0405",
+          "name": "月見バーガー・メガマフィン・ハンバーガー・フライドポテト・アイスコーヒー・緑茶・のり・ポテトチップス",
+          "items_extracted": [
+            "月見バーガー",
+            "メガマフィン",
+            "ハンバーガー",
+            "フライドポテト",
+            "アイスコーヒー",
+            "緑茶",
+            "のり",
+            "ポテトチップス"
+          ],
+          "image_id": "wm_e498e00dc95e",
+          "image_ext": "jpg",
+          "drive_file_id": "1hPJuBryTqyYMGXY_3VSjKY-Yb14utpX1"
+        }
+      ]
     }
   }
 }
