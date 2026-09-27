@@ -63583,6 +63583,58 @@
           "drive_file_id": "1hPJuBryTqyYMGXY_3VSjKY-Yb14utpX1"
         }
       ]
+    },
+    "2026-09-27": {
+      "items": [
+        {
+          "id": "item_1add21afb49d",
+          "name": "肉うどん・牛丼・温泉卵・青ネギ・天かす・七味唐辛子・水",
+          "items_extracted": [
+            "肉うどん",
+            "牛丼",
+            "温泉卵",
+            "青ネギ",
+            "天かす",
+            "七味唐辛子",
+            "水"
+          ],
+          "image_id": "wm_4b83531193f1",
+          "image_ext": "jpg",
+          "drive_file_id": "1rh6-Z6_34N3jdVvncW9r1lQiwsXGm2hI"
+        },
+        {
+          "id": "item_0fc5dc830e11",
+          "name": "うどん・牛肉・温泉卵・もやし・わかめ・刻みネギ・おろし生姜・水",
+          "items_extracted": [
+            "うどん",
+            "牛肉",
+            "温泉卵",
+            "もやし",
+            "わかめ",
+            "刻みネギ",
+            "おろし生姜",
+            "水"
+          ],
+          "image_id": "wm_ab93cf756b5b",
+          "image_ext": "jpg",
+          "drive_file_id": "1q08D06hs3l7geHGdpgzULD_T_g3As5jV"
+        },
+        {
+          "id": "item_e5005dede066",
+          "name": "油そば・麺・豚ひき肉・メンマ・刻みネギ・刻み玉ねぎ",
+          "items_extracted": [
+            "油そば",
+            "麺",
+            "豚ひき肉",
+            "メンマ",
+            "刻みネギ",
+            "刻み玉ねぎ"
+          ],
+          "image_id": "wm_564d10bf9436",
+          "image_ext": "jpg",
+          "drive_file_id": "1xkRHpqzwc6i8cah-esZznDsoorKTuGb4"
+        }
+      ]
     }
   }
 }
