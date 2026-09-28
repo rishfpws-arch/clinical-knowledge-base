@@ -63648,6 +63648,26 @@
           "drive_file_id": "1A8ov7lfPWiAgwLw47X6wJWlFrFh49a99"
         }
       ]
+    },
+    "2026-09-28": {
+      "items": [
+        {
+          "id": "item_53be6fde1fe3",
+          "name": "弁当・ご飯・たくあん・ハンバーグ・きんぴらごぼう・ひじきと豆腐のサラダ・緑茶",
+          "items_extracted": [
+            "弁当",
+            "ご飯",
+            "たくあん",
+            "ハンバーグ",
+            "きんぴらごぼう",
+            "ひじきと豆腐のサラダ",
+            "緑茶"
+          ],
+          "image_id": "wm_408d0fab66e8",
+          "image_ext": "jpg",
+          "drive_file_id": "1C2QhRVWw89-faR45cRGifJacfn5XIuLk"
+        }
+      ]
     }
   }
 }
