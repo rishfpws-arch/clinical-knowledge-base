@@ -63633,6 +63633,19 @@
           "image_id": "wm_564d10bf9436",
           "image_ext": "jpg",
           "drive_file_id": "1xkRHpqzwc6i8cah-esZznDsoorKTuGb4"
+        },
+        {
+          "id": "item_5db99030a068",
+          "name": "梨・フォーク・りんごジュース・水",
+          "items_extracted": [
+            "梨",
+            "フォーク",
+            "りんごジュース",
+            "水"
+          ],
+          "image_id": "wm_ee6465c5cdb8",
+          "image_ext": "jpg",
+          "drive_file_id": "1A8ov7lfPWiAgwLw47X6wJWlFrFh49a99"
         }
       ]
     }
