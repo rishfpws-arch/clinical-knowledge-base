@@ -63666,6 +63666,18 @@
           "image_id": "wm_408d0fab66e8",
           "image_ext": "jpg",
           "drive_file_id": "1C2QhRVWw89-faR45cRGifJacfn5XIuLk"
+        },
+        {
+          "id": "item_3c0f0bca3708",
+          "name": "サントリー天然水スパークリング・伊右衛門・プロテインバー",
+          "items_extracted": [
+            "サントリー天然水スパークリング",
+            "伊右衛門",
+            "プロテインバー"
+          ],
+          "image_id": "wm_05992c62db34",
+          "image_ext": "jpg",
+          "drive_file_id": "12_-9ONScxYVxD3zszgdfjoZbCG3P_pOV"
         }
       ]
     }
