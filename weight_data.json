@@ -63721,6 +63721,18 @@
           "image_id": "wm_bbd36f2f5c47",
           "image_ext": "jpg",
           "drive_file_id": "1nlb6CJ62ANy3cMv5oZMkrsEkUWNcI0FJ"
+        },
+        {
+          "id": "item_9eff83c6c5ae",
+          "name": "レモン炭酸水・緑茶・プロテインバー",
+          "items_extracted": [
+            "レモン炭酸水",
+            "緑茶",
+            "プロテインバー"
+          ],
+          "image_id": "wm_6b35ada635dc",
+          "image_ext": "jpg",
+          "drive_file_id": "1a88p38IObajVAJL2naONcHo_M1iuJsqj"
         }
       ]
     }
