@@ -63678,6 +63678,34 @@
           "image_id": "wm_05992c62db34",
           "image_ext": "jpg",
           "drive_file_id": "12_-9ONScxYVxD3zszgdfjoZbCG3P_pOV"
+        },
+        {
+          "id": "item_46cb5c463e4a",
+          "name": "ガパオライス・炭酸水・タンブラー",
+          "items_extracted": [
+            "ガパオライス",
+            "炭酸水",
+            "タンブラー"
+          ],
+          "image_id": "wm_eecd9549cf38",
+          "image_ext": "jpg",
+          "drive_file_id": "1CJr2IW4Soc7jz4gMS2drl_8kbx0FpFQo"
+        }
+      ]
+    },
+    "2026-09-29": {
+      "items": [
+        {
+          "id": "item_a6734e974b3c",
+          "name": "グラノーラ・牛乳・バナナ",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "バナナ"
+          ],
+          "image_id": "wm_cab353608ee4",
+          "image_ext": "jpg",
+          "drive_file_id": "1CUW7-HV1jbkGkEuP03dQkBSolRqD3p96"
         }
       ]
     }
