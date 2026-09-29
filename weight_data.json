@@ -63706,6 +63706,21 @@
           "image_id": "wm_cab353608ee4",
           "image_ext": "jpg",
           "drive_file_id": "1CUW7-HV1jbkGkEuP03dQkBSolRqD3p96"
+        },
+        {
+          "id": "item_7341af8d0724",
+          "name": "白米・黒ごま・鶏の唐揚げ・きんぴらごぼう・漬物・フライドポテト",
+          "items_extracted": [
+            "白米",
+            "黒ごま",
+            "鶏の唐揚げ",
+            "きんぴらごぼう",
+            "漬物",
+            "フライドポテト"
+          ],
+          "image_id": "wm_bbd36f2f5c47",
+          "image_ext": "jpg",
+          "drive_file_id": "1nlb6CJ62ANy3cMv5oZMkrsEkUWNcI0FJ"
         }
       ]
     }
