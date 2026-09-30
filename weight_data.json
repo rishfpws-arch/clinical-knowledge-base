@@ -63816,6 +63816,21 @@
           "drive_file_id": "1ApCwNWjM6jL4jtp4VAejaLNcKH35ep4o"
         }
       ]
+    },
+    "2026-10-01": {
+      "items": [
+        {
+          "id": "item_9f322755980d",
+          "name": "チョコクリームのふわもちぎりパン・午後の紅茶 おいしい無糖",
+          "items_extracted": [
+            "チョコクリームのふわもちぎりパン",
+            "午後の紅茶 おいしい無糖"
+          ],
+          "image_id": "wm_5ec013b5b671",
+          "image_ext": "jpg",
+          "drive_file_id": "1jCfzrX7cisW6n7O5j7UPOiXI5dJJVm4N"
+        }
+      ]
     }
   }
 }
