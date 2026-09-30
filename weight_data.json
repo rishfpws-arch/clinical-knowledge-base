@@ -63802,6 +63802,18 @@
           "image_id": "wm_494fdfef3743",
           "image_ext": "jpg",
           "drive_file_id": "1NweXw4aIXmpSEw3eEBMc4JSDhBKykOPP"
+        },
+        {
+          "id": "item_ddf9d62663d0",
+          "name": "ラーメン・カフェラテ・パン",
+          "items_extracted": [
+            "ラーメン",
+            "カフェラテ",
+            "パン"
+          ],
+          "image_id": "wm_1a488ba9a121",
+          "image_ext": "jpg",
+          "drive_file_id": "1ApCwNWjM6jL4jtp4VAejaLNcKH35ep4o"
         }
       ]
     }
