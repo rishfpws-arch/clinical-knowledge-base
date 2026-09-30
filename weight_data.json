@@ -63733,6 +63733,58 @@
           "image_id": "wm_6b35ada635dc",
           "image_ext": "jpg",
           "drive_file_id": "1a88p38IObajVAJL2naONcHo_M1iuJsqj"
+        },
+        {
+          "id": "item_eedb2354ddaa",
+          "name": "ミックスサンド・シロノワール・フライドポテト・エビフライ・スパゲッティ・ガーリックトースト・コーンスープ・コーヒー・ミルクコーヒー・サラダ",
+          "items_extracted": [
+            "ミックスサンド",
+            "シロノワール",
+            "フライドポテト",
+            "エビフライ",
+            "スパゲッティ",
+            "ガーリックトースト",
+            "コーンスープ",
+            "コーヒー",
+            "ミルクコーヒー",
+            "サラダ"
+          ],
+          "image_id": "wm_4b29c1350f15",
+          "image_ext": "jpg",
+          "drive_file_id": "1IsbeGsWQvjm4H4w6t7PGJMHpcmuKQoDX"
+        }
+      ]
+    },
+    "2026-09-30": {
+      "items": [
+        {
+          "id": "item_448b2eac0378",
+          "name": "ご飯・鶏肉のグリル・コールスローサラダ・漬物・野菜スープ・緑茶・レモン・ブロッコリー",
+          "items_extracted": [
+            "ご飯",
+            "鶏肉のグリル",
+            "コールスローサラダ",
+            "漬物",
+            "野菜スープ",
+            "緑茶",
+            "レモン",
+            "ブロッコリー"
+          ],
+          "image_id": "wm_33c8ae51acf4",
+          "image_ext": "jpg",
+          "drive_file_id": "1H9xapv_I4u7cZMbjQ23xr2jwb6-mDpld"
+        },
+        {
+          "id": "item_86e45118c9e6",
+          "name": "グラノーラ・牛乳・ヤクルト1000",
+          "items_extracted": [
+            "グラノーラ",
+            "牛乳",
+            "ヤクルト1000"
+          ],
+          "image_id": "wm_1e7ebbc20b01",
+          "image_ext": "jpg",
+          "drive_file_id": "1nIREQZVmRNx9oqUQqeJm3h5iHnYnk9QH"
         }
       ]
     }
