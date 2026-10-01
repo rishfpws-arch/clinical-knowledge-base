@@ -63842,6 +63842,21 @@
           "image_id": "wm_77d96bba7467",
           "image_ext": "jpg",
           "drive_file_id": "1N-QpjvWwA-wGFDFzftRTcaFn1AaB_oLb"
+        },
+        {
+          "id": "item_37342b320a8c",
+          "name": "白米・ハンバーグ・人参・ヤングコーン・鶏団子と人参の和え物・味噌汁",
+          "items_extracted": [
+            "白米",
+            "ハンバーグ",
+            "人参",
+            "ヤングコーン",
+            "鶏団子と人参の和え物",
+            "味噌汁"
+          ],
+          "image_id": "wm_687d443cab4d",
+          "image_ext": "jpg",
+          "drive_file_id": "1LSq8OZjj3cdPVK5mYwZPww4D8SQzkQCX"
         }
       ]
     }
