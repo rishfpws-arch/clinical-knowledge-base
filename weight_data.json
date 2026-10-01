@@ -63857,6 +63857,18 @@
           "image_id": "wm_687d443cab4d",
           "image_ext": "jpg",
           "drive_file_id": "1LSq8OZjj3cdPVK5mYwZPww4D8SQzkQCX"
+        },
+        {
+          "id": "item_84f9fa956dca",
+          "name": "カップ焼きそば・カフェラテ・ミネラルウォーター",
+          "items_extracted": [
+            "カップ焼きそば",
+            "カフェラテ",
+            "ミネラルウォーター"
+          ],
+          "image_id": "wm_8a1e17d02f97",
+          "image_ext": "jpg",
+          "drive_file_id": "1lRHjHuh-jW9ezgOyDb7bDbeY8zydd-e5"
         }
       ]
     }
