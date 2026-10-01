@@ -63829,6 +63829,19 @@
           "image_id": "wm_5ec013b5b671",
           "image_ext": "jpg",
           "drive_file_id": "1jCfzrX7cisW6n7O5j7UPOiXI5dJJVm4N"
+        },
+        {
+          "id": "item_223ebed36271",
+          "name": "おにぎりおかずセット・無糖アイスティー・カフェインレスコーヒー・プロテインバー",
+          "items_extracted": [
+            "おにぎりおかずセット",
+            "無糖アイスティー",
+            "カフェインレスコーヒー",
+            "プロテインバー"
+          ],
+          "image_id": "wm_77d96bba7467",
+          "image_ext": "jpg",
+          "drive_file_id": "1N-QpjvWwA-wGFDFzftRTcaFn1AaB_oLb"
         }
       ]
     }
