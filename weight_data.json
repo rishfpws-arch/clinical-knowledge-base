@@ -63871,6 +63871,87 @@
           "drive_file_id": "1lRHjHuh-jW9ezgOyDb7bDbeY8zydd-e5"
         }
       ]
+    },
+    "2026-10-03": {
+      "items": [
+        {
+          "id": "item_4022a2f846a4",
+          "name": "プリン・バニラアイス・コーヒー・カラメルソース",
+          "items_extracted": [
+            "プリン",
+            "バニラアイス",
+            "コーヒー",
+            "カラメルソース"
+          ],
+          "image_id": "wm_258716cf7f32",
+          "image_ext": "jpg",
+          "drive_file_id": "1PrMkOAPbXd1mNBH-lfpfOoaEGXVj-2Xp"
+        },
+        {
+          "id": "item_8c78701d83e5",
+          "name": "サラダ・水・スープ",
+          "items_extracted": [
+            "サラダ",
+            "水",
+            "スープ"
+          ],
+          "image_id": "wm_7c2b11c6f504",
+          "image_ext": "jpg",
+          "drive_file_id": "13R5d8_-HC6vcBeekOIAr3pUZyy5nUjCh"
+        },
+        {
+          "id": "item_ae6686fe574a",
+          "name": "ハンバーグ・目玉焼き・ライス・フライドポテト・ビーフシチュー・コーン・人参・スナップエンドウ・じゃがいも・コーヒー",
+          "items_extracted": [
+            "ハンバーグ",
+            "目玉焼き",
+            "ライス",
+            "フライドポテト",
+            "ビーフシチュー",
+            "コーン",
+            "人参",
+            "スナップエンドウ",
+            "じゃがいも",
+            "コーヒー"
+          ],
+          "image_id": "wm_7ebee3ced351",
+          "image_ext": "jpg",
+          "drive_file_id": "1pb181BxZy8yR_TpijtoxZH53MSqTyV6P"
+        },
+        {
+          "id": "item_ebc98fd1e9e6",
+          "name": "カップ麺・プロテインバー・タンブラー",
+          "items_extracted": [
+            "カップ麺",
+            "プロテインバー",
+            "タンブラー"
+          ],
+          "image_id": "wm_dc8f7e3bac5a",
+          "image_ext": "jpg",
+          "drive_file_id": "1Qom649hWDXqJGrsyH9BG13rUm31gfqMP"
+        }
+      ]
+    },
+    "2026-10-02": {
+      "items": [
+        {
+          "id": "item_10a55305b1e3",
+          "name": "鶏肉と玉ねぎの炒め物・大学芋・きゅうりの和え物・卵とえのきのスープ・雑穀米・納豆・韓国のり・プロテインバー",
+          "items_extracted": [
+            "鶏肉と玉ねぎの炒め物",
+            "大学芋",
+            "きゅうりの和え物",
+            "卵とえのきのスープ",
+            "雑穀米",
+            "納豆",
+            "韓国のり",
+            "プロテインバー"
+          ],
+          "image_id": "wm_d85b3959972f",
+          "image_ext": "jpg",
+          "drive_file_id": "1eeUwxIpYaozfQQ3ULPxmKrB6v10HXNbN"
+        }
+      ]
     }
   }
 }
