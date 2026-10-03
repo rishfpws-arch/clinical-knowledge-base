@@ -63929,6 +63929,19 @@
           "image_id": "wm_dc8f7e3bac5a",
           "image_ext": "jpg",
           "drive_file_id": "1Qom649hWDXqJGrsyH9BG13rUm31gfqMP"
+        },
+        {
+          "id": "item_6da085c13494",
+          "name": "温泉卵・豚肉と野菜の炒め物・ご飯・味噌汁",
+          "items_extracted": [
+            "温泉卵",
+            "豚肉と野菜の炒め物",
+            "ご飯",
+            "味噌汁"
+          ],
+          "image_id": "wm_a9284c48d526",
+          "image_ext": "jpg",
+          "drive_file_id": "1PamxxYLRIV6CM2TlINUuG2Leb9rciGra"
         }
       ]
     },
